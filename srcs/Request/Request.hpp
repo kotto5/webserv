@@ -5,7 +5,8 @@
 #include <map>
 #include <string>
 
-class Request {
+class Request
+{
 public:
 	// Constructors
 	Request(const std::string &method, const std::string &uri,
@@ -23,7 +24,7 @@ public:
 	std::string getUri() const;
 	std::string getHeader(const std::string &key) const;
 	std::string getBody() const;
-//
+
 private:
 	std::string _method;
 	std::string _uri;
