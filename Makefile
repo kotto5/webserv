@@ -4,6 +4,7 @@ CXXFLAGS = -Wall -Wextra -Werror -g
 # CXXFLAGS = -Wall -Wextra -Werror -fsanitize=address -g
 DFLAGS = -MMD -MP
 
+
 SRCDIR = srcs
 SRCS = $(wildcard $(SRCDIR)/*.c)
 OBJDIR = ./objs
