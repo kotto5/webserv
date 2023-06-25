@@ -1,5 +1,4 @@
 #include <gtest/gtest.h>
-#include "test.hpp"
 #include "Request.hpp"
 
 // 1. リクエストクラスが正しく生成されているか
