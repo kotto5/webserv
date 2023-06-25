@@ -6,7 +6,6 @@ DFLAGS = -MMD -MP
 SRCDIR = srcs
 SRCS = $(wildcard $(SRCDIR)/*.cpp)
 OBJDIR = ./objs
-INCLUDES = -Iincludes/
 
 OBJ := $(patsubst $(SRCDIR)%, $(OBJDIR)%, $(SRCS:%.cpp=%.o))
 DEPENDS := $(patsubst $(SRCDIR)%, $(OBJDIR)%, $(SRCS:%.cpp=%.d))
@@ -15,15 +14,14 @@ all: $(NAME)
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 	-mkdir -p $(@D)
-	$(CXX) $(CXXFLAGS) $(DFLAGS) $(INCLUDES) -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(DFLAGS) -c $< -o $@
 
 %.o: %.cpp
 	-mkdir -p $(@D)
-	$(CXX) $(CXXFLAGS) $(DFLAGS) $(INCLUDES) -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(DFLAGS) -c $< -o $@
 
-# for offline
 $(NAME): $(OBJ)
-	$(CXX) $(CXXFLAGS) $(OBJ)  $(INCLUDES) -o $@
+	$(CXX) $(CXXFLAGS) $(OBJ)  -o $@
 
 FORCE:
 

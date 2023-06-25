@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <cstdio>
 #include "server.hpp"
+#include <map>
 
 void set_non_blocking(int socket) {
     if (fcntl(socket, F_SETFL, O_NONBLOCK) == -1) {
@@ -40,4 +41,15 @@ int	array_delete(int (&array)[MAX_CLIENTS], int value){
 		i++;
 	}
 	return (1);
+}
+
+void partitionAndAddToMap(std::map<std::string, massages>& m, const std::string& inputStr, const std::string& keyword) {
+    size_t pos = inputStr.find(keyword);
+
+    if (pos != std::string::npos) {
+        std::string part1 = inputStr.substr(0, pos);
+        std::string part2 = inputStr.substr(pos + keyword.length());
+
+        m[keyword] = std::make_pair(part1, part2);
+    }
 }

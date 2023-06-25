@@ -19,8 +19,8 @@
 #define MAX_CLIENTS 1024
 
 typedef enum E_STATUS {
-    RECV_ERROR = -1,
     RECV_CONTINUE = 0,
+    RECV_ERROR = -1,
     RECV_FINISHED = 1
 } T_STATUS;
 
@@ -38,10 +38,11 @@ class Server {
         ~Server();
 		int	get_server_socket();
 		int	handle_new_connection();
-		int	recieve(int &activity, fd_set &read_fds);
+		// int	recieve(int &activity, fd_set &read_fds);
+		int	recieve(int &activity, fd_set &read_fds, int (&socket_recv)[MAX_CLIENTS], int (&socket_send)[MAX_CLIENTS]);
     // flags と len はおいおい。
     static T_STATUS recv(int socket_fd, std::string &request);
-
+	static	const Request	&make_request(const std::string &row_request);
 };
 
 

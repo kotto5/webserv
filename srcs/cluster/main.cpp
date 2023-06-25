@@ -6,8 +6,12 @@ int main(){
     Server server;
 
 	int	server_socket = server.get_server_socket();
-	int	client_sockets[MAX_CLIENTS];
-	bzero(client_sockets, sizeof(int) * MAX_CLIENTS);
+	int	sockets_recv[MAX_CLIENTS];
+	int	sockets_send[MAX_CLIENTS];
+	int	client_count = 0;
+
+	bzero(sockets_recv, sizeof(int) * MAX_CLIENTS);
+	bzero(sockets_send, sizeof(int) * MAX_CLIENTS);
 	int	fd;
     while (1) {
         fd_set read_fds;
@@ -17,7 +21,7 @@ int main(){
         int max_fd = server_socket;
 
         for (int i = 0; i < MAX_CLIENTS; i++) {
-            int sd = client_sockets[i];
+            int sd = sockets_recv[i];
             if (sd > 0) {
                 FD_SET(sd, &read_fds);
             }
@@ -34,16 +38,17 @@ int main(){
         }
 		std::cout << "after" << std::endl;
 
-        if (FD_ISSET(server_socket, &read_fds)) {
+        if (FD_ISSET(server_socket, &read_fds) && client_count < MAX_CLIENTS) {
 			fd = server.handle_new_connection();
 			if (fd < 0)
 				exit(1);
-			array_insert(client_sockets, fd);
+			array_insert(sockets_recv, fd);
 			activity--;
+			client_count++;
         }
 		std::cout << "foo" << std::endl;
 
 		if (activity)
-			server.recieve(activity, read_fds);
+			server.recieve(activity, read_fds, sockets_recv, sockets_send);
     }
 }

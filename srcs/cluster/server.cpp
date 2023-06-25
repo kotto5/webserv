@@ -1,5 +1,6 @@
 #include "server.hpp"
 #include "utils.hpp"
+#include "../../Request/Request.hpp"
 
 Server::Server() {
     server_socket_ = socket(AF_INET, SOCK_STREAM, 0);
@@ -70,16 +71,24 @@ int	Server::handle_new_connection(){
 	return (new_socket);
 }
 
-int	Server::recieve(int &activity, fd_set &read_fds){
+int	Server::recieve(int &activity, fd_set &read_fds,
+	int (&socket_recv)[MAX_CLIENTS], int (&socket_send)[MAX_CLIENTS]){
 	std::map<int, massages>::iterator itr;
-	int		fd;
+	int			fd;
+	T_STATUS	ret;
 
 	for (itr = client_sockets.begin(); itr != client_sockets.end() && activity; itr++) {
 		fd = itr->first;
 		if (FD_ISSET(fd, &read_fds)) {
-			Server::recv(fd, itr->second.first);
-			// makeresponse?
-			// send()
+			ret = Server::recv(fd, itr->second.first);
+			if (ret == RECV_ERROR)
+				exit(1);
+			else if (ret == RECV_FINISHED)
+			{
+				array_insert(socket_send, fd);
+				array_delete(socket_recv, fd);
+				const Request	&request = make_request(itr->second.first);
+			}
 			activity--;
 		}
 	}
@@ -88,4 +97,29 @@ int	Server::recieve(int &activity, fd_set &read_fds){
 
 int	Server::get_server_socket(){
 	return (this->server_socket_);
+}
+
+const Request	&make_request(const std::string &row_request){
+	std::string method;
+	std::string uri;
+	std::map<std::string, std::string> headers;
+	std::string body;
+
+    std::string::size_type startPos = 0;
+    std::string::size_type endPos;
+	std::string	line;
+
+    while ((endPos = row_request.find("\r\n", startPos)) != std::string::npos)
+	{
+		line = row_request.substr(startPos, endPos);
+		if (startPos == 0){
+			std::string::size_type	tmp = line.find(": ");
+			method = line.substr(0, tmp);
+			uri = line.substr(tmp + 2);
+		}
+		else
+			partitionAndAddToMap(headers, line, ": ");
+        startPos = endPos + 2; // Skip CRLF
+    }
+	return (Request(method, uri, headers, body));
 }
