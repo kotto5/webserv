@@ -1,65 +1,67 @@
 #include "HttpStatus.hpp"
 
-const std::map<int, std::string> HttpStatus::HTTP_STATUS = {
-	{100, "Continue"},
-	{101, "Switching Protocols"},
+std::map<int, std::string> createHttpStatusMap()
+{
+	std::map<int, std::string> httpStatus;
+	httpStatus[100] = "Continue";
+	httpStatus[101] = "Switching Protocols";
+	httpStatus[200] = "OK";
+	httpStatus[201] = "Created";
+	httpStatus[202] = "Accepted";
+	httpStatus[203] = "Non-Authoritative Information";
+	httpStatus[204] = "No Content";
+	httpStatus[205] = "Reset Content";
+	httpStatus[206] = "Partial Content";
+	httpStatus[300] = "Multiple Choices";
+	httpStatus[301] = "Moved Permanently";
+	httpStatus[302] = "Found";
+	httpStatus[303] = "See Other";
+	httpStatus[304] = "Not Modified";
+	httpStatus[305] = "Use Proxy";
+	httpStatus[306] = "Unused";
+	httpStatus[307] = "Temporary Redirect";
+	httpStatus[308] = "Permanent Redirect";
+	httpStatus[400] = "Bad Request";
+	httpStatus[401] = "Unauthorized";
+	httpStatus[403] = "Forbidden";
+	httpStatus[404] = "Not Found";
+	httpStatus[405] = "Method Not Allowed";
+	httpStatus[406] = "Not Acceptable";
+	httpStatus[407] = "Proxy Authentication Required";
+	httpStatus[408] = "Request Timeout";
+	httpStatus[409] = "Conflict";
+	httpStatus[410] = "Gone";
+	httpStatus[411] = "Length Required";
+	httpStatus[412] = "Precondition Failed";
+	httpStatus[413] = "Payload Too Large";
+	httpStatus[414] = "URI Too Long";
+	httpStatus[415] = "Unsupported Media Type";
+	httpStatus[416] = "Range Not Satisfiable";
+	httpStatus[417] = "Expectation Failed";
+	httpStatus[418] = "I'm a teapot";
+	httpStatus[421] = "Misdirected Request";
+	httpStatus[422] = "Unprocessable Entity";
+	httpStatus[423] = "Locked";
+	httpStatus[424] = "Failed Dependency";
+	httpStatus[425] = "Too Early";
+	httpStatus[426] = "Upgrade Required";
+	httpStatus[428] = "Precondition Required";
+	httpStatus[429] = "Too Many Requests";
+	httpStatus[431] = "Request Header Fields Too Large";
+	httpStatus[451] = "Unavailable For Legal Reasons";
+	httpStatus[500] = "Internal Server Error";
+	httpStatus[501] = "Not Implemented";
+	httpStatus[502] = "Bad Gateway";
+	httpStatus[503] = "Service Unavailable";
+	httpStatus[504] = "Gateway Timeout";
+	httpStatus[505] = "HTTP Version Not Supported";
+	httpStatus[506] = "Variant Also Negotiates";
+	httpStatus[507] = "Insufficient Storage";
+	httpStatus[508] = "Loop Detected";
+	httpStatus[510] = "Not Extended";
+	httpStatus[511] = "Network Authentication Required";
 
-	{200, "OK"},
-	{201, "Created"},
-	{202, "Accepted"},
-	{203, "Non-Authoritative Information"},
-	{204, "No Content"},
-	{205, "Reset Content"},
-	{206, "Partial Content"},
+	return httpStatus;
+}
 
-	{300, "Multiple Choices"},
-	{301, "Moved Permanently"},
-	{302, "Found"},
-	{303, "See Other"},
-	{304, "Not Modified"},
-	{305, "Use Proxy"},
-	{306, "Unused"},
-	{307, "Temporary Redirect"},
-	{308, "Permanent Redirect"},
-
-	{400, "Bad Request"},
-	{401, "Unauthorized"},
-	{403, "Forbidden"},
-	{404, "Not Found"},
-	{405, "Method Not Allowed"},
-	{406, "Not Acceptable"},
-	{407, "Proxy Authentication Required"},
-	{408, "Request Timeout"},
-	{409, "Conflict"},
-	{410, "Gone"},
-	{411, "Length Required"},
-	{412, "Precondition Failed"},
-	{413, "Payload Too Large"},
-	{414, "URI Too Long"},
-	{415, "Unsupported Media Type"},
-	{416, "Range Not Satisfiable"},
-	{417, "Expectation Failed"},
-	{418, "I'm a teapot"},
-	{421, "Misdirected Request"},
-	{422, "Unprocessable Entity"},
-	{423, "Locked"},
-	{424, "Failed Dependency"},
-	{425, "Too Early"},
-	{426, "Upgrade Required"},
-	{428, "Precondition Required"},
-	{429, "Too Many Requests"},
-	{431, "Request Header Fields Too Large"},
-	{451, "Unavailable For Legal Reasons"}
-
-	{500, "Internal Server Error"},
-	{501, "Not Implemented"},
-	{502, "Bad Gateway"},
-	{503, "Service Unavailable"},
-	{504, "Gateway Timeout"},
-	{505, "HTTP Version Not Supported"},
-	{506, "Variant Also Negotiates"},
-	{507, "Insufficient Storage"},
-	{508, "Loop Detected"},
-	{510, "Not Extended"},
-	{511, "Network Authentication Required"}
-};
+const std::map<int, std::string> HttpStatus::HTTP_STATUS = createHttpStatusMap();

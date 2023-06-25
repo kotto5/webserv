@@ -1,5 +1,5 @@
 #include "Response.hpp"
-#include "HettpStatus.hpp"
+#include "HttpStatus.hpp"
 
 // Constructors
 Response::Response(const int status, std::map<std::string, std::string> headers,
@@ -58,7 +58,7 @@ std::string Response::getStatusMessage(int statusCode) const
 }
 
 /**
- * @brief レスポンス内容を平文に変換する。
+ * @brief レスポンス内容を平文に変換する
  *
  * @return std::string レスポンス内容
  */
