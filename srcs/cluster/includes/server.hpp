@@ -2,10 +2,21 @@
 #define SERVER_HPP
 
 #include <string>
-#include <sys/socket.h>
-#include <sys/socket.h>
 #include <netinet/in.h>
 #include <fcntl.h>
+#include <map>
+#include <iostream>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/select.h>
+
+#define BUFFER_LEN 1024
+#define MAX_CLIENTS 1024
 
 typedef enum E_STATUS {
     RECV_ERROR = -1,
@@ -13,64 +24,28 @@ typedef enum E_STATUS {
     RECV_FINISHED = 1
 } T_STATUS;
 
+typedef	std::pair<std::string, std::string>	massages;
+
 class Server {
     private:
         int server_socket_;
+		// std::map<int, std::pair<std::string, std::string>> client_sockets;
+		// std::map<int, std::pair<std::string, std::string>> client_sockets;
+		std::map<int, massages> client_sockets;
+
     public:
         Server();
         ~Server();
+		int	get_server_socket();
+		int	handle_new_connection();
+		int	recieve(int &activity, fd_set &read_fds);
     // flags と len はおいおい。
-    T_STATUS recv(int socket_fd, std::string &request);
+    static T_STATUS recv(int socket_fd, std::string &request);
+
 };
 
-Server::Server() {
-    server_socket_ = socket(AF_INET, SOCK_STREAM, 0);
 
-    struct sockaddr_in server_address;
-    server_address.sin_family = AF_INET;
-    server_address.sin_port = htons(8000);
-    server_address.sin_addr.s_addr = INADDR_ANY;
-
-    int yes = 1;
-    if (setsockopt(server_socket_, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1)
-    {
-        perror("setsockopt");
-        exit(1);
-    }
-    if (bind(server_socket_, (struct sockaddr *)&server_address, sizeof(server_address)) < 0){
-        perror("ERROR on binding");
-        exit(1);
-    }
-    if (listen(server_socket_, 100) < 0){
-        perror("ERROR on listening");
-        exit(1);
-    }
-
-    set_non_blocking(server_socket_);
-}
-
-Server::~Server() {}
-
-#include <sys/socket.h>
-
-#define BUFFER_LEN 1024
-
-bool    does_finish(std::string &request){
-    if (request.find("content-length: ") && request.find("\r\n"))
-        return (true);
-}
-
-T_STATUS recv(int socket_fd, std::string &request) {
-    ssize_t recv_ret;
-    static char buffer[BUFFER_LEN];
-
-    recv_ret = recv(socket_fd, buffer, BUFFER_LEN, 0);
-    if (recv_ret == -1)
-        return (RECV_ERROR);
-    request += buffer;
-    if (does_finish(request) == false)
-        return (RECV_CONTINUE);
-    return (RECV_FINISHED);
-}
 
 #endif
+
+// 
