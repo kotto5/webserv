@@ -56,8 +56,8 @@ Server::~Server() {}
 #define BUFFER_LEN 1024
 
 bool    does_finish(std::string &request){
-    (void)request;
-    return (true);
+    if (request.find("content-length: ") && request.find("\r\n"))
+        return (true);
 }
 
 T_STATUS recv(int socket_fd, std::string &request) {
