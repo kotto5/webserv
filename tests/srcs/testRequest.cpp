@@ -5,6 +5,7 @@
 // 1. リクエストクラスが正しく生成されているか
 TEST(RequestTest, getRequest)
 {
+	// テストデータの挿入
 	std::string method = "GET";
 	std::string url = "/index.html";
 	std::map<std::string, std::string> headers;
@@ -12,8 +13,10 @@ TEST(RequestTest, getRequest)
 	headers.insert(std::make_pair("content-type", "text/html"));
 	std::string body = "Hello World";
 
+	// インスタンスの生成
 	Request rq(method, url, headers, body);
 
+	// テストデータの検証
 	EXPECT_EQ(rq.getMethod(), "GET");
 	EXPECT_EQ(rq.getUri(), "/index.html");
 	EXPECT_EQ(rq.getHeader("content-length"), "100");
@@ -24,6 +27,7 @@ TEST(RequestTest, getRequest)
 // 2. リクエストクラスが正しくコピーされているか
 TEST(RequestTest, copyRequest)
 {
+	// テストデータの挿入
 	std::string method = "GET";
 	std::string url = "/index.html";
 	std::map<std::string, std::string> headers;
@@ -31,9 +35,11 @@ TEST(RequestTest, copyRequest)
 	headers.insert(std::make_pair("content-type", "text/html"));
 	std::string body = "Hello World";
 
+	// インスタンスの生成とコピー
 	Request rq(method, url, headers, body);
 	Request rq2(rq);
 
+	// テストデータの検証
 	EXPECT_EQ(rq.getMethod(), "GET");
 	EXPECT_EQ(rq.getUri(), "/index.html");
 	EXPECT_EQ(rq.getHeader("content-length"), "100");
