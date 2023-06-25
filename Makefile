@@ -1,62 +1,67 @@
-NAME = webserv
-CXX = c++
-CXXFLAGS = -Wall -Wextra -Werror -g
-# CXXFLAGS = -Wall -Wextra -Werror -fsanitize=address -g
-DFLAGS = -MMD -MP
+NAME := webserv
+CXX := c++
+CXXFLAGS := -Wall -Wextra -Werror
+DFLAGS := -MMD -MP
 
+PROJECT_DIR := $(CURDIR)
 
-SRCDIR = srcs
-SRCS = $(wildcard $(SRCDIR)/*.c)
+SRCDIR := srcs
+SRCS := $(shell find $(SRCDIR) -type f -name "*.cpp")
+
 OBJDIR = ./objs
-LIBFTDIR = ./libft
-LIBFT = $(LIBFTDIR)/libft.a
 
-OBJ := $(patsubst $(SRCDIR)%, $(OBJDIR)%, $(SRCS:%.c=%.o))
-DEPENDS := $(patsubst $(SRCDIR)%, $(OBJDIR)%, $(SRCS:%.c=%.d))
+OBJS := $(patsubst $(SRCDIR)%, $(OBJDIR)%, $(SRCS:%.cpp=%.o))
+DEPENDS := $(patsubst $(SRCDIR)%, $(OBJDIR)%, $(SRCS:%.cpp=%.d))
 
 all: $(NAME)
 
-$(OBJDIR)/%.o: $(SRCDIR)/%.c
-    -mkdir -p $(@D)
-    $(CXX) $(CXXFLAGS) $(DFLAGS) $(INCLUDES) -c $< -o $@
+$(OBJDIR)/%.o: $(SRCDIR)/%.cpp
+	-mkdir -p $(@D)
+	$(CXX) $(CXXFLAGS) $(DFLAGS) $(INCLUDES) -c $< -o $@
 
-%.o: %.c
-    -mkdir -p $(@D)
-    $(CXX) $(CXXFLAGS) $(DFLAGS) $(INCLUDES) -c $< -o $@
+%.o: %.cpp
+	-mkdir -p $(@D)
+	$(CXX) $(CXXFLAGS) $(DFLAGS) $(INCLUDES) -c $< -o $@
 
 # for offline
-$(NAME): $(LIBFT) $(OBJ)
-    $(CXX) $(CXXFLAGS) $(OBJ) $(LIBFT) $(INCLUDES) -L/usr/X11R6/lib -lmlx -lX11 -lXext -framework OpenGL -framework AppKit -o $@
-
-$(LIBFT): FORCE
-    make -C ./$(LIBFTDIR)
+$(NAME): $(OBJS)
+	$(CXX) $(CXXFLAGS) $(OBJS) $(INCLUDES) -o $@
 
 FORCE:
 
 clean:
-    rm -f $(OBJ) $(DEPENDS)
-    make clean -C $(LIBFTDIR)
+	rm -f $(OBJS) $(DEPENDS)
 
 fclean: clean
-    rm -f $(NAME)
-    make fclean -C $(LIBFTDIR)
-
-NAME_DEBUG = debugfile
-CXXFLAGS_DEBUG = -g
-
-$(NAME_DEBUG): $(LIBFT) $(LIBMLX) $(OBJ)
-    @printf "$(GREEN)"
-    $(CXX) $(CXXFLAGS) $(OBJ) $(LIBFT) $(INCLUDES) -L/usr/X11R6/lib -lmlx -lX11 -lXext -framework OpenGL -framework AppKi -o $@
-    @printf "$(RESET)"
-
-debug: CXXFLAGS += $(CXXFLAGS_DEBUG)
-debug: $(NAME_DEBUG)
+	rm -f $(NAME)
 
 re: fclean all
 
-.PHONY: all clean fclean re FORCE
+CXXFLAGS_DEBUG = -g
 
-norm:
-    norminette
+# Unit tests
+TEST_SRCS := $(shell find tests/srcs -type f -name "*.cpp")
+TEST_OBJDIR := ./tests/objs
+TEST_OBJS := $(patsubst tests/srcs/%, $(TEST_OBJDIR)/%, $(TEST_SRCS:%.cpp=%.o)) $(filter-out ./objs/main.o, $(OBJS))
+TEST_NAME := test_webserv
+TEST_CXXFLAGS := -Wall -Wextra -Werror -std=c++14 -g
+TEST_LDFLAGS := -L$(PROJECT_DIR)/tests/lib -lgtest -lgtest_main
+SRC_DIRS := $(shell find $(PROJECT_DIR)/srcs -type d)
+INC_FLAGS := $(addprefix -I, $(SRC_DIRS))
+TEST_INCS := -I$(PROJECT_DIR)/tests/include $(INC_FLAGS)
+
+$(TEST_NAME): $(TEST_OBJS)
+	-mkdir -p $(@D)
+	$(CXX) $(TEST_CXXFLAGS) $(TEST_INCS) $(TEST_OBJS) $(TEST_LDFLAGS) -o $(TEST_NAME)
+
+$(TEST_OBJDIR)/%.o: tests/srcs/%.cpp
+	-mkdir -p $(@D)
+	$(CXX) $(CXXFLAGS) $(TEST_INCS) $(TEST_CXXFLAGS) -c $< -o $@
+
+ut: $(TEST_NAME)
+	./$(TEST_NAME)
+	rm $(TEST_NAME)
+
+.PHONY: all clean fclean re FORCE
 
 -include $(DEPENDS)
