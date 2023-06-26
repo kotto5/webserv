@@ -23,21 +23,27 @@ GetHandler &GetHandler::operator=(const GetHandler &rhs)
 	return *this;
 }
 
+/**
+ * @brief GETメソッドの処理を行う
+ *
+ * @param request リクエスト
+ * @return Response レスポンス
+ */
 Response GetHandler::handleRequest(const Request &request) const
 {
-	(void)request;
-	std::ifstream htmlFile("docs/index.html");
-
+	// URIからファイルを開く
+	std::ifstream htmlFile(request.getUri());
 	if (!htmlFile.is_open())
 	{
 		throw std::runtime_error("Could not open file");
 	}
+	
+	// ファイルの内容を読み込む
 	std::stringstream buffer;
 	buffer << htmlFile.rdbuf();
 	htmlFile.close();
-	std::string body = buffer.str();
 
-	std::cout << body << std::endl;
-	std::map<std::string, std::string> headers;
-	return Response(200, headers, body);
+	// レスポンスを作成して返す
+	Response res(200, std::map<std::string, std::string>(), buffer.str());
+	return res;
 }
