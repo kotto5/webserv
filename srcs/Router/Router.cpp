@@ -1,5 +1,6 @@
 #include "Router.hpp"
 #include "../Handler/GetHandler.hpp"
+#include <assert.h>
 
 // Constructors
 Router::Router(): _handler(NULL){}
@@ -22,7 +23,7 @@ Router & Router::operator=(const Router &rhs)
 	return *this;
 }
 
-IHandler *Router::getHandler(const Request &request)
+IHandler *Router::findHandler(const Request &request)
 {
 	// configの情報を取得
 	// パスが存在するか確認

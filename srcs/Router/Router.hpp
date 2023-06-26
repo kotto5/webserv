@@ -20,7 +20,7 @@ public:
 	Router &operator=(const Router &assign);
 
 	// Member functions
-	IHandler *getHandler(const Request &request);
+	IHandler *findHandler(const Request &request);
 
 private:
 	IHandler *_handler;
