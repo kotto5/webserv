@@ -31,6 +31,7 @@ IHandler *Router::findHandler(const Request &request)
 	// メソッドに対応するhandlerを取得
 	std::string method = request.getMethod();
 
+	// GETメソッドの場合
 	if (method == "GET")
 	{
 		_handler = new GetHandler();

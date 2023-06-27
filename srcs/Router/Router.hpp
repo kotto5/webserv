@@ -11,13 +11,13 @@ class Router
 public:
 	// Constructors
 	Router();
-	Router(const Router &copy);
+	Router(const Router &other);
 
 	// Destructor
 	~Router();
 
 	// Operators
-	Router &operator=(const Router &assign);
+	Router &operator=(const Router &rhs);
 
 	// Member functions
 	IHandler *findHandler(const Request &request);
