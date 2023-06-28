@@ -1,4 +1,10 @@
 #include "ConfigParser.hpp"
+#include "HTTPContext.hpp"
+#include "ServerContext.hpp"
+#include "LocationContext.hpp"
+#include <fstream>
+#include <vector>
+#include <string>
 
 ConfigParser::ConfigParser(Config& config):
 	_config(config)
@@ -35,7 +41,7 @@ void ConfigParser::getAndSplitLines(std::ifstream& ifs)
 
 std::vector<std::string> ConfigParser::splitLine(const std::string& line)
 {
-	std::vector<std:string> words;
+	std::vector<std::string> words;
 	size_t start = 0;
 	size_t end = 0;
 
@@ -116,11 +122,7 @@ void ConfigParser::parseHTTPContext(std::vector<std::vector<std::string> >::iter
 		}
 		if ((*it).at(0) == "access_log")
 		{
-			main_context.setAccessLog((*it).at(1));
-		}
-		else
-		{
-			//exception
+			http_context.setAccessLogFile((*it).at(1));
 		}
 		it++;
 		if ((*it).size() == 0)
@@ -130,11 +132,7 @@ void ConfigParser::parseHTTPContext(std::vector<std::vector<std::string> >::iter
 		}
 		if ((*it).at(0) == "error_log")
 		{
-			main_context.setErrorLog((*it).at(1));
-		}
-		else
-		{
-			//exception
+			http_context.setErrorLogFile((*it).at(1));
 		}
 	}
 }
@@ -173,4 +171,24 @@ void ConfigParser::parseServerContext(std::vector<std::vector<std::string> >::it
 		}
 		it++;
 	}
+	_config.a
 }
+
+void ConfigParser::parseLocationContext(std::vector<std::vector<std::string> >::iterator& it)
+{
+	LocationContext location_context = LocationContext();
+
+	if ((*it).size() != 2 || (*it).at(1) != "{")
+	{
+		//exception
+	}
+	it++;
+	while (_lines.end())
+	{
+		if ((*it).size() == 0)
+		{
+			it++;
+			continue;
+		}
+		if (*it).at(0) == 
+	}

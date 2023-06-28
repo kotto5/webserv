@@ -3,7 +3,7 @@
 
 #include <string>
 #include <map>
-#include "ServerConfig.hpp"
+#include "ServerContext.hpp"
 
 class Config
 {
@@ -11,11 +11,11 @@ class Config
         Config();
         ~Config();
         void readFile(const std::string& filepath);
-        void addServer(const ServerConfig& server_config);
-        const std::map<int, std::vector<ServerConfig> >& getServers() const;
+        void addServer(const ServerContext& server_config);
+        const std::map<int, std::vector<ServerContext> >& getServers() const;
 
     private:
-        std::map<int, std::vector<ServerConfig> > _servers;
+        std::map<int, std::vector<ServerContext> > _servers;
 };
 
 #endif
