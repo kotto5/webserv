@@ -138,3 +138,39 @@ void ConfigParser::parseHTTPContext(std::vector<std::vector<std::string> >::iter
 		}
 	}
 }
+
+void ConfigParser::parseServerContext(std::vector<std::vector<std::string> >::iterator& it)
+{
+	ServerContext server_context = ServerContext();
+
+	if ((*it).size() != 2 || (*it).at(1) != "{")
+	{
+		//exception
+	}
+	it++;
+	while (it != _lines.end())
+	{
+		if ((*it).size() == 0)
+		{
+			it++;
+			continue;
+		}
+		if ((*it).at(0) == "listen")
+		{
+			server_context.setListen((*it).at(1));
+		}
+		else if ((*it).at(0) == "server_name")
+		{
+			server_context.setServerName((*it).at(1));
+		}
+		else if ((*it).at(0) == "location")
+		{
+			parseLocationContext(it);
+		}
+		else
+		{
+			//exception
+		}
+		it++;
+	}
+}
