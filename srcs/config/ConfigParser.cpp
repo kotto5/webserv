@@ -5,14 +5,42 @@
 #include <fstream>
 #include <vector>
 #include <string>
+#include <iostream>
 
 ConfigParser::ConfigParser(Config& config):
+	_line_number(0),
 	_config(config)
 {
 }
 
 ConfigParser::~ConfigParser()
 {
+}
+
+void ConfigParser::setDirectiveType(const std::string& directive)
+{
+	if (directive == "http")
+		_directive_type = HTTP;
+	else if (directive == "access_log")
+		_directive_type = ACCESS_LOG;
+	else if (directive == "error_log")
+		_directive_type = ERROR_LOG;
+	else if (directive == "server")
+		_directive_type = SERVER;
+	else if (directive == "listen")
+		_directive_type = LISTEN;
+	else if (directive == "server_name")
+		_directive_type = SERVER_NAME;
+	else if (directive == "location")
+		_directive_type = LOCATION;
+	else if (directive == "alias")
+		_directive_type = ALIAS;
+	else if (directive == "index")
+		_directive_type = INDEX;
+	else if (directive == "error_page")
+		_directive_type = ERROR_PAGE;
+	//else
+		//exception
 }
 
 void ConfigParser::parseFile(const std::string& filepath)
@@ -22,7 +50,7 @@ void ConfigParser::parseFile(const std::string& filepath)
 
 	if (!ifs)
 	{
-		//exception
+		std::cerr << "Open Error" << std::endl;
 	}
 	getAndSplitLines(ifs);
 	ifs.close();
@@ -67,128 +95,91 @@ std::vector<std::string> ConfigParser::splitLine(const std::string& line)
 
 void ConfigParser::parseLines()
 {
-	std::vector<std::vector<std::string> >::iterator it = _lines.begin();
-	std::vector<std::vector<std::string> >::iterator ite = _lines.end();
-
-	while (it != ite)
+	//parse each line
+	for ( ; _line_number < _lines.size(); _line_number++)
 	{
-		if ((*it).size() == 0)
-		{
-			it++;
-			continue;
-		}
-		if ((*it).at(0) == "http")
-		{
-			parseHTTPContext(it);
-		}
-		else
-		{
-			//exception
-		}
-		it++;
-		if ((*it).size() == 0)
-		{
-			it++;
-			continue;
-		}
-		if ((*it).at(0) == "server")
-		{
-			parseServerContext(it);
-		}
-		else
-		{
-			//exception
-		}
-		it++;
+		_one_line.clear();
+		_one_line = _lines[_line_number];
+		if (_one_line.empty())
+			continue ;
+		if (_one_line[0] == "}")
+			break ;
+		setDirectiveType(_one_line[0]);
+		// error handling
 
+		if (_directive_type == HTTP)
+			setHTTPContext();
 	}
+	
 }
 
-void ConfigParser::parseHTTPContext(std::vector<std::vector<std::string> >::iterator& it)
+void ConfigParser::setHTTPContext()
 {
 	HTTPContext http_context = HTTPContext();
 
-	if ((*it).size() != 2 || (*it).at(1) != "{")
+	_line_number++;
+	for ( ; _line_number < _lines.size(); _line_number++)
 	{
-		//exception
-	}
-	it++;
-	while (it != _lines.end())
-	{
-		if ((*it).size() == 0)
-		{
-			it++;
-			continue;
-		}
-		if ((*it).at(0) == "access_log")
-		{
-			http_context.setAccessLogFile((*it).at(1));
-		}
-		it++;
-		if ((*it).size() == 0)
-		{
-			it++;
-			continue;
-		}
-		if ((*it).at(0) == "error_log")
-		{
-			http_context.setErrorLogFile((*it).at(1));
-		}
+		_one_line.clear();
+		_one_line = _lines[_line_number];
+		if (_one_line.empty())
+			continue ;
+		if (_one_line[0] == "}")
+			break ;
+		setDirectiveType(_one_line[0]);
+		if (_directive_type == ACCESS_LOG)
+			http_context.setAccessLogFile(_one_line[1]);
+		else if (_directive_type == ERROR_LOG)
+			http_context.setErrorLogFile(_one_line[1]);
+		else if (_directive_type == SERVER)
+			setServerContext();
 	}
 }
 
-void ConfigParser::parseServerContext(std::vector<std::vector<std::string> >::iterator& it)
+void ConfigParser::setServerContext()
 {
 	ServerContext server_context = ServerContext();
 
-	if ((*it).size() != 2 || (*it).at(1) != "{")
+	_line_number++;
+	for ( ; _line_number < _lines.size(); _line_number++)
 	{
-		//exception
+		_one_line.clear();
+		_one_line = _lines[_line_number];
+		if (_one_line.empty())
+			continue ;
+		if (_one_line[0] == "}")
+			break ;
+		setDirectiveType(_one_line[0]);
+		if (_directive_type == LISTEN)
+			server_context.setListen(std::stoi(_one_line[1]));
+		else if (_directive_type == SERVER_NAME)
+			server_context.setServerName(_one_line[1]);
+		else if (_directive_type == LOCATION)
+			setLocationContext();
 	}
-	it++;
-	while (it != _lines.end())
-	{
-		if ((*it).size() == 0)
-		{
-			it++;
-			continue;
-		}
-		if ((*it).at(0) == "listen")
-		{
-			server_context.setListen((*it).at(1));
-		}
-		else if ((*it).at(0) == "server_name")
-		{
-			server_context.setServerName((*it).at(1));
-		}
-		else if ((*it).at(0) == "location")
-		{
-			parseLocationContext(it);
-		}
-		else
-		{
-			//exception
-		}
-		it++;
-	}
-	_config.a
+	//http_context.addServerContext(server_context);
 }
 
-void ConfigParser::parseLocationContext(std::vector<std::vector<std::string> >::iterator& it)
+void ConfigParser::setLocationContext()
 {
 	LocationContext location_context = LocationContext();
 
-	if ((*it).size() != 2 || (*it).at(1) != "{")
+	_line_number++;
+	for ( ; _line_number < _lines.size(); _line_number++)
 	{
-		//exception
+		_one_line.clear();
+		_one_line = _lines[_line_number];
+		if (_one_line.empty())
+			continue ;
+		if (_one_line[0] == "}")
+			break ;
+		setDirectiveType(_one_line[0]);
+		if (_directive_type == ALIAS)
+			location_context.setAlias(_one_line[1]);
+		else if (_directive_type == INDEX)
+			location_context.setIndex(_one_line[1]);
+		else if (_directive_type == ERROR_PAGE)
+			location_context.addErrorPage(std::stoi(_one_line[1]), _one_line[2]);
 	}
-	it++;
-	while (_lines.end())
-	{
-		if ((*it).size() == 0)
-		{
-			it++;
-			continue;
-		}
-		if (*it).at(0) == 
-	}
+	//server_context.addLocationContext(location_context);
+}

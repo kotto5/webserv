@@ -14,8 +14,8 @@ class HTTPContext
 		const std::string& getErrorLogFile() const;
 
 	private:
-		const std::string _acceccLogFile;
-		const std::string _errorLogFile;
+		std::string _accessLogFile;
+		std::string _errorLogFile;
 };
 
 #endif

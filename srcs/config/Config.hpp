@@ -11,7 +11,7 @@ class Config
         Config();
         ~Config();
         void readFile(const std::string& filepath);
-        void addServer(const ServerContext& server_config);
+        void addServer(const ServerContext& server);
         const std::map<int, std::vector<ServerContext> >& getServers() const;
 
     private:

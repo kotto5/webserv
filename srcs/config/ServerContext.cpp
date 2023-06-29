@@ -1,9 +1,9 @@
 #include "ServerContext.hpp"
 
 ServerContext::ServerContext():
-	_listen()
+	_listen(),
 	_server_name()
-	// _index()
+	// _index(),
 	// _error_page()
 {
 }

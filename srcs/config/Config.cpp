@@ -23,31 +23,31 @@ const std::map<int, std::vector<ServerContext> >& Config::getServers() const
     return _servers;
 }
 
-void Config::addServer(const ServerContext& server_context)
+void Config::addServer(const ServerContext& server)
 {
-    int listen = server_context.getListen();
+    int listen = server.getListen();
     std::map<int, std::vector<ServerContext> >::iterator
         port_found = _servers.find(listen);
 
     if (port_found != _servers.end())
     {
-        if (server_context.getServerName().empty())
+        if (server.getServerName().empty())
         {
             //exception
         }
         std::vector<ServerContext> &servers = port_found->second;
         for (size_t i = 0; i < servers.size(); i++)
         {
-            if (servers.at(i).getServerName() == server_context.getServerName())
+            if (servers.at(i).getServerName() == server.getServerName())
             {
                 //exception
             }
         }
-        servers.push_back(server_context);
+        servers.push_back(server);
     }
     else
     {
-        std::vector<ServerContext> new_servers(1, server_context);
+        std::vector<ServerContext> new_servers(1, server);
         _servers.insert(std::make_pair(listen, new_servers));
     }
 }

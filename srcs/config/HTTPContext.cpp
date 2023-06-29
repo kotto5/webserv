@@ -1,7 +1,7 @@
 #include "HTTPContext.hpp"
 
 HTTPContext::HTTPContext():
-	_accessLogFile()
+	_accessLogFile(),
 	_errorLogFile()
 {
 }
