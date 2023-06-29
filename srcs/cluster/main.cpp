@@ -17,8 +17,9 @@ int main()
 	while (1)
 	{
 		fd_set read_fds;
+		fd_set write_fds;
 		FD_ZERO(&read_fds);
-		// while (servers)
+		FD_ZERO(&write_fds);
 		FD_SET(server_socket, &read_fds);
 		int max_fd = server_socket;
 
@@ -26,24 +27,24 @@ int main()
 		{
 			int sd = sockets_recv[i];
 			if (sd > 0)
-			{
 				FD_SET(sd, &read_fds);
-			}
 			if (sd > max_fd)
-			{
 				max_fd = sd;
-			}
 		}
-
-		std::cout << "before" << std::endl;
-		int activity = select(max_fd + 1, &read_fds, NULL, NULL, NULL);
+		for (int i = 0; i < MAX_CLIENTS; i++)
+		{
+			int sd = sockets_send[i];
+			if (sd > 0)
+				FD_SET(sd, &write_fds);
+			if (sd > max_fd)
+				max_fd = sd;
+		}
+		int activity = select(max_fd + 1, &read_fds, &write_fds, NULL, NULL);
 		if (activity < 0)
 		{
 			perror("ERROR on select");
 			exit(1);
 		}
-		std::cout << "after" << std::endl;
-
 		if (FD_ISSET(server_socket, &read_fds) && client_count < MAX_CLIENTS)
 		{
 			fd = server.handle_new_connection();
@@ -53,9 +54,13 @@ int main()
 			activity--;
 			client_count++;
 		}
-		std::cout << "foo" << std::endl;
-
 		if (activity)
+		{
+			std::cout << "before recv" << activity << std::endl;
 			server.recieve(activity, read_fds, sockets_recv, sockets_send);
+			std::cout << "after recv" << activity << std::endl;
+		}
+		if (activity)
+			server.sender(activity, write_fds, sockets_send);
 	}
 }

@@ -41,8 +41,10 @@ class Server {
 		int	handle_new_connection();
 		// int	recieve(int &activity, fd_set &read_fds);
 		int	recieve(int &activity, fd_set &read_fds, int (&socket_recv)[MAX_CLIENTS], int (&socket_send)[MAX_CLIENTS]);
+		int	sender(int &activity, fd_set &write_fds, int (&socket_send)[MAX_CLIENTS]);
 	// flags と len はおいおい。
 	static T_STATUS recv(int socket_fd, std::string &request);
+	static T_STATUS send(int socket_fd, std::string &response);
 	static Request	*make_request(const std::string &row_request);
 };
 

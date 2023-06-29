@@ -53,6 +53,23 @@ T_STATUS Server::recv(int socket_fd, std::string &request) {
 	return (RECV_FINISHED);
 }
 
+T_STATUS Server::send(int socket_fd, std::string &request) {
+	ssize_t ret;
+	const char *buffer;
+
+	buffer = request.c_str();
+	std::cout << "[" << buffer << "] is response" << std::endl;
+	ret = ::send(socket_fd, (void *)buffer, request.length(), 0);
+	if (ret == -1)
+		return (RECV_ERROR);
+	if (static_cast<size_t>(ret) != request.length())
+	{
+		request = request.substr(ret);
+		return (RECV_CONTINUE);
+	}
+	return (RECV_FINISHED);
+}
+
 int	Server::handle_new_connection(){
 	struct sockaddr_in		client_address;
 	socklen_t				client_length = sizeof(client_address);
@@ -67,13 +84,15 @@ int	Server::handle_new_connection(){
 	std::pair<std::string, std::string> tmp;
 	client_sockets[new_socket] = tmp;
 
-	// std::cout << "New connection, socket fd is " << new_socket << ", port is " << ntohs(client_address.sin_port) << "index is : " << i << std::endl;
+	std::cout << "New connection, socket fd is " << new_socket << ", port is " << ntohs(client_address.sin_port) << std::endl;
 	return (new_socket);
 }
 
 std::string	make_response(Request *request){
 	(void)request;
-	return ("haha");
+	std::string ret = "HTTP/1.1 200 OK\r\n"
+        "\r\n\r\n";
+	return (ret);
 }
 // 	std::string	str;
 
@@ -86,33 +105,6 @@ std::string	make_response(Request *request){
 // 	str += getUri();
 // 	return (str);
 // }
-
-int	Server::recieve(int &activity, fd_set &read_fds,
-	int (&socket_recv)[MAX_CLIENTS], int (&socket_send)[MAX_CLIENTS]){
-	std::map<int, massages>::iterator itr;
-	int			fd;
-	T_STATUS	ret;
-
-	for (itr = client_sockets.begin(); itr != client_sockets.end() && activity; itr++) {
-		fd = itr->first;
-		if (FD_ISSET(fd, &read_fds)) {
-			ret = Server::recv(fd, itr->second.first);
-			if (ret == RECV_ERROR)
-				exit(1);
-			else if (ret == RECV_FINISHED)
-			{
-				array_delete(socket_recv, fd);
-				Request	*request = make_request(itr->second.first);
-				itr->second.second = make_response(request);
-				delete request;
-				itr->second.second = itr->second.first;
-				array_insert(socket_send, fd);
-			}
-			activity--;
-		}
-	}
-	return (0);
-}
 
 int	Server::get_server_socket(){
 	return (this->server_socket_);
@@ -141,4 +133,56 @@ Request	*Server::make_request(const std::string &row_request){
 		startPos = endPos + 2; // Skip CRLF
 	}
 	return (new Request(method, uri, headers, body));
+}
+
+int	Server::recieve(int &activity, fd_set &read_fds,
+	int (&socket_recv)[MAX_CLIENTS], int (&socket_send)[MAX_CLIENTS]){
+	std::map<int, massages>::iterator itr;
+	int			fd;
+	T_STATUS	ret;
+
+	for (itr = client_sockets.begin(); itr != client_sockets.end() && activity; itr++) {
+		fd = itr->first;
+		if (FD_ISSET(fd, &read_fds)) {
+			ret = Server::recv(fd, itr->second.first);
+			if (ret == RECV_ERROR)
+				exit(1);
+			else if (ret == RECV_FINISHED)
+			{
+				std::cout << "recv finish!\n" << std::endl;
+				array_delete(socket_recv, fd);
+				Request	*request = make_request(itr->second.first);
+				itr->second.second = make_response(request);
+				delete request;
+				// itr->second.second = itr->second.first;
+				array_insert(socket_send, fd);
+			}
+			activity--;
+		}
+	}
+	return (0);
+}
+
+int	Server::sender(int &activity, fd_set &write_fds, int (&socket_send)[MAX_CLIENTS])
+{
+	std::map<int, massages>::iterator itr;
+	int			fd;
+	T_STATUS	ret;
+
+	std::cout << "sending!" << std::endl;
+	for (itr = client_sockets.begin(); itr != client_sockets.end() && activity; itr++) {
+		fd = itr->first;
+		if (FD_ISSET(fd, &write_fds)) {
+			ret = Server::send(fd, itr->second.second);
+			if (ret == RECV_ERROR)
+				exit(1);
+			else if (ret == RECV_FINISHED)
+			{
+				close(fd);
+				array_delete(socket_send, fd);
+			}
+			activity--;
+		}
+	}
+	return (0);
 }
