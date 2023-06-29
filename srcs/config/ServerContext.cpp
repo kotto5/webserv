@@ -17,7 +17,7 @@ void ServerContext::setListen(int listen)
 	_listen = listen;
 }
 
-void ServerContext::setServerName(const std::string &server_name)
+void ServerContext::setServerName(const std::string& server_name)
 {
 	_server_name = server_name;
 }

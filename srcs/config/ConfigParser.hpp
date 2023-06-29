@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 #include "Config.hpp"
+#include "HTTPContext.hpp"
+#include "ServerContext.hpp"
 
 class ConfigParser
 {
@@ -11,13 +13,13 @@ class ConfigParser
         ConfigParser(Config& config);
         ~ConfigParser();
         void setDirectiveType(const std::string& directive);
-        void parseFile(const std::string &filepath);
+        void parseFile(const std::string& filepath);
         void getAndSplitLines(std::ifstream& ifs);
         std::vector<std::string> splitLine(const std::string& line);
         void parseLines();
-        void ConfigParser::setHTTPContext();
-        void ConfigParser::setServerContext();
-        void ConfigParser::setLocationContext();
+        void setHTTPContext();
+        void setServerContext(HTTPContext& http_context);
+        void setLocationContext(ServerContext& server_context);
 
         enum DirectiveType
         {
@@ -40,6 +42,7 @@ class ConfigParser
         std::vector<std::vector<std::string> > _lines;
         std::vector<std::string> _one_line;
         DirectiveType _directive_type;
+        const int stoi(const std::string& str);
 };
 
 #endif

@@ -8,8 +8,8 @@ class HTTPContext
 	public:
 		HTTPContext();
 		~HTTPContext();
-		void setAccessLogFile(const std::string &accessLogFile);
-		void setErrorLogFile(const std::string &errorLogFile);
+		void setAccessLogFile(const std::string& accessLogFile);
+		void setErrorLogFile(const std::string& errorLogFile);
 		const std::string& getAccessLogFile() const;
 		const std::string& getErrorLogFile() const;
 

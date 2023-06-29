@@ -10,12 +10,12 @@ HTTPContext::~HTTPContext()
 {
 }
 
-void HTTPContext::setAccessLogFile(const std::string &accessLogFile)
+void HTTPContext::setAccessLogFile(const std::string& accessLogFile)
 {
 	_accessLogFile = accessLogFile;
 }
 
-void HTTPContext::setErrorLogFile(const std::string &errorLogFile)
+void HTTPContext::setErrorLogFile(const std::string& errorLogFile)
 {
 	_errorLogFile = errorLogFile;
 }

@@ -2,7 +2,6 @@
 #include "ConfigParser.hpp"
 #include "ServerContext.hpp"
 #include "LocationContext.hpp"
-#include <map>
 
 Config::Config()
 {
@@ -34,6 +33,7 @@ void Config::addServer(const ServerContext& server)
         if (server.getServerName().empty())
         {
             //exception
+
         }
         std::vector<ServerContext> &servers = port_found->second;
         for (size_t i = 0; i < servers.size(); i++)
@@ -51,3 +51,4 @@ void Config::addServer(const ServerContext& server)
         _servers.insert(std::make_pair(listen, new_servers));
     }
 }
+

@@ -6,6 +6,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <cstdlib>
 
 ConfigParser::ConfigParser(Config& config):
 	_line_number(0),
@@ -46,11 +47,12 @@ void ConfigParser::setDirectiveType(const std::string& directive)
 void ConfigParser::parseFile(const std::string& filepath)
 {
 	_filepath = filepath;
-	std::ifstream ifs(filepath);
+	std::ifstream ifs(_filepath.c_str());
 
 	if (!ifs)
 	{
 		std::cerr << "Open Error" << std::endl;
+		exit(1);
 	}
 	getAndSplitLines(ifs);
 	ifs.close();
@@ -109,6 +111,9 @@ void ConfigParser::parseLines()
 
 		if (_directive_type == HTTP)
 			setHTTPContext();
+		else
+			//exception
+			;
 	}
 	
 }
@@ -132,11 +137,12 @@ void ConfigParser::setHTTPContext()
 		else if (_directive_type == ERROR_LOG)
 			http_context.setErrorLogFile(_one_line[1]);
 		else if (_directive_type == SERVER)
-			setServerContext();
+			setServerContext(http_context);
 	}
+
 }
 
-void ConfigParser::setServerContext()
+void ConfigParser::setServerContext(HTTPContext& http_context)
 {
 	ServerContext server_context = ServerContext();
 
@@ -151,7 +157,7 @@ void ConfigParser::setServerContext()
 			break ;
 		setDirectiveType(_one_line[0]);
 		if (_directive_type == LISTEN)
-			server_context.setListen(std::stoi(_one_line[1]));
+			server_context.setListen(stoi(_one_line[1]));
 		else if (_directive_type == SERVER_NAME)
 			server_context.setServerName(_one_line[1]);
 		else if (_directive_type == LOCATION)
@@ -179,7 +185,26 @@ void ConfigParser::setLocationContext()
 		else if (_directive_type == INDEX)
 			location_context.setIndex(_one_line[1]);
 		else if (_directive_type == ERROR_PAGE)
-			location_context.addErrorPage(std::stoi(_one_line[1]), _one_line[2]);
+			location_context.addErrorPage(stoi(_one_line[1]), _one_line[2]);
 	}
 	//server_context.addLocationContext(location_context);
+}
+
+const int ConfigParser::stoi(const std::string& str)
+{
+	int num = 0;
+	int sign = 1;
+	int i = 0;
+
+	if (str[i] == '-')
+	{
+		sign = -1;
+		i++;
+	}
+	while (str[i])
+	{
+		num = num * 10 + (str[i] - '0');
+		i++;
+	}
+	return (num * sign);
 }
