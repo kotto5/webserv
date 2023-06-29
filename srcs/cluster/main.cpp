@@ -4,6 +4,7 @@
 
 int main()
 {
+	std::cout << SOMAXCONN << std::endl;
 	Server server;
 
 	int server_socket = server.get_server_socket();
@@ -40,13 +41,22 @@ int main()
 				max_fd = sd;
 		}
 		int activity = select(max_fd + 1, &read_fds, &write_fds, NULL, NULL);
-		if (activity < 0)
+		if (activity == -1)
 		{
 			perror("ERROR on select");
 			exit(1);
 		}
 		if (FD_ISSET(server_socket, &read_fds) && client_count < MAX_CLIENTS)
 		{
+			// while (client_count < MAX_CLIENTS)
+			// {
+			// 	fd = server.handle_new_connection();
+			// 	if (fd < 0)
+			// 		break ;
+			// 	array_insert(sockets_recv, fd);
+			// 	client_count++;
+			// }
+
 			fd = server.handle_new_connection();
 			if (fd < 0)
 				exit(1);
@@ -54,13 +64,12 @@ int main()
 			activity--;
 			client_count++;
 		}
-		if (activity)
-		{
-			std::cout << "before recv" << activity << std::endl;
-			server.recieve(activity, read_fds, sockets_recv, sockets_send);
-			std::cout << "after recv" << activity << std::endl;
-		}
-		if (activity)
-			server.sender(activity, write_fds, sockets_send);
+		// std::cout << "before recv" << activity << std::endl;
+		server.recieve(activity, read_fds, sockets_recv, sockets_send);
+		// std::cout << "after recv" << activity << std::endl;
+		// }
+		// if (activity)
+		server.sender(activity, write_fds, sockets_send, client_count);
+		std::cout << "clients: " << client_count << std::endl;
 	}
 }

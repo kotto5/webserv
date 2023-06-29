@@ -1,8 +1,10 @@
 #include "server.hpp"
 #include "utils.hpp"
 #include "Request.hpp"
+#include <errno.h>
 
 Server::Server() {
+	// INET:IPv4 SOCK_STREAM:安全な通信(?)
 	server_socket_ = socket(AF_INET, SOCK_STREAM, 0);
 
 	struct sockaddr_in server_address;
@@ -16,11 +18,11 @@ Server::Server() {
 		perror("setsockopt");
 		exit(1);
 	}
-	if (bind(server_socket_, (struct sockaddr *)&server_address, sizeof(server_address)) < 0){
+	if (bind(server_socket_, (struct sockaddr *)&server_address, sizeof(server_address)) == -1){
 		perror("ERROR on binding");
 		exit(1);
 	}
-	if (listen(server_socket_, 100) < 0){
+	if (listen(server_socket_, 200) < 0){
 		perror("ERROR on listening");
 		exit(1);
 	}
@@ -76,15 +78,23 @@ int	Server::handle_new_connection(){
 	int 					new_socket = accept(server_socket_, (struct sockaddr*) &client_address, &client_length);
 
 	if (new_socket < 0) {
+		// if (errno == EAGAIN)
+		// 	return (-1);
+		// else
+		// 	return (-2);
+
+		std::cout << errno << std::endl;
 		perror("ERROR on accept");
 		exit(1);
+		// return (0);
 	}
 	set_non_blocking(new_socket);
 	// client_sockets.emplace(new_socket, );
 	std::pair<std::string, std::string> tmp;
 	client_sockets[new_socket] = tmp;
 
-	std::cout << "New connection, socket fd is " << new_socket << ", port is " << ntohs(client_address.sin_port) << std::endl;
+	std::cout << RED << "New connection, socket fd is " << new_socket << ", port is " << ntohs(client_address.sin_port) << DEF << std::endl;
+	std::cout << DEF;
 	return (new_socket);
 }
 
@@ -163,7 +173,7 @@ int	Server::recieve(int &activity, fd_set &read_fds,
 	return (0);
 }
 
-int	Server::sender(int &activity, fd_set &write_fds, int (&socket_send)[MAX_CLIENTS])
+int	Server::sender(int &activity, fd_set &write_fds, int (&socket_send)[MAX_CLIENTS], int &client_count)
 {
 	std::map<int, massages>::iterator itr;
 	int			fd;
@@ -180,6 +190,7 @@ int	Server::sender(int &activity, fd_set &write_fds, int (&socket_send)[MAX_CLIE
 			{
 				close(fd);
 				array_delete(socket_send, fd);
+				client_count--;
 			}
 			activity--;
 		}
