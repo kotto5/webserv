@@ -1,41 +1,43 @@
-NAME = webserv
-CXX = c++
-CXXFLAGS = -Wall -Wextra -Werror -g
-DFLAGS = -MMD -MP
+# NAME = webserv
+# CXX = c++
+# CXXFLAGS = -Wall -Wextra -Werror -g
+# DFLAGS = -MMD -MP
 
-SRCDIR = srcs
-SRCS = $(wildcard $(SRCDIR)/*.cpp)
-OBJDIR = ./objs
+# SRCDIR = $(PWD) $(PWD)../Request
+# SRCS = $(wildcard $(SRCDIR)/*.cpp)
+# OBJDIR = ./objs
 
-OBJ := $(patsubst $(SRCDIR)%, $(OBJDIR)%, $(SRCS:%.cpp=%.o))
-DEPENDS := $(patsubst $(SRCDIR)%, $(OBJDIR)%, $(SRCS:%.cpp=%.d))
+# OBJ := $(patsubst $(SRCDIR)%, $(OBJDIR)%, $(SRCS:%.cpp=%.o))
+# DEPENDS := $(patsubst $(SRCDIR)%, $(OBJDIR)%, $(SRCS:%.cpp=%.d))
 
-all: $(NAME)
+# INCLUDES = -I../Request
 
-$(OBJDIR)/%.o: $(SRCDIR)/%.cpp
-	-mkdir -p $(@D)
-	$(CXX) $(CXXFLAGS) $(DFLAGS) -c $< -o $@
+# all: $(NAME)
 
-%.o: %.cpp
-	-mkdir -p $(@D)
-	$(CXX) $(CXXFLAGS) $(DFLAGS) -c $< -o $@
+# $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
+# 	-mkdir -p $(@D)
+# 	$(CXX) $(CXXFLAGS) $(INCLUDES) $(DFLAGS) -c $< -o $@
 
-$(NAME): $(OBJ)
-	$(CXX) $(CXXFLAGS) $(OBJ)  -o $@
+# %.o: %.cpp
+# 	-mkdir -p $(@D)
+# 	$(CXX) $(CXXFLAGS) $(INCLUDES) $(DFLAGS) -c $< -o $@
 
-FORCE:
+# $(NAME): $(OBJ)
+# 	$(CXX) $(CXXFLAGS) $(OBJ) $(INCLUDES) -o $@
 
-clean:
-	rm -f $(OBJ) $(DEPENDS)
+# FORCE:
 
-fclean: clean
-	rm -f $(NAME)
+# clean:
+# 	rm -f $(OBJ) $(DEPENDS)
 
-re: fclean all
+# fclean: clean
+# 	rm -f $(NAME)
 
-.PHONY: all clean fclean re FORCE
+# re: fclean all
 
-norm:
-	norminette
+# .PHONY: all clean fclean re FORCE
 
--include $(DEPENDS)
+# norm:
+# 	norminette
+
+# -include $(DEPENDS)

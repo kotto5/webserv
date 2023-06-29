@@ -6,11 +6,11 @@
 // class cluster
 // {
 // private:
-//     std::map    
+//	 std::map	
 // public:
-//     cluster(/* args */);
-//     ~cluster();
-//     int run(void);
+//	 cluster(/* args */);
+//	 ~cluster();
+//	 int run(void);
 // };
 
 // cluster::cluster(/* args */)

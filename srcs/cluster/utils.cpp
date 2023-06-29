@@ -6,10 +6,10 @@
 #include <map>
 
 void set_non_blocking(int socket) {
-    if (fcntl(socket, F_SETFL, O_NONBLOCK) == -1) {
-        perror("ERROR on fcntl");
-        exit(1);
-    }
+	if (fcntl(socket, F_SETFL, O_NONBLOCK) == -1) {
+		perror("ERROR on fcntl");
+		exit(1);
+	}
 }
 
 size_t	find_start(const std::string &str, size_t start, const std::string &target){
@@ -43,13 +43,17 @@ int	array_delete(int (&array)[MAX_CLIENTS], int value){
 	return (1);
 }
 
-void partitionAndAddToMap(std::map<std::string, massages>& m, const std::string& inputStr, const std::string& keyword) {
-    size_t pos = inputStr.find(keyword);
+void partitionAndAddToMap(std::map<std::string, std::string>& m, const std::string& inputStr, const std::string& keyword) {
+	size_t pos = inputStr.find(keyword);
 
-    if (pos != std::string::npos) {
-        std::string part1 = inputStr.substr(0, pos);
-        std::string part2 = inputStr.substr(pos + keyword.length());
+	if (pos != std::string::npos) {
+		std::string part1 = inputStr.substr(0, pos);
+		std::string part2 = inputStr.substr(pos + keyword.length());
 
-        m[keyword] = std::make_pair(part1, part2);
-    }
+		// m[keyword] = std::make_pair(part1, part2);
+		// m.emplace(part1, part2);
+		// m.insert(std::make_pair(part1, part2));
+		// m1.insert( map<int, int>::value_type(1, 100);
+		m.insert(std::map<std::string, std::string>::value_type(part1, part2));
+	}
 }
