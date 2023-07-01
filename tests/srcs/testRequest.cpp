@@ -7,13 +7,14 @@ TEST(RequestTest, getRequest)
 	// テストデータの挿入
 	std::string method = "GET";
 	std::string url = "/index.html";
+	std::string protocol = "HTTP/1.1";
 	std::map<std::string, std::string> headers;
 	headers.insert(std::make_pair("content-length", "100"));
 	headers.insert(std::make_pair("content-type", "text/html"));
 	std::string body = "Hello World";
 
 	// インスタンスの生成
-	Request rq(method, url, headers, body);
+	Request rq(method, url, protocol, headers, body);
 
 	// テストデータの検証
 	EXPECT_EQ(rq.getMethod(), "GET");
@@ -29,13 +30,14 @@ TEST(RequestTest, copyRequest)
 	// テストデータの挿入
 	std::string method = "GET";
 	std::string url = "/index.html";
+	std::string protocol = "HTTP/1.1";
 	std::map<std::string, std::string> headers;
 	headers.insert(std::make_pair("content-length", "100"));
 	headers.insert(std::make_pair("content-type", "text/html"));
 	std::string body = "Hello World";
 
 	// インスタンスの生成とコピー
-	Request rq(method, url, headers, body);
+	Request rq(method, url, protocol, headers, body);
 	Request rq2(rq);
 
 	// テストデータの検証

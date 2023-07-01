@@ -14,8 +14,8 @@ protected:
 	// テストデータの作成
 	virtual void SetUp()
 	{
-		reqGet = new Request("GET", "/index.html", std::map<std::string, std::string>(), "");
-		reqNotFound = new Request("NONE", "/index.html", std::map<std::string, std::string>(), "");
+		reqGet = new Request("GET", "/index.html", "HTTP/1.1", std::map<std::string, std::string>(), "");
+		reqNotFound = new Request("NONE", "/index.html", "HTTP/1.1", std::map<std::string, std::string>(), "");
 	}
 };
 

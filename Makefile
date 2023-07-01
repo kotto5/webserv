@@ -59,9 +59,11 @@ $(TEST_OBJDIR)/%.o: tests/srcs/%.cpp
 	$(CXX) $(CXXFLAGS) $(TEST_INCS) $(TEST_CXXFLAGS) -c $< -o $@
 
 ut: $(TEST_NAME)
+	@rm -f $(TEST_OBJS)
 	@./$(TEST_NAME)
 	@rm $(TEST_NAME)
+	@rm -f $(TEST_OBJS)
 
-.PHONY: all clean fclean re
+.PHONY: all clean fclean re ut
 
 -include $(DEPENDS)
