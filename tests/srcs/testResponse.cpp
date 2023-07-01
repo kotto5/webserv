@@ -30,6 +30,7 @@ TEST_F(ResponseTest, getResponse)
 	EXPECT_EQ(res.getStatus(), 200);
 	EXPECT_EQ(res.getHeader("content-length"), "100");
 	EXPECT_EQ(res.getHeader("content-type"), "text/html");
+	EXPECT_EQ(res.getHeader("Server"), "Webserv 0.1");
 	EXPECT_EQ(res.getBody(), "Hello World");
 }
 

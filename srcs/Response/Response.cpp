@@ -12,6 +12,8 @@ Response::Response(const int status, std::map<std::string, std::string> headers,
 	setDate();
 	// ヘッダーにContent-Lengthを追加
 	setContentLength();
+	// ヘッダーにServerを追加
+	setServer();
 }
 
 Response::Response(const Response &other)
@@ -119,6 +121,11 @@ void Response::setDate()
 void Response::setContentLength()
 {
 	this->_headers["Content-Length"] = std::to_string(this->_body.length());
+}
+
+void Response::setServer()
+{
+	this->_headers["Server"] = "Webserv 0.1";
 }
 
 /**

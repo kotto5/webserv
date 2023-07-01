@@ -47,6 +47,9 @@ private:
 	// Content-Lengthをセットする
 	void setContentLength();
 
+	// Serverをセットする
+	void setServer();
+
 	// Not use
 	Response();
 };
