@@ -7,8 +7,6 @@
 
 void	set_non_blocking(int socket);
 size_t	find_start(const std::string &str, size_t start, const std::string &target);
-int		array_insert(int (&array)[MAX_CLIENTS], int value);
-int		array_delete(int (&array)[MAX_CLIENTS], int value);
 void	partitionAndAddToMap(std::map<std::string, std::string>& m, const std::string& inputStr, const std::string& keyword);
 
 #endif
