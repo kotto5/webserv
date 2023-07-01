@@ -3,33 +3,121 @@
 #include "Request.hpp"
 #include <errno.h>
 
+int	Server::set_fd_set(fd_set &set, std::list<int> sockets, int &maxFd)
+{
+	std::list<int>::iterator	itr;
+
+	for (itr = sockets.begin(); itr != sockets.end(); itr++)
+	{
+		FD_SET(*itr , &set);
+		if (*itr > maxFd)
+			maxFd = *itr;
+	}
+	return (0);
+}
+
+int	Server::handle_sockets(fd_set *read_fds, fd_set *write_fds, fd_set *expect_fds)
+{
+	std::list<int>::iterator	itr;
+
+	for (itr = server_sockets.begin(); read_fds && itr != server_sockets.end(); itr++)
+	{
+		if (FD_ISSET(*itr, read_fds))
+			handle_new_connection(*itr);
+	}
+	for (itr = recv_sockets.begin(); read_fds && itr != recv_sockets.end(); itr++)
+	{
+		if (FD_ISSET(*itr, read_fds))
+			recv2(itr, requests[*itr]);
+	}
+	for (itr = send_sockets.begin(); write_fds && itr != send_sockets.end(); itr++)
+	{
+		std::cout << "where!" << std::endl;
+		if (FD_ISSET(*itr, write_fds))
+			send2(itr, responses[*itr]);
+	}
+	if (expect_fds)
+		std::cout << "EXPEXTION hHAHAHAHAH!!!!" << std::endl;
+	return (0);
+}
+
+int	Server::run()
+{
+	while (1)
+	{
+		int max_fd = 0;
+		fd_set read_fds;
+		fd_set write_fds;
+		FD_ZERO(&read_fds);
+		FD_ZERO(&write_fds);
+		Server::set_fd_set(read_fds, server_sockets, max_fd);
+		Server::set_fd_set(read_fds, recv_sockets, max_fd);
+		Server::set_fd_set(write_fds, send_sockets, max_fd);
+
+		int activity = select(max_fd + 1, &read_fds, &write_fds, NULL, NULL);
+		if (activity == -1)
+		{
+			perror("ERROR on select");
+			exit(1);
+		}
+		handle_sockets(&read_fds, &write_fds, NULL);
+	}
+}
+
 Server::Server() {
 	// INET:IPv4 SOCK_STREAM:安全な通信(?)
-	server_socket_ = socket(AF_INET, SOCK_STREAM, 0);
+	// server_socket_ = socket(AF_INET, SOCK_STREAM, 0);
+	// struct sockaddr_in server_address;
+	// server_address.sin_family = AF_INET;
+	// server_address.sin_port = htons(8000);
+	// server_address.sin_addr.s_addr = INADDR_ANY;
 
+	// int yes = 1;
+	// if (setsockopt(server_socket_, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1)
+	// {
+	// 	perror("setsockopt");
+	// 	exit(1);
+	// }
+	// if (bind(server_socket_, (struct sockaddr *)&server_address, sizeof(server_address)) == -1){
+	// 	perror("ERROR on binding");
+	// 	exit(1);
+	// }
+	// if (listen(server_socket_, 200) < 0){
+	// 	perror("ERROR on listening");
+	// 	exit(1);
+	// }
+	// set_non_blocking(server_socket_);
+}
+
+Server::~Server() {}
+
+int	Server::create_server_socket()
+{
+	int	new_sock;
+	new_sock = socket(AF_INET, SOCK_STREAM, 0);
 	struct sockaddr_in server_address;
 	server_address.sin_family = AF_INET;
 	server_address.sin_port = htons(8000);
 	server_address.sin_addr.s_addr = INADDR_ANY;
 
 	int yes = 1;
-	if (setsockopt(server_socket_, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1)
+	if (setsockopt(new_sock, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1)
 	{
 		perror("setsockopt");
 		exit(1);
 	}
-	if (bind(server_socket_, (struct sockaddr *)&server_address, sizeof(server_address)) == -1){
+	if (bind(new_sock, (struct sockaddr *)&server_address, sizeof(server_address)) == -1){
 		perror("ERROR on binding");
 		exit(1);
 	}
-	if (listen(server_socket_, 200) < 0){
+	if (listen(new_sock, 200) < 0){
 		perror("ERROR on listening");
 		exit(1);
 	}
-	set_non_blocking(server_socket_);
+	set_non_blocking(new_sock);
+	server_sockets.push_back(new_sock);
+	return (0);
 }
-
-Server::~Server() {}
 
 bool	does_finish(const std::string &request){
 	size_t	end_of_header;
@@ -55,27 +143,75 @@ T_STATUS Server::recv(int socket_fd, std::string &request) {
 	return (RECV_FINISHED);
 }
 
-T_STATUS Server::send(int socket_fd, std::string &request) {
+int	Server::recv2(std::list<int>::iterator itr, std::string &request) {
+	ssize_t recv_ret;
+	static char buffer[BUFFER_LEN];
+
+	std::cout << "recv2!" << std::endl;
+	recv_ret = ::recv(*itr, buffer, BUFFER_LEN, 0);
+	if (recv_ret == -1)
+	{
+		std::cout << "recv2 err!" << std::endl;
+		return (1);
+	}
+	request += buffer;
+	std::cout << "recv2 request[" << request << "]" << std::endl;
+	if (does_finish(request) == true)
+	{
+		std::cout << "send finished!"  << std::endl;
+		// responses[*itr] = make_response(make_request(request));
+		responses[*itr] = "HTTP/1.1 200 OK\r\n"
+        "\r\n\r\n";
+		send_sockets.push_back(*itr);
+		requests.erase(*itr);
+		recv_sockets.erase(itr);
+	}
+	return (0);
+}
+
+int	Server::send2(std::list<int>::iterator itr, std::string &response){
 	ssize_t ret;
 	const char *buffer;
 
-	buffer = request.c_str();
+	buffer = response.c_str();
 	std::cout << "[" << buffer << "] is response" << std::endl;
-	ret = ::send(socket_fd, (void *)buffer, request.length(), 0);
+	ret = ::send(*itr, (void *)buffer, response.length(), 0);
+	if (ret == -1)
+		return (1);
+	if (static_cast<size_t>(ret) == response.length())
+	{
+		close(*itr);
+		responses.erase(*itr);
+		send_sockets.erase(itr);
+	}
+	else
+	{
+		response = response.substr(ret);
+	}
+	return (RECV_FINISHED);
+}
+
+T_STATUS Server::send(int socket_fd, std::string &response) {
+	ssize_t ret;
+	const char *buffer;
+
+	buffer = response.c_str();
+	std::cout << "[" << buffer << "] is response" << std::endl;
+	ret = ::send(socket_fd, (void *)buffer, response.length(), 0);
 	if (ret == -1)
 		return (RECV_ERROR);
-	if (static_cast<size_t>(ret) != request.length())
+	if (static_cast<size_t>(ret) != response.length())
 	{
-		request = request.substr(ret);
+		response = response.substr(ret);
 		return (RECV_CONTINUE);
 	}
 	return (RECV_FINISHED);
 }
 
-int	Server::handle_new_connection(){
+int	Server::handle_new_connection(int listen_socket){
 	struct sockaddr_in		client_address;
 	socklen_t				client_length = sizeof(client_address);
-	int 					new_socket = accept(server_socket_, (struct sockaddr*) &client_address, &client_length);
+	int 					new_socket = accept(listen_socket, (struct sockaddr*) &client_address, &client_length);
 
 	if (new_socket < 0) {
 		// if (errno == EAGAIN)
@@ -89,6 +225,7 @@ int	Server::handle_new_connection(){
 		// return (0);
 	}
 	set_non_blocking(new_socket);
+	recv_sockets.push_back(new_socket);
 	// client_sockets.emplace(new_socket, );
 	std::pair<std::string, std::string> tmp;
 	client_sockets[new_socket] = tmp;

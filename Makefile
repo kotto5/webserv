@@ -19,11 +19,11 @@ all: $(NAME)
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 	-mkdir -p $(@D)
-	$(CXX) $(CXXFLAGS) $(DFLAGS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $(DFLAGS) -c $< -o $@
 
 %.o: %.cpp
 	-mkdir -p $(@D)
-	$(CXX) $(CXXFLAGS) $(DFLAGS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $(DFLAGS) -c $< -o $@
 
 # for offline
 $(NAME): $(OBJS)
