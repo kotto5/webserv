@@ -2,20 +2,17 @@
 #define CONFIG_HPP
 
 #include <string>
-#include <map>
-#include "ServerContext.hpp"
+#include "HTTPContext.hpp"
 
 class Config
 {
     public:
-        Config();
+        Config(const std::string& filepath);
         ~Config();
-        void readFile(const std::string& filepath);
-        void addServer(const ServerContext& server);
-        const std::map<int, std::vector<ServerContext> >& getServers() const;
+		HTTPContext& getHTTPBlock();
 
-    private:
-        std::map<int, std::vector<ServerContext> > _servers;
+		private:
+			HTTPContext _http_block;
 };
 
 #endif

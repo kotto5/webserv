@@ -1,6 +1,7 @@
 #include "LocationContext.hpp"
 
 LocationContext::LocationContext():
+	_path(),
 	_alias(),
 	_index(),
 	_error_page()
@@ -9,6 +10,11 @@ LocationContext::LocationContext():
 
 LocationContext::~LocationContext()
 {
+}
+
+void LocationContext::setPath(const std::string& path)
+{
+	_path = path;
 }
 
 void LocationContext::setAlias(const std::string& alias)
@@ -24,6 +30,11 @@ void LocationContext::setIndex(const std::string& index)
 void LocationContext::addErrorPage(const int status_code, const std::string& error_page)
 {
 	_error_page.insert(std::make_pair(status_code, error_page));
+}
+
+const std::string& LocationContext::getPath() const
+{
+	return _path;
 }
 
 const std::string& LocationContext::getAlias() const

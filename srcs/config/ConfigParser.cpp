@@ -115,13 +115,10 @@ void ConfigParser::parseLines()
 			//exception
 			;
 	}
-	
 }
 
 void ConfigParser::setHTTPContext()
 {
-	HTTPContext http_context = HTTPContext();
-
 	_line_number++;
 	for ( ; _line_number < _lines.size(); _line_number++)
 	{
@@ -133,16 +130,18 @@ void ConfigParser::setHTTPContext()
 			break ;
 		setDirectiveType(_one_line[0]);
 		if (_directive_type == ACCESS_LOG)
-			http_context.setAccessLogFile(_one_line[1]);
+			_config.getHTTPBlock().setAccessLogFile(_one_line[1]);
 		else if (_directive_type == ERROR_LOG)
-			http_context.setErrorLogFile(_one_line[1]);
+			_config.getHTTPBlock().setErrorLogFile(_one_line[1]);
 		else if (_directive_type == SERVER)
-			setServerContext(http_context);
+		{
+			ServerContext server_context = getServerContext();
+			_config.getHTTPBlock().addServerBlock(server_context);
+		}
 	}
-
 }
 
-void ConfigParser::setServerContext(HTTPContext& http_context)
+const ServerContext ConfigParser::getServerContext()
 {
 	ServerContext server_context = ServerContext();
 
@@ -161,15 +160,19 @@ void ConfigParser::setServerContext(HTTPContext& http_context)
 		else if (_directive_type == SERVER_NAME)
 			server_context.setServerName(_one_line[1]);
 		else if (_directive_type == LOCATION)
-			setLocationContext();
+		{
+			LocationContext location_context = getLocationContext();
+			server_context.addLocationBlock(location_context);
+		}
 	}
-	//http_context.addServerContext(server_context);
+	return server_context;
 }
 
-void ConfigParser::setLocationContext()
+const LocationContext ConfigParser::getLocationContext()
 {
 	LocationContext location_context = LocationContext();
 
+	location_context.setPath(_one_line[1]);
 	_line_number++;
 	for ( ; _line_number < _lines.size(); _line_number++)
 	{
@@ -187,7 +190,7 @@ void ConfigParser::setLocationContext()
 		else if (_directive_type == ERROR_PAGE)
 			location_context.addErrorPage(stoi(_one_line[1]), _one_line[2]);
 	}
-	//server_context.addLocationContext(location_context);
+	return location_context;
 }
 
 const int ConfigParser::stoi(const std::string& str)
