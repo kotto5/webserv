@@ -13,7 +13,9 @@ public:
 	virtual ~IHandler() {};
 
 	// Member function
-	virtual Response handleRequest(const Request &request) const = 0;
+	virtual Response handleRequest(const Request &request) = 0;
+protected:
+	int _status;
 };
 
 #endif

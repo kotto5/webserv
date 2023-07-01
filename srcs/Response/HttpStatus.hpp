@@ -1,9 +1,8 @@
 #ifndef HTTPSTATUS_HPP
 #define HTTPSTATUS_HPP
 
-#include <iostream>
-#include <string>
 #include <map>
+#include <string>
 
 class HttpStatus
 {
