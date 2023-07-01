@@ -174,6 +174,7 @@ int	Server::create_server_socket()
 Request	*Server::make_request(const std::string &row_request){
 	std::string method;
 	std::string uri;
+	std::string protocol;
 	std::map<std::string, std::string> headers;
 	std::string body;
 
@@ -191,12 +192,13 @@ Request	*Server::make_request(const std::string &row_request){
 			std::string::size_type	tmp2 = line.find(" ", tmp + 1);
 			uri = line.substr(tmp + 1, tmp2 - tmp - 1);
 			tmp = line.find(" ");
+			protocol = line.find(tmp);
 		}
 		else
 			partitionAndAddToMap(headers, line, ": ");
 		startPos = endPos + 2; // Skip CRLF
 	}
-	return (new Request(method, uri, headers, body));
+	return (new Request(method, uri, protocol, headers, body));
 }
 
 std::string	Server::make_response(std::string request_raw){

@@ -1,18 +1,15 @@
 #include "Request.hpp"
 
 // Constructors
-Request::Request(const std::string &method, const std::string &uri,
+Request::Request(const std::string &method, const std::string &uri, const std::string &protocol,
 				 const std::map<std::string, std::string> &headers, const std::string &body)
-	: _method(method), _uri(uri), _headers(headers), _body(body)
+	: _method(method), _uri(uri), _protocol(protocol), _headers(headers), _body(body)
 {
 }
 
 Request::Request(const Request &other)
 {
-	this->_method = other._method;
-	this->_uri = other._uri;
-	this->_headers = other._headers;
-	this->_body = other._body;
+	*this = other;
 }
 
 // Destructor
@@ -25,6 +22,7 @@ Request &Request::operator=(const Request &rhs)
 	{
 		this->_method = rhs._method;
 		this->_uri = rhs._uri;
+		this->_protocol = rhs._protocol;
 		this->_headers = rhs._headers;
 		this->_body = rhs._body;
 	}
@@ -40,6 +38,11 @@ std::string Request::getMethod() const
 std::string Request::getUri() const
 {
 	return this->_uri;
+}
+
+std::string Request::getProtocol() const
+{
+	return this->_protocol;
 }
 
 std::string Request::getHeader(const std::string &key) const
