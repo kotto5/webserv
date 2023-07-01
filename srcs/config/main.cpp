@@ -16,7 +16,14 @@ int main()
 	while (it != ite)
 	{
 		std::cout << "listen: " << it->first << std::endl;
+		std::vector<ServerContext>::const_iterator it2 = it->second.begin();
+		std::vector<ServerContext>::const_iterator ite2 = it->second.end();
+		while (it2 != ite2)
+		{
+			std::cout << "server_name: " << it2->getServerName() << std::endl;
+			it2++;
+		}
 		it++;
 	}
-	
+
 }
