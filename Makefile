@@ -19,17 +19,15 @@ all: $(NAME)
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 	-mkdir -p $(@D)
-	$(CXX) $(CXXFLAGS) $(DFLAGS) $(INCLUDES) -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(DFLAGS) -c $< -o $@
 
 %.o: %.cpp
 	-mkdir -p $(@D)
-	$(CXX) $(CXXFLAGS) $(DFLAGS) $(INCLUDES) -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(DFLAGS) -c $< -o $@
 
 # for offline
 $(NAME): $(OBJS)
-	$(CXX) $(CXXFLAGS) $(OBJS) $(INCLUDES) -o $@
-
-FORCE:
+	$(CXX) $(CXXFLAGS) $(OBJS) -o $@
 
 clean:
 	rm -f $(OBJS) $(DEPENDS)
@@ -61,9 +59,9 @@ $(TEST_OBJDIR)/%.o: tests/srcs/%.cpp
 	$(CXX) $(CXXFLAGS) $(TEST_INCS) $(TEST_CXXFLAGS) -c $< -o $@
 
 ut: $(TEST_NAME)
-	./$(TEST_NAME)
-	rm $(TEST_NAME)
+	@./$(TEST_NAME)
+	@rm $(TEST_NAME)
 
-.PHONY: all clean fclean re FORCE
+.PHONY: all clean fclean re
 
 -include $(DEPENDS)
