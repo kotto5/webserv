@@ -10,6 +10,8 @@ SRCS := $(shell find $(SRCDIR) -type f -name "*.cpp")
 
 OBJDIR = ./objs
 
+INCLUDES = -Isrcs/Request
+
 OBJS := $(patsubst $(SRCDIR)%, $(OBJDIR)%, $(SRCS:%.cpp=%.o))
 DEPENDS := $(patsubst $(SRCDIR)%, $(OBJDIR)%, $(SRCS:%.cpp=%.d))
 
@@ -17,11 +19,11 @@ all: $(NAME)
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 	-mkdir -p $(@D)
-	$(CXX) $(CXXFLAGS) $(DFLAGS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $(DFLAGS) -c $< -o $@
 
 %.o: %.cpp
 	-mkdir -p $(@D)
-	$(CXX) $(CXXFLAGS) $(DFLAGS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $(DFLAGS) -c $< -o $@
 
 # for offline
 $(NAME): $(OBJS)

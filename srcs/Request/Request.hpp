@@ -11,6 +11,7 @@ public:
 	// Constructors
 	Request(const std::string &method, const std::string &uri,
 			const std::map<std::string, std::string> &headers, const std::string &body);
+	Request(const std::string &row_request);
 	Request(const Request &other);
 
 	// Destructor
