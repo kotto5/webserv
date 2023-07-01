@@ -33,3 +33,5 @@ webserv
 
 # Debug files
 test_webserv
+settings.json
+.DS_Store

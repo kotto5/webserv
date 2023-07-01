@@ -1,8 +1,15 @@
 #include "HttpStatus.hpp"
 
+/**
+ * @brief HTTPステータスコードとメッセージの対応表を作成する
+ *
+ * @detail RFC9110に準拠
+ * @return 対応表
+ */
 std::map<int, std::string> createHttpStatusMap()
 {
 	std::map<int, std::string> httpStatus;
+
 	httpStatus[100] = "Continue";
 	httpStatus[101] = "Switching Protocols";
 	httpStatus[200] = "OK";
