@@ -43,7 +43,7 @@ class ConfigParser
         std::vector<std::vector<std::string> > _lines;
         std::vector<std::string> _one_line;
         DirectiveType _directive_type;
-        const int stoi(const std::string& str);
+        int stoi(const std::string& str);
 };
 
 #endif

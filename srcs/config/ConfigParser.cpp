@@ -9,8 +9,8 @@
 #include <cstdlib>
 
 ConfigParser::ConfigParser(Config& config):
-	_line_number(0),
-	_config(config)
+	_config(config),
+	_line_number(0)
 {
 }
 
@@ -193,7 +193,7 @@ const LocationContext ConfigParser::getLocationContext()
 	return location_context;
 }
 
-const int ConfigParser::stoi(const std::string& str)
+int ConfigParser::stoi(const std::string& str)
 {
 	int num = 0;
 	int sign = 1;
