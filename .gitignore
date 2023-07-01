@@ -29,3 +29,7 @@
 *.exe
 *.out
 *.app
+webserv
+
+# Debug files
+test_webserv
