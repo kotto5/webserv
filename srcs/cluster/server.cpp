@@ -2,6 +2,8 @@
 #include "utils.hpp"
 #include "Request.hpp"
 #include <errno.h>
+#include "Router.hpp"
+#include "IHandler.hpp"
 
 int	Server::setup()
 {
@@ -95,7 +97,7 @@ int	Server::accept(int listen_socket){
 	return (new_socket);
 }
 
-int	Server::recv(std::list<int>::iterator itr, std::string &request) {
+int	Server::recv(std::list<int>::iterator itr, std::string &request_raw) {
 	ssize_t recv_ret;
 	static char buffer[BUFFER_LEN];
 
@@ -106,14 +108,12 @@ int	Server::recv(std::list<int>::iterator itr, std::string &request) {
 		std::cout << "recv err!" << std::endl;
 		return (1);
 	}
-	request += buffer;
-	std::cout << "recv request[" << request << "]" << std::endl;
-	if (does_finish_recv_request(request) == true)
+	request_raw += buffer;
+	std::cout << "recv request[" << request_raw << "]" << std::endl;
+	if (does_finish_recv_request(request_raw) == true)
 	{
 		std::cout << "send finished!"  << std::endl;
-		// responses[*itr] = make_response(make_request(request));
-		responses[*itr] = "HTTP/1.1 200 OK\r\n"
-        "\r\n\r\n";
+		responses[*itr] = make_response(request_raw);
 		send_sockets.push_back(*itr);
 		requests.erase(*itr);
 		recv_sockets.erase(itr);
@@ -171,13 +171,6 @@ int	Server::create_server_socket()
 	return (0);
 }
 
-std::string	make_response(Request *request){
-	(void)request;
-	std::string ret = "HTTP/1.1 200 OK\r\n"
-        "\r\n\r\n";
-	return (ret);
-}
-
 Request	*Server::make_request(const std::string &row_request){
 	std::string method;
 	std::string uri;
@@ -187,20 +180,33 @@ Request	*Server::make_request(const std::string &row_request){
 	std::string::size_type startPos = 0;
 	std::string::size_type endPos;
 	std::string	line;
+	std::cout << "row is " << "[" << row_request << "]" << std::endl;
 
 	while ((endPos = row_request.find("\r\n", startPos)) != std::string::npos)
 	{
 		line = row_request.substr(startPos, endPos);
 		if (startPos == 0){
-			std::string::size_type	tmp = line.find(": ");
+			std::string::size_type	tmp = line.find(" ");
 			method = line.substr(0, tmp);
-			uri = line.substr(tmp + 2);
+			std::string::size_type	tmp2 = line.find(" ", tmp + 1);
+			uri = line.substr(tmp + 1, tmp2 - tmp - 1);
+			tmp = line.find(" ");
 		}
 		else
 			partitionAndAddToMap(headers, line, ": ");
 		startPos = endPos + 2; // Skip CRLF
 	}
 	return (new Request(method, uri, headers, body));
+}
+
+std::string	Server::make_response(std::string request_raw){
+	(void)request_raw;
+	Request	*request = make_request(request_raw);
+	Router	router;
+	IHandler	*handler = router.findHandler(*request);
+	Response response = handler->handleRequest(*request);
+	delete (request);
+	return (response.toString());
 }
 
 bool	Server::does_finish_recv_request(const std::string &request){

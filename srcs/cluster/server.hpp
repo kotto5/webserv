@@ -51,6 +51,7 @@ class Server {
 		int				send(std::list<int>::iterator itr, std::string &response);
 		static int		set_fd_set(fd_set &set, std::list<int> sockets, int &maxFd);
 		static Request	*make_request(const std::string &row_request);
+		static std::string		make_response(std::string request_raw);
 		static bool		does_finish_recv_request(const std::string &request);
 };
 
