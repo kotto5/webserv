@@ -8,35 +8,40 @@ int	Server::setup()
 	// config serverの数だけwhile で
 	if (create_server_socket())
 		return (1);
+	return (0);
 }
 
 int	Server::handle_sockets(fd_set *read_fds, fd_set *write_fds, fd_set *expect_fds, int &activity)
 {
 	std::list<int>::iterator	itr;
+	std::list<int>::iterator	tmp;
 
-	for (itr = server_sockets.begin(); read_fds && itr != server_sockets.end(); itr++)
+	for (itr = server_sockets.begin(); read_fds && itr != server_sockets.end();)
 	{
-		if (FD_ISSET(*itr, read_fds))
+		tmp = itr++;
+		if (FD_ISSET(*tmp, read_fds))
 		{
-			if (accept(*itr) == -1)
+			if (accept(*tmp) == -1)
 				;
 			--activity;
 		}
 	}
-	for (itr = recv_sockets.begin(); read_fds && itr != recv_sockets.end(); itr++)
+	for (itr = recv_sockets.begin(); read_fds && itr != recv_sockets.end();)
 	{
-		if (FD_ISSET(*itr, read_fds))
+		tmp = itr++;
+		if (FD_ISSET(*tmp, read_fds))
 		{
-			if (recv(itr, requests[*itr]) == -1)
+			if (recv(tmp, requests[*tmp]) == -1)
 				;
 			--activity;
 		}
 	}
-	for (itr = send_sockets.begin(); write_fds && itr != send_sockets.end(); itr++)
+	for (itr = send_sockets.begin(); write_fds && itr != send_sockets.end();)
 	{
-		if (FD_ISSET(*itr, write_fds))
+		tmp = itr++;
+		if (FD_ISSET(*tmp, write_fds))
 		{
-			if (send(itr, responses[*itr]))
+			if (send(tmp, responses[*tmp]))
 				;
 			--activity;
 		}
