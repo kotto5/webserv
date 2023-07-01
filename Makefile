@@ -10,7 +10,7 @@ SRCS := $(shell find $(SRCDIR) -type f -name "*.cpp")
 
 OBJDIR = ./objs
 
-INCLUDES = -Isrcs/Request
+INCLUDES = -Isrcs/Request -Isrcs/Router -Isrcs/Response -Isrcs/Handler
 
 OBJS := $(patsubst $(SRCDIR)%, $(OBJDIR)%, $(SRCS:%.cpp=%.o))
 DEPENDS := $(patsubst $(SRCDIR)%, $(OBJDIR)%, $(SRCS:%.cpp=%.d))
