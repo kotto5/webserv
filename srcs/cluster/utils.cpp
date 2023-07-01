@@ -17,43 +17,12 @@ size_t	find_start(const std::string &str, size_t start, const std::string &targe
 	return (substr.find(target));
 }
 
-int		array_insert(int (&array)[MAX_CLIENTS], int value){
-	int	i = 0;
-	while (i < MAX_CLIENTS){
-		if (array[i] == 0)
-		{
-			array[i] = value;
-			return 0;
-		}
-		i++;
-	}
-	return 1;
-}
-
-int	array_delete(int (&array)[MAX_CLIENTS], int value){
-	int	i = 0;
-	while (i < MAX_CLIENTS){
-		if (array[i] == value)
-		{
-			array[i] = 0;
-			return 0;
-		}
-		i++;
-	}
-	return (1);
-}
-
 void partitionAndAddToMap(std::map<std::string, std::string>& m, const std::string& inputStr, const std::string& keyword) {
 	size_t pos = inputStr.find(keyword);
 
 	if (pos != std::string::npos) {
 		std::string part1 = inputStr.substr(0, pos);
 		std::string part2 = inputStr.substr(pos + keyword.length());
-
-		// m[keyword] = std::make_pair(part1, part2);
-		// m.emplace(part1, part2);
-		// m.insert(std::make_pair(part1, part2));
-		// m1.insert( map<int, int>::value_type(1, 100);
 		m.insert(std::map<std::string, std::string>::value_type(part1, part2));
 	}
 }
