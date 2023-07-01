@@ -1,0 +1,22 @@
+# インデントスタイル
+UseTab: Always
+# インデント幅
+IndentWidth: 4
+# タブ幅
+TabWidth: 4
+# アクセス指定子のインデント
+AccessModifierOffset: -4
+# 一行あたりのカラム幅
+ColumnLimit: 100
+# ブレースのスタイル
+AlignAfterOpenBracket: true
+# 短い関数を一行で表示するか
+AllowShortFunctionsOnASingleLine: Empty
+# 波括弧の前で改行するか
+BreakBeforeBraces: Allman
+# 言語
+Language: Cpp
+Standard: Auto
+# 改行コード
+UseCRLF: false
+
