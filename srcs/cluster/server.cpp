@@ -205,7 +205,7 @@ std::string	Server::make_response(std::string request_raw){
 	(void)request_raw;
 	Request	*request = make_request(request_raw);
 	Router	router;
-	IHandler	*handler = router.findHandler(*request);
+	IHandler	*handler = router.createHandler(*request);
 	Response response = handler->handleRequest(*request);
 	delete (request);
 	return (response.toString());
@@ -216,7 +216,7 @@ bool	Server::does_finish_recv_request(const std::string &request){
 	end_of_header = request.find("\r\n\r\n");
 	if (end_of_header == std::string::npos)
 		return (false);
-	if (request.find("content-length: ") != std::string::npos && 
+	if (request.find("content-length: ") != std::string::npos &&
 			find_start(request, end_of_header, "\r\n\r\n") == std::string::npos)
 		return (false);
 	return (true);

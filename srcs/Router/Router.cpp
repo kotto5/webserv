@@ -23,9 +23,10 @@ Router & Router::operator=(const Router &rhs)
 	return *this;
 }
 
-IHandler *Router::findHandler(const Request &request)
+IHandler *Router::createHandler(const Request &request)
 {
 	// configの情報を取得
+	std::cout << "URI: " << request.getUri() << std::endl;
 	// パスが存在するか確認
 
 	// メソッドに対応するhandlerを取得

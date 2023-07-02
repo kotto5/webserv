@@ -29,6 +29,9 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 $(NAME): $(OBJS)
 	$(CXX) $(CXXFLAGS) $(OBJS) -o $@
 
+run: $(NAME)
+	./$(NAME) ./conf/default.conf
+
 clean:
 	rm -f $(OBJS) $(DEPENDS)
 
