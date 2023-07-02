@@ -16,6 +16,7 @@ class HTTPContext
 		const std::string& getErrorLogFile() const;
 		void addServerBlock(const ServerContext& server);
 		const std::map<int, std::vector<ServerContext> >& getServers() const;
+		const ServerContext& getServerContexts(int port, const std::string &host) const;
 
 	private:
 		std::string _accessLogFile;
