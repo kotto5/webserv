@@ -52,7 +52,7 @@ void ConfigParser::parseFile(const std::string& filepath)
 	if (!ifs)
 	{
 		std::cerr << "Open Error" << std::endl;
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 	getAndSplitLines(ifs);
 	ifs.close();
@@ -107,13 +107,10 @@ void ConfigParser::parseLines()
 		if (_one_line[0] == "}")
 			break ;
 		setDirectiveType(_one_line[0]);
-		// error handling
+		//(!isAllowedDirective())
 
 		if (_directive_type == HTTP)
 			setHTTPContext();
-		else
-			//exception
-			;
 	}
 }
 
@@ -188,26 +185,8 @@ const LocationContext ConfigParser::getLocationContext()
 		else if (_directive_type == INDEX)
 			location_context.setIndex(_one_line[1]);
 		else if (_directive_type == ERROR_PAGE)
-			location_context.addErrorPage(stoi(_one_line[1]), _one_line[2]);
+			location_context.addErrorPage(_one_line[1], _one_line[2]);
 	}
 	return location_context;
 }
 
-int ConfigParser::stoi(const std::string& str)
-{
-	int num = 0;
-	int sign = 1;
-	int i = 0;
-
-	if (str[i] == '-')
-	{
-		sign = -1;
-		i++;
-	}
-	while (str[i])
-	{
-		num = num * 10 + (str[i] - '0');
-		i++;
-	}
-	return (num * sign);
-}

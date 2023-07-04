@@ -11,8 +11,8 @@ class Config
         ~Config();
 		HTTPContext& getHTTPBlock();
 
-		private:
-			HTTPContext _http_block;
+	private:
+		HTTPContext _http_block;
 };
 
 #endif
