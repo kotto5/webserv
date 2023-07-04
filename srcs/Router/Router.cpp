@@ -3,7 +3,7 @@
 #include <assert.h>
 
 // Constructors
-Router::Router(): _handler(NULL){}
+Router::Router() : _handler(NULL) {}
 
 Router::Router(const Router &other)
 {
@@ -11,12 +11,12 @@ Router::Router(const Router &other)
 }
 
 // Destructor
-Router::~Router(){}
+Router::~Router() {}
 
 // Operators
-Router & Router::operator=(const Router &rhs)
+Router &Router::operator=(const Router &rhs)
 {
-	if(this != &rhs)
+	if (this != &rhs)
 	{
 		this->_handler = rhs._handler;
 	}
@@ -25,9 +25,22 @@ Router & Router::operator=(const Router &rhs)
 
 IHandler *Router::createHandler(const Request &request)
 {
-	// configの情報を取得
-	std::cout << "URI: " << request.getUri() << std::endl;
-	// パスが存在するか確認
+	std::string aliasPath;
+	try
+	{
+		// URIが前方一致するLocationブロックを取得
+		const ServerContext &serverContext =
+			Config::getInstance()->getHTTPBlock().getServerContexts(80, request.getHeader("host"));
+		const LocationContext &locationContext = serverContext.getLocationContext(request.getUri());
+		(void)locationContext;
+
+		// エイリアスがある場合は置き換える
+	}
+	catch (std::runtime_error &e)
+	{
+		// 一致するロケーションブロックがない場合は404を返す
+		std::cout << e.what() << std::endl;
+	}
 
 	// メソッドに対応するhandlerを取得
 	std::string method = request.getMethod();
@@ -39,4 +52,3 @@ IHandler *Router::createHandler(const Request &request)
 	}
 	return _handler;
 }
-

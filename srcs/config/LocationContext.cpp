@@ -12,6 +12,26 @@ LocationContext::~LocationContext()
 {
 }
 
+LocationContext::LocationContext(const LocationContext &other):
+	_path(other._path),
+	_alias(other._alias),
+	_index(other._index),
+	_error_page(other._error_page)
+{
+}
+
+LocationContext &LocationContext::operator=(const LocationContext &rhs)
+{
+	if (this != &rhs)
+	{
+		_path = rhs._path;
+		_alias = rhs._alias;
+		_index = rhs._index;
+		_error_page = rhs._error_page;
+	}
+	return *this;
+}
+
 void LocationContext::setPath(const std::string& path)
 {
 	_path = path;

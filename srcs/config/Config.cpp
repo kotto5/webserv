@@ -6,7 +6,7 @@
 Config::Config(const std::string& filepath)
 {
 	ConfigParser parser(*this);
-    parser.parseFile(filepath);
+	parser.parseFile(filepath);
 }
 
 Config::~Config()
