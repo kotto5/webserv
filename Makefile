@@ -54,12 +54,12 @@ INC_FLAGS := $(addprefix -I, $(SRC_DIRS))
 TEST_INCS := -I$(PROJECT_DIR)/tests/include $(INC_FLAGS)
 
 $(TEST_NAME): $(TEST_OBJS)
-	-mkdir -p $(@D)
-	$(CXX) $(TEST_CXXFLAGS) $(TEST_INCS) $(TEST_OBJS) $(TEST_LDFLAGS) -o $(TEST_NAME)
+	@-mkdir -p $(@D)
+	@$(CXX) $(TEST_CXXFLAGS) $(TEST_INCS) $(TEST_OBJS) $(TEST_LDFLAGS) -o $(TEST_NAME)
 
 $(TEST_OBJDIR)/%.o: tests/srcs/%.cpp
-	-mkdir -p $(@D)
-	$(CXX) $(CXXFLAGS) $(TEST_INCS) $(TEST_CXXFLAGS) -c $< -o $@
+	@-mkdir -p $(@D)
+	@$(CXX) $(CXXFLAGS) $(TEST_INCS) $(TEST_CXXFLAGS) -c $< -o $@
 
 ut: $(TEST_NAME)
 	@rm -f $(TEST_OBJS)

@@ -44,27 +44,25 @@ const std::map<int, std::vector<ServerContext> >& HTTPContext::getServers() cons
  */
 const ServerContext& HTTPContext::getServerContexts(int port, const std::string &host) const
 {
-	std::vector<ServerContext> serverContexts;
 	try
 	{
 		// ポート番号が一致するServerブロックをすべて取得する
-		serverContexts = getServers().at(port);
+		const std::vector<ServerContext>& serverContexts = getServers().at(port);
+
+		// server_nameがhostヘッダーと一致する場合、そのserverブロックを返す
+		for (std::vector<ServerContext>::const_iterator it = serverContexts.begin(); it != serverContexts.end(); ++it)
+		{
+			if (it->getServerName() == host)
+				return *it;
+		}
+		// server_nameがhostヘッダーと一致しない場合、最初のserverブロックを返す
+		return serverContexts.at(0);
 	}
 	catch (std::out_of_range& e)
 	{
 		// 一致するポート番号がない場合は上位に投げる
 		throw std::runtime_error("port not found!");
 	}
-
-	// server_nameがhostヘッダーと一致する場合、そのserverブロックを返す
-	for (std::vector<ServerContext>::iterator it = serverContexts.begin(); it != serverContexts.end(); ++it)
-	{
-		if (it->getServerName() == host)
-			return *it;
-	}
-
-	// server_nameがhostヘッダーと一致しない場合、最初のserverブロックを返す
-	return serverContexts.at(0);
 }
 
 void HTTPContext::addServerBlock(const ServerContext& server)

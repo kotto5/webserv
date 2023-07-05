@@ -61,7 +61,7 @@ const std::vector<LocationContext>& ServerContext::getLocations() const
 {
 	return _locations;
 }
-#include <cassert>
+
 /**
  * @brief パスパターンが一致するLocationブロックを取得する
  *

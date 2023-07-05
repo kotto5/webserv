@@ -1,6 +1,6 @@
 #include "Router.hpp"
 #include "../Handler/GetHandler.hpp"
-#include <assert.h>
+#include "../config/Config.hpp"
 
 // Constructors
 Router::Router() : _handler(NULL) {}
@@ -25,15 +25,13 @@ Router &Router::operator=(const Router &rhs)
 
 IHandler *Router::createHandler(const Request &request)
 {
-	std::string aliasPath;
+	std::string alias;
 	try
 	{
-		// URIが前方一致するLocationブロックを取得
-		const ServerContext &serverContext =
-			Config::getInstance()->getHTTPBlock().getServerContexts(80, request.getHeader("host"));
+		// Serverブロックを取得
+		const ServerContext &serverContext = Config::getInstance()->getHTTPBlock().getServerContexts(80, request.getHeader("host"));
 		const LocationContext &locationContext = serverContext.getLocationContext(request.getUri());
-		(void)locationContext;
-
+		alias = locationContext.getAlias();
 		// エイリアスがある場合は置き換える
 	}
 	catch (std::runtime_error &e)
