@@ -1,3 +1,4 @@
+# Compile variables
 NAME := webserv
 CXX := c++
 CXXFLAGS := -Wall -Wextra -Werror
@@ -8,39 +9,76 @@ PROJECT_DIR := $(CURDIR)
 SRCDIR := srcs
 SRCS := $(shell find $(SRCDIR) -type f -name "*.cpp")
 
-OBJDIR = ./objs
+OBJDIR := objs
+OBJS := $(patsubst $(SRCDIR)%, $(OBJDIR)%, $(SRCS:%.cpp=%.o))
 
 INCLUDES = -Isrcs/Request -Isrcs/Router -Isrcs/Response -Isrcs/Handler
-
-OBJS := $(patsubst $(SRCDIR)%, $(OBJDIR)%, $(SRCS:%.cpp=%.o))
 DEPENDS := $(patsubst $(SRCDIR)%, $(OBJDIR)%, $(SRCS:%.cpp=%.d))
 
-all: $(NAME)
+# Print variables
+PRINTF := printf
+DEFAULT := \033[0;39m
+BLUE := \033[0;94m
+GREEN := \033[0;92m
+RED := \033[0;91m
+DEL := \033[2K
+MOVE := \033[1F
+CR := \033[1G
+
+# Progress variables
+SRC_TOT := $(shell expr $(words $(SRCS)) - $(shell find $(OBJDIR) -name '*.o' | wc -l))
+ifndef SRC_TOT
+	SRC_TOT := $(words $(SRCS))
+endif
+SRC_CNT := 0
+SRC_PCT = $(shell expr 100 \* $(SRC_CNT) / $(SRC_TOT))
+PROGRESS = $(eval SRC_CNT = $(shell expr $(SRC_CNT) + 1)) \
+	$(PRINTF) "${DEL}${GREEN}[ %d/%d (%d%%) ] $(CXX) $(CXXFLAGS) $< ...$(DEFAULT)$(CR)" $(SRC_CNT) $(SRC_TOT) $(SRC_PCT)
+
+# Main commands
+$(NAME): $(OBJS)
+	@$(CXX) $(CXXFLAGS) $(OBJS) -o $@
+	@echo "\n${BLUE}--- ${NAME} is up to date! ---${DEFAULT}"
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
-	-mkdir -p $(@D)
-	$(CXX) $(CXXFLAGS) $(INCLUDES) $(DFLAGS) -c $< -o $@
+	@-mkdir -p $(@D)
+	@${PROGRESS}
+	@$(CXX) $(CXXFLAGS) $(INCLUDES) $(DFLAGS) -c $< -o $@
+
+debug:
+	@echo $(shell expr $(words $(SRCS)))
+	@echo $(shell ls -lR $(OBJDIR) | grep .o$ | wc -l)
+	@echo $(shell ls -lR $(OBJDIR) | grep \\.o$)
+
+#: Make executable file.
+all: $(NAME)
 
 %.o: %.cpp
 	-mkdir -p $(@D)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) $(DFLAGS) -c $< -o $@
 
-# for offline
-$(NAME): $(OBJS)
-	$(CXX) $(CXXFLAGS) $(OBJS) -o $@
 
+#: Remove all object files.
+clean:
+	@$(RM) $(OBJS) $(DEPENDS)
+	@${PRINTF} "${RED}Cleaned up object files in ${basename ${NAME}} ${DEFAULT}\n"
+
+#: Remove all object and executable files.
+fclean: clean
+	@$(RM) $(NAME)
+	@${PRINTF} "${RED}Removed executable file of ${NAME} ${DEFAULT}\n"
+
+#: Remove and recompile all.
+re: fclean
+	@$(MAKE) -s all
+
+#: Make executable file and exexute.
 run: $(NAME)
 	./$(NAME) ./conf/default.conf
 
-clean:
-	rm -f $(OBJS) $(DEPENDS)
-
-fclean: clean
-	rm -f $(NAME)
-
-re: fclean all
-
-CXXFLAGS_DEBUG = -g
+#: Check source files.
+echo:
+	@echo $(SRCS)
 
 # Unit tests
 TEST_SRCS := $(shell find tests/srcs -type f -name "*.cpp")
@@ -61,12 +99,22 @@ $(TEST_OBJDIR)/%.o: tests/srcs/%.cpp
 	@-mkdir -p $(@D)
 	@$(CXX) $(CXXFLAGS) $(TEST_INCS) $(TEST_CXXFLAGS) -c $< -o $@
 
+#: Run unit tests.
 ut: $(TEST_NAME)
 	@rm -f $(TEST_OBJS)
 	@./$(TEST_NAME)
 	@rm $(TEST_NAME)
 	@rm -f $(TEST_OBJS)
 
-.PHONY: all clean fclean re ut
+#: Display all commands.
+help:
+	@grep -A1 -E "^#:" Makefile \
+	| grep -v -- -- \
+	| sed 'N;s/\n/###/' \
+	| sed -n 's/^#: \(.*\)###\(.*\):.*/\2###\1/p' \
+	| sed -e 's/^/make /' \
+	| column -t -s '###'
+
+.PHONY: all clean fclean echo run re ut help
 
 -include $(DEPENDS)
