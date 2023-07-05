@@ -10,7 +10,7 @@ SRCDIR := srcs
 SRCS := $(shell find $(SRCDIR) -type f -name "*.cpp")
 
 OBJDIR := objs
-OBJS := $(patsubst $(SRCDIR)%, $(OBJDIR)%, $(SRCS:%.cpp=%.o))
+OBJS = $(patsubst $(SRCDIR)%, $(OBJDIR)%, $(SRCS:%.cpp=%.o))
 
 INCLUDES = -Isrcs/Request -Isrcs/Router -Isrcs/Response -Isrcs/Handler
 DEPENDS := $(patsubst $(SRCDIR)%, $(OBJDIR)%, $(SRCS:%.cpp=%.d))
@@ -83,7 +83,7 @@ echo:
 # Unit tests
 TEST_SRCS := $(shell find tests/srcs -type f -name "*.cpp")
 TEST_OBJDIR := ./tests/objs
-TEST_OBJS := $(patsubst tests/srcs/%, $(TEST_OBJDIR)/%, $(TEST_SRCS:%.cpp=%.o)) $(filter-out ./objs/main.o, $(OBJS))
+TEST_OBJS := $(patsubst tests/srcs/%, $(TEST_OBJDIR)/%, $(TEST_SRCS:%.cpp=%.o)) $(filter-out objs/main.o, $(OBJS))
 TEST_NAME := test_webserv
 TEST_CXXFLAGS := -Wall -Wextra -Werror -std=c++14 -g
 TEST_LDFLAGS := -L$(PROJECT_DIR)/tests/lib -lgtest -lgtest_main
@@ -93,7 +93,7 @@ TEST_INCS := -I$(PROJECT_DIR)/tests/include $(INC_FLAGS)
 
 $(TEST_NAME): $(TEST_OBJS)
 	@-mkdir -p $(@D)
-	@$(CXX) $(TEST_CXXFLAGS) $(TEST_INCS) $(TEST_OBJS) $(TEST_LDFLAGS) -o $(TEST_NAME)
+	$(CXX) $(TEST_CXXFLAGS) $(TEST_INCS) $(TEST_OBJS) $(TEST_LDFLAGS) -o $(TEST_NAME)
 
 $(TEST_OBJDIR)/%.o: tests/srcs/%.cpp
 	@-mkdir -p $(@D)
@@ -105,6 +105,7 @@ ut: $(TEST_NAME)
 	@./$(TEST_NAME)
 	@rm $(TEST_NAME)
 	@rm -f $(TEST_OBJS)
+
 
 #: Display all commands.
 help:
