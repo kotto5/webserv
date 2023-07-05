@@ -181,8 +181,6 @@ Request	*Server::make_request(const std::string &row_request){
 	std::string::size_type startPos = 0;
 	std::string::size_type endPos;
 	std::string	line;
-	std::cout << "row is " << "[" << row_request << "]" << std::endl;
-
 	while ((endPos = row_request.find("\r\n", startPos)) != std::string::npos)
 	{
 		line = row_request.substr(startPos, endPos);
