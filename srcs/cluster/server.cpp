@@ -213,6 +213,13 @@ std::string	Server::make_response(std::string request_raw){
 
 bool	Server::does_finish_recv_request(const std::string &request){
 	size_t	end_of_header;
+	if (request.find("Transfer-Encoding: chunked") != std::string::npos)
+	{
+		if (request.find("\r\n0\r\n\r\n") != std::string::npos)
+			return (true);
+		else
+			return (false);
+	}
 	end_of_header = request.find("\r\n\r\n");
 	if (end_of_header == std::string::npos)
 		return (false);
