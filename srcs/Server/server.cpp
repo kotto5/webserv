@@ -8,7 +8,9 @@
 int	Server::setup()
 {
 	// config serverの数だけwhile で
-	if (create_server_socket())
+	if (create_server_socket(80))
+		return (1);
+	if (create_server_socket(81))
 		return (1);
 	return (0);
 }
@@ -143,13 +145,13 @@ int	Server::send(std::list<int>::iterator itr, std::string &response){
 	return (RECV_FINISHED);
 }
 
-int	Server::create_server_socket()
+int	Server::create_server_socket(int port)
 {
 	int	new_sock;
 	new_sock = socket(AF_INET, SOCK_STREAM, 0);
 	struct sockaddr_in server_address;
 	server_address.sin_family = AF_INET;
-	server_address.sin_port = htons(8000);
+	server_address.sin_port = htons(port);
 	server_address.sin_addr.s_addr = INADDR_ANY;
 
 	int yes = 1;
