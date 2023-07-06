@@ -74,7 +74,7 @@ const LocationContext& ServerContext::getLocationContext(const std::string& path
 	std::vector<LocationContext> locations = getLocations();
 
 	std::vector<LocationContext>::iterator matched = locations.begin();
-	std::string::size_type max = std::string::npos;
+	std::string::size_type max = 0;
 
 	for (std::vector<LocationContext>::iterator it = locations.begin(); it != locations.end(); ++it)
 	{

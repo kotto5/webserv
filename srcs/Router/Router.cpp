@@ -29,7 +29,8 @@ IHandler *Router::createHandler(const Request &request)
 	try
 	{
 		// Serverブロックを取得
-		const ServerContext &serverContext = Config::getInstance()->getHTTPBlock().getServerContexts(80, request.getHeader("host"));
+		const ServerContext &serverContext =
+			Config::getInstance()->getHTTPBlock().getServerContexts(80, request.getHeader("host"));
 		const LocationContext &locationContext = serverContext.getLocationContext(request.getUri());
 		alias = locationContext.getAlias();
 		// エイリアスがある場合は置き換える
