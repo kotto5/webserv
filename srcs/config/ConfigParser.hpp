@@ -10,6 +10,28 @@
 
 class ConfigParser
 {
+    enum ContextType
+        {
+            HTTP_CONTEXT,
+            SERVER_CONTEXT,
+            LOCATION_CONTEXT
+        };
+
+    enum DirectiveType
+    {
+        HTTP,
+        ACCESS_LOG,
+        ERROR_LOG,
+        SERVER,
+        LISTEN,
+        SERVER_NAME,
+        LOCATION,
+        ALIAS,
+        INDEX,
+        ERROR_PAGE,
+        UNKNOWN
+    };
+
     public:
         ConfigParser(Config& config);
         ~ConfigParser();
@@ -20,21 +42,9 @@ class ConfigParser
         void setHTTPContext();
         const ServerContext getServerContext();
         const LocationContext getLocationContext();
+        void setContextType(ContextType context);
         void setDirectiveType(const std::string& directive);
-
-        enum DirectiveType
-        {
-            HTTP,
-            ACCESS_LOG,
-            ERROR_LOG,
-            SERVER,
-            LISTEN,
-            SERVER_NAME,
-            LOCATION,
-            ALIAS,
-            INDEX,
-            ERROR_PAGE
-        };
+        bool isAllowedDirective();
 
     private:
         Config& _config;
@@ -42,8 +52,8 @@ class ConfigParser
         std::string _filepath;
         std::vector<std::vector<std::string> > _lines;
         std::vector<std::string> _one_line;
+        ContextType _context_type;
         DirectiveType _directive_type;
-        int stoi(const std::string& str);
 };
 
 #endif

@@ -30,15 +30,15 @@ const std::string& HTTPContext::getErrorLogFile() const
 	return _errorLogFile;
 }
 
-const std::map<int, std::vector<ServerContext> >& HTTPContext::getServers() const
+const std::map<std::string, std::vector<ServerContext> >& HTTPContext::getServers() const
 {
     return _servers;
 }
 
 void HTTPContext::addServerBlock(const ServerContext& server)
 {
-    int listen = server.getListen();
-    std::map<int, std::vector<ServerContext> >::iterator
+    std::string listen = server.getListen();
+    std::map<std::string, std::vector<ServerContext> >::iterator
         port_found = _servers.find(listen);
 
     if (port_found != _servers.end())

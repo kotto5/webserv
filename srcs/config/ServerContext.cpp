@@ -12,7 +12,7 @@ ServerContext::~ServerContext()
 {
 }
 
-void ServerContext::setListen(int listen)
+void ServerContext::setListen(const std::string& listen)
 {
 	_listen = listen;
 }
@@ -22,7 +22,7 @@ void ServerContext::setServerName(const std::string& server_name)
 	_server_name = server_name;
 }
 
-int ServerContext::getListen() const
+const std::string& ServerContext::getListen() const
 {
 	return _listen;
 }

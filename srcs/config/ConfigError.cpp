@@ -1,2 +1,3 @@
-//#include "ConfigError.hpp"
+#include "ConfigError.hpp"
 
+ConfigError::ConfigError

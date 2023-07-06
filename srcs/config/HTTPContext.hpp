@@ -15,12 +15,12 @@ class HTTPContext
 		const std::string& getAccessLogFile() const;
 		const std::string& getErrorLogFile() const;
 		void addServerBlock(const ServerContext& server);
-		const std::map<int, std::vector<ServerContext> >& getServers() const;
+		const std::map<std::string, std::vector<ServerContext> >& getServers() const;
 
 	private:
 		std::string _accessLogFile;
 		std::string _errorLogFile;
-		std::map<int, std::vector<ServerContext> > _servers;
+		std::map<std::string, std::vector<ServerContext> > _servers;
 };
 
 #endif

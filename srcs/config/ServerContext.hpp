@@ -11,15 +11,15 @@ class ServerContext
     public:
         ServerContext();
         ~ServerContext();
-        void setListen(int listen);
+        void setListen(const std::string& listen);
         void setServerName(const std::string& server_name);
-        int getListen() const;
+        const std::string& getListen() const;
         const std::string& getServerName() const;
 		void addLocationBlock(const LocationContext& location);
 		const std::vector<LocationContext>& getLocations() const;
     
     private:
-        int _listen;
+        std::string _listen;
         std::string _server_name;
 		std::vector<LocationContext> _locations;
 };
