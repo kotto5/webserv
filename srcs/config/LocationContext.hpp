@@ -13,7 +13,7 @@ class LocationContext
 		void addErrorPage(const std::string& status_code, const std::string& error_page);
 		void addDirective(const std::string& directive, const std::string& value);
 		const std::map<std::string, std::string>& getErrorPage() const;
-		const std::map<std::string, std::string>& getDirective(const std::string& directive);
+		const std::map<std::string, std::string>& getDirective() const;
 		
 	private:
 		std::map<std::string, std::string> _error_page;

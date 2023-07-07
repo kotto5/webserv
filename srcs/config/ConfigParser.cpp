@@ -213,7 +213,7 @@ const LocationContext ConfigParser::getLocationContext()
 	LocationContext location_context = LocationContext();
 
 	setContextType(LOCATION_CONTEXT);
-	location_context.setPath(_one_line[1]);
+	location_context.addDirective("path", _one_line[1]);
 	_line_number++;
 	for ( ; _line_number < _lines.size(); _line_number++)
 	{
@@ -224,13 +224,15 @@ const LocationContext ConfigParser::getLocationContext()
 		if (_one_line[0] == "}")
 			break ;
 		setDirectiveType(_one_line[0]);
-		if (_directive_type == ALIAS)
-			location_context.setAlias(_one_line[1]);
-		else if (_directive_type == INDEX)
-			location_context.setIndex(_one_line[1]);
+		if (!isAllowedDirective())
+		{
+			std::cerr << "Invalid Directive: " << _one_line[0] << std::endl;
+			exit(EXIT_FAILURE);
+		}
 		else if (_directive_type == ERROR_PAGE)
 			location_context.addErrorPage(_one_line[1], _one_line[2]);
+		else
+			location_context.addDirective(_one_line[0], _one_line[1]);
 	}
 	return location_context;
 }
-

@@ -24,7 +24,7 @@ const std::map<std::string, std::string>& LocationContext::getErrorPage() const
 {
 	return _error_page;
 }
-const std::map<std::string, std::string>& LocationContext::getDirective(const std::string& directive)
+const std::map<std::string, std::string>& LocationContext::getDirective() const
 {
 	return _directives;
 }

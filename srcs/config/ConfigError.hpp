@@ -1,9 +1,8 @@
 #ifndef CONFIGERROR_HPP
 #define CONFIGERROR_HPP
 
-#include <exception>
 #include <string>
-#include "HTTPContext.hpp"
+#include <exception>
 
 class ConfigError : public std::exception
 {
@@ -15,11 +14,17 @@ class ConfigError : public std::exception
 	};
 
 	public:
-		ConfigError(const ErrorType error_type, const std::string &error_word,
-					const std::string &filepath, int line_pos);
+		ConfigError(const ErrorType error_type, const std::string& error_word,
+					const std::string& filepath, int line_number);
 		//ConfigError(const ErrorType error_type, const std::string &error_word);
-		virtual ~ConfigError();
-		virtual const char *what() const;
+		~ConfigError() throw();
+		void setErrorMessage(const ErrorType error_type, const std::string& error_word);
+		const char* what() const throw();
+
+	private:
+		std::string itostr(int num);
+		std::string _error_message;
+		std::string _file_info;
 };
 
 #endif
