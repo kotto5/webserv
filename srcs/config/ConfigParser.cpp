@@ -52,26 +52,20 @@ void ConfigParser::setDirectiveType(const std::string& directive)
 
 bool ConfigParser::isInHTTPContext()
 {
-	if (_directive_type == HTTP || _directive_type == ACCESS_LOG
-			|| _directive_type == ERROR_LOG || _directive_type == SERVER)
-		return true;
-	return false;
+	return _directive_type == HTTP || _directive_type == ACCESS_LOG
+			|| _directive_type == ERROR_LOG || _directive_type == SERVER;
 }
 
 bool ConfigParser::isInServerContext()
 {
-	if (_directive_type == LISTEN || _directive_type == SERVER_NAME
-			|| _directive_type == LOCATION)
-		return true;
-	return false;
+	return _directive_type == LISTEN || _directive_type == SERVER_NAME
+			|| _directive_type == LOCATION;
 }
 
 bool ConfigParser::isInLocationContext()
 {
-	if (_directive_type == ALIAS || _directive_type == INDEX
-			|| _directive_type == ERROR_PAGE)
-		return true;
-	return false;
+	return  _directive_type == ALIAS || _directive_type == INDEX
+			|| _directive_type == ERROR_PAGE;
 }
 
 bool ConfigParser::isAllowedDirective()
@@ -82,7 +76,7 @@ bool ConfigParser::isAllowedDirective()
 		return isInServerContext();
 	else if (_context_type == LOCATION_CONTEXT)
 		return isInLocationContext();
-	return false;0
+	return false;
 }
 
 void ConfigParser::parseFile(const std::string& filepath)
@@ -106,7 +100,7 @@ void ConfigParser::getAndSplitLines(std::ifstream& ifs)
 	while (std::getline(ifs, line))
 	{
 		const std::vector<std::string> words = splitLine(line);
-		_lines.push_back(words);
+		_lines.(words);
 	}
 }
 
@@ -153,8 +147,9 @@ void ConfigParser::parseLines()
 		{
 			throw ConfigError(NOT_ALLOWED_DIRECTIVE, _one_line[0], _filepath, _line_number + 1);
 		}
-		if (_directive_type == HTTP)
+		else if (_directive_type == HTTP)
 			setHTTPContext();
+		//else
 	}
 }
 
