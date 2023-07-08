@@ -1,4 +1,5 @@
 #include "LocationContext.hpp"
+#include <stdexcept>
 
 LocationContext::LocationContext():
 	_error_page(),
@@ -20,11 +21,21 @@ void LocationContext::addDirective(const std::string& directive, const std::stri
 	_directives.insert(std::make_pair(directive, value));
 }
 
-const std::map<std::string, std::string>& LocationContext::getErrorPage() const
+const std::string& LocationContext::getErrorPage(const std::string& status_code) const
 {
-	return _error_page;
+	std::map<std::string, std::string>::const_iterator it = _error_page.find(status_code);
+	if (it == _error_page.end())
+		throw std::runtime_error("error_page not found");
+	return it->second;
 }
-const std::map<std::string, std::string>& LocationContext::getDirective() const
+
+const std::string& LocationContext::getDirective(const std::string& directive) const
 {
-	return _directives;
+	std::map<std::string, std::string>::const_iterator it = _directives.find(directive);
+	if (it == _directives.end())
+		throw std::runtime_error("directive not found");
+	return it->second;
 }
+
+
+

@@ -60,7 +60,7 @@ const LocationContext& ServerContext::getLocationContext(const std::string& path
 	for (std::vector<LocationContext>::iterator it = locations.begin(); it != locations.end(); ++it)
 	{
 		// 前方一致の長さを取得する
-		std::string::size_type currentMatch = it->getPath().find(path);
+		std::string::size_type currentMatch = it->getDirective("path").find(path);
 		if (currentMatch != std::string::npos && currentMatch > max)
 		{
 			max = currentMatch;
