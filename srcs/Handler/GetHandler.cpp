@@ -38,6 +38,9 @@ GetHandler &GetHandler::operator=(const GetHandler &rhs)
 
 Response GetHandler::handleRequest(const Request &request)
 {
+	if (request.getUri().find(".php") == std::string::npos)
+	{
+	}
 	int	pipe_fd[2];
 	if (pipe(pipe_fd))
 	{
