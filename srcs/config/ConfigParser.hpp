@@ -11,11 +11,11 @@
 class ConfigParser
 {
     enum ContextType
-        {
-            HTTP_CONTEXT,
-            SERVER_CONTEXT,
-            LOCATION_CONTEXT
-        };
+    {
+        HTTP_CONTEXT,
+        SERVER_CONTEXT,
+        LOCATION_CONTEXT
+    };
 
     enum DirectiveType
     {
@@ -45,6 +45,9 @@ class ConfigParser
         void setContextType(ContextType context);
         void setDirectiveType(const std::string& directive);
         bool isAllowedDirective();
+        bool isInHTTPContext();
+        bool isInServerContext();
+        bool isInLocationContext();
 
     private:
         Config& _config;

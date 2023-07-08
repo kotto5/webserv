@@ -2,6 +2,7 @@
 #include "HTTPContext.hpp"
 #include "ServerContext.hpp"
 #include "LocationContext.hpp"
+#include "ConfigError.hpp"
 #include <fstream>
 #include <vector>
 #include <string>
@@ -49,27 +50,39 @@ void ConfigParser::setDirectiveType(const std::string& directive)
 		_directive_type = UNKNOWN;
 }
 
+bool ConfigParser::isInHTTPContext()
+{
+	if (_directive_type == HTTP || _directive_type == ACCESS_LOG
+			|| _directive_type == ERROR_LOG || _directive_type == SERVER)
+		return true;
+	return false;
+}
+
+bool ConfigParser::isInServerContext()
+{
+	if (_directive_type == LISTEN || _directive_type == SERVER_NAME
+			|| _directive_type == LOCATION)
+		return true;
+	return false;
+}
+
+bool ConfigParser::isInLocationContext()
+{
+	if (_directive_type == ALIAS || _directive_type == INDEX
+			|| _directive_type == ERROR_PAGE)
+		return true;
+	return false;
+}
+
 bool ConfigParser::isAllowedDirective()
 {
 	if (_context_type == HTTP_CONTEXT)
-	{
-		if (_directive_type == HTTP || _directive_type == ACCESS_LOG
-				|| _directive_type == ERROR_LOG || _directive_type == SERVER)
-			return true;
-	}
+		return isInHTTPContext();
 	else if (_context_type == SERVER_CONTEXT)
-	{
-		if (_directive_type == LISTEN || _directive_type == SERVER_NAME
-				|| _directive_type == LOCATION)
-			return true;
-	}
+		return isInServerContext();
 	else if (_context_type == LOCATION_CONTEXT)
-	{
-		if (_directive_type == ALIAS || _directive_type == INDEX
-				|| _directive_type == ERROR_PAGE)
-			return true;
-	}
-	return false;
+		return isInLocationContext();
+	return false;0
 }
 
 void ConfigParser::parseFile(const std::string& filepath)
@@ -138,8 +151,7 @@ void ConfigParser::parseLines()
 		setDirectiveType(_one_line[0]);
 		if (!isAllowedDirective())
 		{
-			std::cerr << "Invalid Directive: " << _one_line[0] << std::endl;
-			exit(EXIT_FAILURE);
+			throw ConfigError(NOT_ALLOWED_DIRECTIVE, _one_line[0], _filepath, _line_number + 1);
 		}
 		if (_directive_type == HTTP)
 			setHTTPContext();
@@ -160,8 +172,7 @@ void ConfigParser::setHTTPContext()
 		setDirectiveType(_one_line[0]);
 		if (!isAllowedDirective())
 		{
-			std::cerr << "Invalid Directive: " << _one_line[0] << std::endl;
-			exit(EXIT_FAILURE);
+			throw ConfigError(NOT_ALLOWED_DIRECTIVE, _one_line[0], _filepath, _line_number + 1);
 		}
 		if (_directive_type == ACCESS_LOG)
 			_config.getHTTPBlock().setAccessLogFile(_one_line[1]);
@@ -192,8 +203,7 @@ const ServerContext ConfigParser::getServerContext()
 		setDirectiveType(_one_line[0]);
 		if (!isAllowedDirective())
 		{
-			std::cerr << "Invalid Directive: " << _one_line[0] << std::endl;
-			exit(EXIT_FAILURE);
+			throw ConfigError(NOT_ALLOWED_DIRECTIVE, _one_line[0], _filepath, _line_number + 1);
 		}
 		if (_directive_type == LISTEN)
 			server_context.setListen(_one_line[1]);
@@ -226,8 +236,7 @@ const LocationContext ConfigParser::getLocationContext()
 		setDirectiveType(_one_line[0]);
 		if (!isAllowedDirective())
 		{
-			std::cerr << "Invalid Directive: " << _one_line[0] << std::endl;
-			exit(EXIT_FAILURE);
+			throw ConfigError(NOT_ALLOWED_DIRECTIVE, _one_line[0], _filepath, _line_number + 1);
 		}
 		else if (_directive_type == ERROR_PAGE)
 			location_context.addErrorPage(_one_line[1], _one_line[2]);
