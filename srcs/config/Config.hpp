@@ -10,9 +10,11 @@ class Config
         Config(const std::string& filepath);
         ~Config();
 		HTTPContext& getHTTPBlock();
+		static Config* getInstance();
 
 	private:
 		HTTPContext _http_block;
+		static Config* _instance;
 };
 
 #endif

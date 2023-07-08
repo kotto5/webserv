@@ -18,4 +18,13 @@ HTTPContext& Config::getHTTPBlock()
 	return _http_block;
 }
 
-//check if the push works
+Config *Config::getInstance()
+{
+	if (_instance == NULL)
+	{
+		_instance = new Config("conf/default.conf");
+	}
+	return _instance;
+}
+
+Config *Config::_instance = NULL;

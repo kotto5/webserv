@@ -17,6 +17,7 @@ class ServerContext
         const std::string& getServerName() const;
 		void addLocationBlock(const LocationContext& location);
 		const std::vector<LocationContext>& getLocations() const;
+		const LocationContext& getLocationContext(const std::string& path) const;
     
     private:
         std::string _listen;
