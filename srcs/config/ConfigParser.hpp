@@ -1,12 +1,12 @@
 #ifndef CONFIGPARSER_HPP
 #define CONFIGPARSER_HPP
 
-#include <string>
-#include <vector>
 #include "Config.hpp"
 #include "HTTPContext.hpp"
-#include "ServerContext.hpp"
 #include "LocationContext.hpp"
+#include "ServerContext.hpp"
+#include <string>
+#include <vector>
 
 class ConfigParser
 {

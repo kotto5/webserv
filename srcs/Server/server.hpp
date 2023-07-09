@@ -43,7 +43,7 @@ class Server {
 		Server();
 		~Server();
 		int				setup();
-		int				create_server_socket();
+		int				create_server_socket(int port);
 		int				run();
 		int				handle_sockets(fd_set *read_fds, fd_set *write_fds, fd_set *expect_fds, int &activity);
 		int				accept(int listen_socket);

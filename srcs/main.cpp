@@ -1,5 +1,6 @@
 #include "Request/Request.hpp"
-#include "cluster/server.hpp"
+#include "config/Config.hpp"
+#include "Server/server.hpp"
 #include <iostream>
 #include <map>
 
@@ -10,13 +11,15 @@ int main(int argc, char **argv)
 		std::cout << "Usage: ./webserv [config_file]" << std::endl;
 		return 1;
 	}
-	(void)argv;
 	// 設定ファイル読み込み
+	Config *config = new Config(argv[1]);
+	(void)config;
 	// サーバー起動
 	Server server;
 	server.setup();
 	server.run();
 	// サーバー終了
+	delete config;
 
 	return 0;
 }

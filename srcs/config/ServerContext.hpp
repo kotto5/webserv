@@ -1,10 +1,10 @@
 #ifndef SERVERCONTEXT_HPP
 #define SERVERCONTEXT_HPP
 
-#include <string>
-#include <map>
-#include <vector>
 #include "LocationContext.hpp"
+#include <map>
+#include <string>
+#include <vector>
 
 class ServerContext
 {

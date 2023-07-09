@@ -1,8 +1,8 @@
 #ifndef CONFIG_HPP
 #define CONFIG_HPP
 
-#include <string>
 #include "HTTPContext.hpp"
+#include <string>
 
 class Config
 {

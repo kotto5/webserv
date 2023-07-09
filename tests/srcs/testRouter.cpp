@@ -25,7 +25,7 @@ TEST_F(RouterTest, createGetRequest)
 	// インスタンスの生成
 	Router router;
 	// テストデータの検証
-	IHandler *handler = router.findHandler(*reqGet);
+	IHandler *handler = router.createHandler(*reqGet);
 	EXPECT_TRUE(handler != NULL);
 }
 
@@ -35,7 +35,7 @@ TEST_F(RouterTest, notRequest)
 	// インスタンスの生成
 	Router router;
 	// テストデータの検証
-	IHandler *handler = router.findHandler(*reqNotFound);
+	IHandler *handler = router.createHandler(*reqNotFound);
 	EXPECT_TRUE(handler == NULL);
 }
 };
