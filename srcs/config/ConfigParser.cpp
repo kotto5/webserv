@@ -100,7 +100,7 @@ void ConfigParser::getAndSplitLines(std::ifstream& ifs)
 	while (std::getline(ifs, line))
 	{
 		const std::vector<std::string> words = splitLine(line);
-		_lines.(words);
+		_lines.push_back(words);
 	}
 }
 
@@ -166,9 +166,7 @@ void ConfigParser::setHTTPContext()
 			break ;
 		setDirectiveType(_one_line[0]);
 		if (!isAllowedDirective())
-		{
 			throw ConfigError(NOT_ALLOWED_DIRECTIVE, _one_line[0], _filepath, _line_number + 1);
-		}
 		if (_directive_type == ACCESS_LOG)
 			_config.getHTTPBlock().setAccessLogFile(_one_line[1]);
 		else if (_directive_type == ERROR_LOG)
@@ -197,9 +195,7 @@ const ServerContext ConfigParser::getServerContext()
 			break ;
 		setDirectiveType(_one_line[0]);
 		if (!isAllowedDirective())
-		{
 			throw ConfigError(NOT_ALLOWED_DIRECTIVE, _one_line[0], _filepath, _line_number + 1);
-		}
 		if (_directive_type == LISTEN)
 			server_context.setListen(_one_line[1]);
 		else if (_directive_type == SERVER_NAME)
@@ -230,11 +226,9 @@ const LocationContext ConfigParser::getLocationContext()
 			break ;
 		setDirectiveType(_one_line[0]);
 		if (!isAllowedDirective())
-		{
 			throw ConfigError(NOT_ALLOWED_DIRECTIVE, _one_line[0], _filepath, _line_number + 1);
-		}
 		else if (_directive_type == ERROR_PAGE)
-			location_context.addErrorPage(_one_line[1], _one_line[2]);
+			location_context.addDirective(_one_line[1], _one_line[2]);
 		else
 			location_context.addDirective(_one_line[0], _one_line[1]);
 	}

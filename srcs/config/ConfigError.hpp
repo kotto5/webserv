@@ -4,15 +4,15 @@
 #include <string>
 #include <exception>
 
+enum ErrorType
+{
+	DUPRICATE_DIRECTIVE,
+	NOT_ALLOWED_DIRECTIVE,
+	UNKOWN_DIRECTIVE
+};
+
 class ConfigError : public std::exception
 {
-	enum ErrorType
-	{
-		DUPRICATE_DIRECTIVE,
-		NOT_ALLOWED_DIRECTIVE,
-		UNKOWN_DIRECTIVE
-	};
-
 	public:
 		ConfigError(const ErrorType error_type, const std::string& error_word,
 					const std::string& filepath, int line_number);

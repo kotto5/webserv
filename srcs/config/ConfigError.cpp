@@ -3,8 +3,9 @@
 ConfigError::ConfigError(const ErrorType error_type, const std::string& error_word,
 						const std::string& filepath, int line_number):
 	_error_message("Config Error: "), 
-	_file_info(" in " + filepath + ":" + itostr(line_number))
+	_file_info(" in " + filepath + ": " + itostr(line_number))
 {
+	setErrorMessage(error_type, error_word);
 }
 
 ConfigError::~ConfigError() throw()

@@ -7,6 +7,7 @@ Config::Config(const std::string& filepath)
 {
 	ConfigParser parser(*this);
     parser.parseFile(filepath);
+	_instance = this;
 }
 
 Config::~Config()
@@ -20,10 +21,6 @@ HTTPContext& Config::getHTTPBlock()
 
 Config *Config::getInstance()
 {
-	if (_instance == NULL)
-	{
-		_instance = new Config("conf/default.conf");
-	}
 	return _instance;
 }
 
