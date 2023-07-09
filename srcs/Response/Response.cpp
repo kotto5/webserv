@@ -156,10 +156,5 @@ std::string Response::getMimeType(const std::string &filename)
 	return "application/octet-stream";
 }
 
-void	Response::add_body(const std::string &body)
-{
-	this->_body += body;
-}
-
 // Not use
 Response::Response() {}
