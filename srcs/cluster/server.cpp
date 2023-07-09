@@ -100,6 +100,7 @@ int	Server::accept(int listen_socket){
 int	Server::recv(std::list<int>::iterator itr, std::string &request_raw) {
 	ssize_t recv_ret;
 	static char buffer[BUFFER_LEN];
+	memset(buffer, 0, BUFFER_LEN);
 
 	std::cout << "recv!" << std::endl;
 	recv_ret = ::recv(*itr, buffer, BUFFER_LEN, 0);
@@ -221,7 +222,7 @@ bool	Server::does_finish_recv_request(const std::string &request){
 	end_of_header = request.find("\r\n\r\n");
 	if (end_of_header == std::string::npos)
 		return (false);
-	if (request.find("content-length: ") != std::string::npos && 
+	if (request.find("content-length: ") != std::string::npos &&
 			find_start(request, end_of_header, "\r\n\r\n") == std::string::npos)
 		return (false);
 	return (true);
