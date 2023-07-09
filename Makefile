@@ -1,7 +1,7 @@
 # Compile variables
 NAME := webserv
 CXX := c++
-CXXFLAGS := -Wall -Wextra -Werror -g -fsanitize=address
+CXXFLAGS := -Wall -Wextra -Werror
 DFLAGS := -MMD -MP
 
 PROJECT_DIR := $(CURDIR)
@@ -81,10 +81,10 @@ echo:
 	@echo $(SRCS)
 
 # Unit tests
+TEST_NAME := test_webserv
 TEST_SRCS := $(shell find tests/srcs -type f -name "*.cpp")
 TEST_OBJDIR := ./tests/objs
 TEST_OBJS := $(patsubst tests/srcs/%, $(TEST_OBJDIR)/%, $(TEST_SRCS:%.cpp=%.o)) $(filter-out objs/main.o, $(OBJS))
-TEST_NAME := test_webserv
 TEST_CXXFLAGS := -Wall -Wextra -Werror -std=c++14 -g
 TEST_LDFLAGS := -L$(PROJECT_DIR)/tests/lib -lgtest -lgtest_main
 SRC_DIRS := $(shell find $(PROJECT_DIR)/srcs -type d)
@@ -101,11 +101,11 @@ $(TEST_OBJDIR)/%.o: tests/srcs/%.cpp
 
 #: Run unit tests.
 ut: $(TEST_NAME)
-	@rm -f $(TEST_OBJS)
 	@./$(TEST_NAME)
-	@rm $(TEST_NAME)
-	@rm -f $(TEST_OBJS)
 
+ut_clean:
+	@rm -f $(TEST_OBJS)
+	@rm -f $(TEST_NAME)
 
 #: Display all commands.
 help:

@@ -1,0 +1,10 @@
+GET /index.html HTTP/1.1
+Host: www.example.com
+Transfer-Encoding: chunked
+
+5
+param
+6
+=value1
+0
+

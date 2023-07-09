@@ -19,6 +19,7 @@ int main(int argc, char **argv)
 	server.setup();
 	server.run();
 	// サーバー終了
+	delete config;
 
 	return 0;
 }

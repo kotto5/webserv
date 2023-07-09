@@ -26,7 +26,6 @@ public:
 	int getStatus() const;
 	std::string getHeader(const std::string &key) const;
 	std::string getBody() const;
-	void		add_body(const std::string &body);
 
 private:
 	// ステータスコード

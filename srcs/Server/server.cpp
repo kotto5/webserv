@@ -102,6 +102,7 @@ int	Server::accept(int listen_socket){
 int	Server::recv(std::list<int>::iterator itr, std::string &request_raw) {
 	ssize_t recv_ret;
 	static char buffer[BUFFER_LEN];
+	memset(buffer, 0, BUFFER_LEN);
 
 	std::cout << "recv!" << std::endl;
 	recv_ret = ::recv(*itr, buffer, BUFFER_LEN, 0);
@@ -115,17 +116,10 @@ int	Server::recv(std::list<int>::iterator itr, std::string &request_raw) {
 	if (does_finish_recv_request(request_raw) == true)
 	{
 		std::cout << "send finished!"  << std::endl;
-		std::cout << &(*itr) << std::endl;
-		std::cout << (*itr) << std::endl;
-		std::cout << responses[*itr] << std::endl;
 		responses[*itr] = make_response(request_raw);
-		std::cout << "response[" << responses[*itr] << "]" << std::endl;
 		send_sockets.push_back(*itr);
-		std::cout << "send finished!"  << std::endl;
 		requests.erase(*itr);
-		std::cout << "1" << std::endl;
 		recv_sockets.erase(itr);
-		std::cout << "2" << std::endl;
 	}
 	return (0);
 }
@@ -190,11 +184,11 @@ Request	*Server::make_request(const std::string &row_request){
 	std::string::size_type startPos = 0;
 	std::string::size_type endPos;
 	std::string	line;
-	std::cout << "row is " << "[" << row_request << "]" << std::endl;
-
 	while ((endPos = row_request.find("\r\n", startPos)) != std::string::npos)
 	{
-		line = row_request.substr(startPos, endPos);
+		if (endPos == startPos) // empty line
+			break;
+		line = row_request.substr(startPos, endPos - startPos);
 		if (startPos == 0){
 			std::string::size_type	tmp = line.find(" ");
 			method = line.substr(0, tmp);
@@ -207,29 +201,39 @@ Request	*Server::make_request(const std::string &row_request){
 			partitionAndAddToMap(headers, line, ": ");
 		startPos = endPos + 2; // Skip CRLF
 	}
+	if (headers.find("Content-Length") != headers.end())
+	{
+		std::string::size_type	content_length = std::stoi(headers["Content-Length"]);
+		body = row_request.substr(startPos, content_length);
+	}
+	if (headers.find("Transfer-Encoding") != headers.end() && headers["Transfer-Encoding"] == "chunked")
+	{
+		std::string::size_type	end_of_body = row_request.find("\r\n0\r\n\r\n");
+		body = row_request.substr(startPos, end_of_body - startPos);
+		// TODO: body = decode_chunked(body);
+	}
 	return (new Request(method, uri, protocol, headers, body));
 }
 
 std::string	Server::make_response(std::string request_raw){
 	(void)request_raw;
-	std::cout << "a" << std::endl;
 	Request	*request = make_request(request_raw);
-	std::cout << "b" << std::endl;
 	Router	router;
-	std::cout << "c" << std::endl;
 	IHandler	*handler = router.createHandler(*request);
-	std::cout << "d" << std::endl;
 	Response response = handler->handleRequest(*request);
-	std::cout << "e" << std::endl;
 	delete (request);
-	std::cout << "fadfs" << std::endl;
-	std::cout << "status is" << response.getStatus() << std::endl;
-	std::cout << "response is " << response.toString() << std::endl;
 	return (response.toString());
 }
 
 bool	Server::does_finish_recv_request(const std::string &request){
 	size_t	end_of_header;
+	if (request.find("Transfer-Encoding: chunked") != std::string::npos)
+	{
+		if (request.find("\r\n0\r\n\r\n") != std::string::npos)
+			return (true);
+		else
+			return (false);
+	}
 	end_of_header = request.find("\r\n\r\n");
 	if (end_of_header == std::string::npos)
 		return (false);

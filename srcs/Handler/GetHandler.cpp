@@ -33,9 +33,6 @@ GetHandler &GetHandler::operator=(const GetHandler &rhs)
  * @param request リクエスト
  * @return Response レスポンス
  */
-
-#include <unistd.h>
-
 Response GetHandler::handleRequest(const Request &request)
 {
 	// std::cout << "wow" <<  this->_status << request.getUri() << std::endl;
@@ -109,7 +106,6 @@ Response GetHandler::handleRequest(const Request &request)
 	htmlFile.close();
 
 	// レスポンスを作成して返す
-	std::cout << this->_status << std::endl;
 	std::map<std::string, std::string> headers;
 	std::cout << this->_status << std::endl;
 	headers["Content-Type"] = Response::getMimeType("/Users/kakiba/AAproject/42_webserv/docs/index.html");
