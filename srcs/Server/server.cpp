@@ -115,17 +115,10 @@ int	Server::recv(std::list<int>::iterator itr, std::string &request_raw) {
 	if (does_finish_recv_request(request_raw) == true)
 	{
 		std::cout << "send finished!"  << std::endl;
-		std::cout << &(*itr) << std::endl;
-		std::cout << (*itr) << std::endl;
-		std::cout << responses[*itr] << std::endl;
 		responses[*itr] = make_response(request_raw);
-		std::cout << "response[" << responses[*itr] << "]" << std::endl;
 		send_sockets.push_back(*itr);
-		std::cout << "send finished!"  << std::endl;
 		requests.erase(*itr);
-		std::cout << "1" << std::endl;
 		recv_sockets.erase(itr);
-		std::cout << "2" << std::endl;
 	}
 	return (0);
 }
@@ -212,19 +205,11 @@ Request	*Server::make_request(const std::string &row_request){
 
 std::string	Server::make_response(std::string request_raw){
 	(void)request_raw;
-	std::cout << "a" << std::endl;
 	Request	*request = make_request(request_raw);
-	std::cout << "b" << std::endl;
 	Router	router;
-	std::cout << "c" << std::endl;
 	IHandler	*handler = router.createHandler(*request);
-	std::cout << "d" << std::endl;
 	Response response = handler->handleRequest(*request);
-	std::cout << "e" << std::endl;
 	delete (request);
-	std::cout << "fadfs" << std::endl;
-	std::cout << "status is" << response.getStatus() << std::endl;
-	std::cout << "response is " << response.toString() << std::endl;
 	return (response.toString());
 }
 

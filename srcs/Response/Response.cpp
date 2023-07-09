@@ -73,30 +73,24 @@ std::string Response::getStatusMessage(int statusCode) const
 std::string Response::toString() const
 {
 	std::string response;
-	std::cout << "foo!" << std::endl;
-	std::cout << _status << std::endl;
 
 	// ステータス行を平文に変換
 	response += "HTTP/1.1 " + std::to_string(this->_status) + " " +
 				getStatusMessage(this->_status) + "\r\n";
-	std::cout << "B" << std::endl;
 
 	// ヘッダーを平文に変換
 	std::map<std::string, std::string>::const_iterator iter;
-	std::cout << "C" << std::endl;
 	for (iter = this->_headers.begin(); iter != this->_headers.end(); ++iter)
 	{
 		const std::pair<std::string, std::string> &pair = *iter;
 		response += pair.first + ": " + pair.second + "\r\n";
 	}
-	std::cout << "D" << std::endl;
 
 	// 終了行を追加
 	response += "\r\n";
 
 	// ボディを追加
 	response += this->_body;
-	std::cout << "E" << std::endl;
 	return response;
 }
 
@@ -142,7 +136,7 @@ void Response::setServer()
  * @return std::string mimeタイプ
  */
 std::string Response::getMimeType(const std::string &filename)
-{ 
+{
 	// 拡張子を取得
 	std::string::size_type pos = filename.rfind(".");
 	if (pos == std::string::npos)
