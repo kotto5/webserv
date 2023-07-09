@@ -184,7 +184,9 @@ Request	*Server::make_request(const std::string &row_request){
 	std::string	line;
 	while ((endPos = row_request.find("\r\n", startPos)) != std::string::npos)
 	{
-		line = row_request.substr(startPos, endPos);
+		if (endPos == startPos) // empty line
+			break;
+		line = row_request.substr(startPos, endPos - startPos);
 		if (startPos == 0){
 			std::string::size_type	tmp = line.find(" ");
 			method = line.substr(0, tmp);
@@ -196,6 +198,17 @@ Request	*Server::make_request(const std::string &row_request){
 		else
 			partitionAndAddToMap(headers, line, ": ");
 		startPos = endPos + 2; // Skip CRLF
+	}
+	if (headers.find("Content-Length") != headers.end())
+	{
+		std::string::size_type	content_length = std::stoi(headers["Content-Length"]);
+		body = row_request.substr(startPos, content_length);
+	}
+	if (headers.find("Transfer-Encoding") != headers.end() && headers["Transfer-Encoding"] == "chunked")
+	{
+		std::string::size_type	end_of_body = row_request.find("\r\n0\r\n\r\n");
+		body = row_request.substr(startPos, end_of_body - startPos);
+		// TODO: body = decode_chunked(body);
 	}
 	return (new Request(method, uri, protocol, headers, body));
 }
