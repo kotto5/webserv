@@ -21,21 +21,6 @@ void HTTPContext::setErrorLogFile(const std::string& errorLogFile)
 	_errorLogFile = errorLogFile;
 }
 
-const std::string& HTTPContext::getAccessLogFile() const
-{
-	return _accessLogFile;
-}
-
-const std::string& HTTPContext::getErrorLogFile() const
-{
-	return _errorLogFile;
-}
-
-const std::map<std::string, std::vector<ServerContext> >& HTTPContext::getServers() const
-{
-    return _servers;
-}
-
 void HTTPContext::addServerBlock(const ServerContext& server)
 {
     std::string listen = server.getListen();
@@ -66,6 +51,21 @@ void HTTPContext::addServerBlock(const ServerContext& server)
     }
 }
 
+const std::string& HTTPContext::getAccessLogFile() const
+{
+	return _accessLogFile;
+}
+
+const std::string& HTTPContext::getErrorLogFile() const
+{
+	return _errorLogFile;
+}
+
+const std::map<std::string, std::vector<ServerContext> >& HTTPContext::getServers() const
+{
+    return _servers;
+}
+
 /**
  * @brief IPアドレスとポート番号が一致するserverブロックを取得する
  *
@@ -73,7 +73,7 @@ void HTTPContext::addServerBlock(const ServerContext& server)
  * @param port
  * @return const std::vector<ServerContext>&
  */
-const ServerContext& HTTPContext::getServerContexts(const std::string& port, const std::string& host) const
+const ServerContext& HTTPContext::getServerContext(const std::string& port, const std::string& host) const
 {
     try
     {

@@ -132,13 +132,13 @@ std::vector<std::string> ConfigParser::splitLine(const std::string& line)
 
 void ConfigParser::parseLines()
 {
-	setContextType(HTTP_CONTEXT);
 	//parse each line
 	for ( ; _line_number < _lines.size(); _line_number++)
 	{
+		setContextType(HTTP_CONTEXT);
 		_one_line.clear();
 		_one_line = _lines[_line_number];
-		if (_one_line.empty())
+		if (_one_line.empty() || _one_line[0] == "#")
 			continue ;
 		if (_one_line[0] == "}")
 			break ;
@@ -160,7 +160,7 @@ void ConfigParser::setHTTPContext()
 	{
 		_one_line.clear();
 		_one_line = _lines[_line_number];
-		if (_one_line.empty())
+		if (_one_line.empty() || _one_line[0] == "#")
 			continue ;
 		if (_one_line[0] == "}")
 			break ;
@@ -183,13 +183,13 @@ const ServerContext ConfigParser::getServerContext()
 {
 	ServerContext server_context = ServerContext();
 
-	setContextType(SERVER_CONTEXT);
 	_line_number++;
 	for ( ; _line_number < _lines.size(); _line_number++)
 	{
+		setContextType(SERVER_CONTEXT);
 		_one_line.clear();
 		_one_line = _lines[_line_number];
-		if (_one_line.empty())
+		if (_one_line.empty() || _one_line[0] == "#")
 			continue ;
 		if (_one_line[0] == "}")
 			break ;
@@ -213,14 +213,14 @@ const LocationContext ConfigParser::getLocationContext()
 {
 	LocationContext location_context = LocationContext();
 
-	setContextType(LOCATION_CONTEXT);
 	location_context.addDirective("path", _one_line[1]);
 	_line_number++;
 	for ( ; _line_number < _lines.size(); _line_number++)
 	{
+		setContextType(LOCATION_CONTEXT);
 		_one_line.clear();
 		_one_line = _lines[_line_number];
-		if (_one_line.empty())
+		if (_one_line.empty() || _one_line[0] == "#")
 			continue ;
 		if (_one_line[0] == "}")
 			break ;
