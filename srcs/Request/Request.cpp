@@ -47,6 +47,8 @@ std::string Request::getProtocol() const
 
 std::string Request::getHeader(const std::string &key) const
 {
+	if (this->_headers.find(key) == this->_headers.end())
+		return "";
 	return this->_headers.find(key)->second;
 }
 

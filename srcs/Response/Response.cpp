@@ -20,7 +20,7 @@ Response::Response(const Response &other)
 {
 	this->_body = other._body;
 	this->_headers = other._headers;
-	this->_body = other._body;
+	this->_status = other._status;
 }
 
 // Destructor
@@ -70,25 +70,38 @@ std::string Response::getStatusMessage(int statusCode) const
  *
  * @return std::string レスポンス内容
  */
+
+#include <unistd.h>
+
 std::string Response::toString() const
 {
 	std::string response;
 
+	write(1, "a\n", 2);
 	// ステータス行を平文に変換
+	std::to_string(this->_status);
+	write(1, "a1\n", 3);
+	getStatusMessage(this->_status);
+	write(1, "a2\n", 3);
+
 	response += "HTTP/1.1 " + std::to_string(this->_status) + " " +
 				getStatusMessage(this->_status) + "\r\n";
+	write(1, "b\n", 2);
 
 	// ヘッダーを平文に変換
 	std::map<std::string, std::string>::const_iterator iter;
+	write(1, "c\n", 2);
 	for (iter = this->_headers.begin(); iter != this->_headers.end(); ++iter)
 	{
 		const std::pair<std::string, std::string> &pair = *iter;
 		response += pair.first + ": " + pair.second + "\r\n";
 	}
+	write(1, "d\n", 2);
 
 	// 終了行を追加
 	response += "\r\n";
 
+	write(1, "e\n", 2);
 	// ボディを追加
 	response += this->_body;
 	return response;
