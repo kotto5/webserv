@@ -16,12 +16,21 @@ int main()
 					.getAccessLogFile();
 		std::cout << accessLogFile << std::endl;
 		std::cout << "------------------------------" << std::endl;
-		std::string error_page 
+		ServerContext server 
 			= Config::getInstance()
 					->getHTTPBlock()
-					.getServerContext()
-					.getLocationBlock(0)
-					.getErrorPage(404);
+					.getServerContext("80", "webserve1");
+		std::cout << server.getServerName() << std::endl;
+		std::cout << "------------------------------" << std::endl;
+		// std::string error_page
+		// 	= server.getLocationContext("/error_page/")
+		// 			.getDirective("404");
+		// std::cout << error_page << std::endl;
+		std::cout << "------------------------------" << std::endl;
+		std::string error_alias
+			= server.getLocationContext("/error_page/")
+					.getDirective("alias");
+		std::cout << error_alias << std::endl;
 	}
 	catch (std::exception& e)
 	{

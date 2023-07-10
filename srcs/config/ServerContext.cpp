@@ -1,5 +1,6 @@
 #include "ServerContext.hpp"
 #include <stdexcept>
+#include <iostream>
 
 ServerContext::ServerContext():
 	_listen(),
@@ -7,26 +8,6 @@ ServerContext::ServerContext():
 	// _index(),
 	// _error_page()
 {
-}
-
-ServerContext::ServerContext(const ServerContext &other):
-	_listen(other._listen),
-	_server_name(other._server_name),
-	_locations(other._locations)
-	// _index(other._index),
-	// _error_page(other._error_page)
-{
-}
-
-ServerContext &ServerContext::operator=(const ServerContext &rhs)
-{
-	if (this != &rhs)
-	{
-		_listen = rhs._listen;
-		_server_name = rhs._server_name;
-		_locations = rhs._locations;
-	}
-	return *this;
 }
 
 ServerContext::~ServerContext()
