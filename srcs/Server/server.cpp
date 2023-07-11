@@ -216,11 +216,18 @@ Request	*Server::make_request(const std::string &row_request){
 }
 
 std::string	Server::make_response(std::string request_raw){
-	(void)request_raw;
+	int	pipe_read_fd = 0;
+
+
 	Request	*request = make_request(request_raw);
 	Router	router;
 	IHandler	*handler = router.createHandler(*request);
-	Response response = handler->handleRequest(*request);
+	if (request.getUri().find(".php") != std::string::npos)
+	{
+		pipe_read_fd = handler->sendRequestCgi(*request);
+	}
+	else
+		Response response = handler->handleRequest(*request);
 	delete (request);
 	return (response.toString());
 }
