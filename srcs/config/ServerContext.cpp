@@ -53,27 +53,28 @@ const std::vector<LocationContext>& ServerContext::getLocations() const
  */
 const LocationContext& ServerContext::getLocationContext(const std::string& path) const
 {
-	std::vector<LocationContext> locations = getLocations();
+	const std::vector<LocationContext>& locations = getLocations();
 
-	std::vector<LocationContext>::iterator matched = locations.begin();
+	bool isMatched = false;
+	std::vector<LocationContext>::const_iterator matched = locations.begin();
 	std::string::size_type max = 0;
-
-	for (std::vector<LocationContext>::iterator it = locations.begin(); it != locations.end(); ++it)
+	for (std::vector<LocationContext>::const_iterator it = locations.begin(); it != locations.end(); ++it)
 	{
 		// 前方一致の長さを取得する
 		std::string::size_type currentMatch = it->getDirective("path").find(path);
-		if (currentMatch != std::string::npos && currentMatch > max)
+		if (currentMatch != std::string::npos)
 		{
-			max = currentMatch;
-			matched = it;
+			if (!isMatched || max < currentMatch)
+			{
+				max = currentMatch;
+				matched = it;
+				isMatched = true;
+			}
 		}
 	}
-
-	// マッチするLocationブロックがない場合はエラー
-	if (max == 0)
+	if (!isMatched)
 	{
-		throw std::runtime_error("Path not found");
+		throw std::runtime_error("No matching LocationContext found for the given path.");
 	}
-
 	return *matched;
 }
