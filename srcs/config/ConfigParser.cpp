@@ -2,6 +2,7 @@
 #include "HTTPContext.hpp"
 #include "ServerContext.hpp"
 #include "LocationContext.hpp"
+#include "ConfigError.hpp"
 #include <fstream>
 #include <vector>
 #include <string>
@@ -16,6 +17,11 @@ ConfigParser::ConfigParser(Config& config):
 
 ConfigParser::~ConfigParser()
 {
+}
+
+void ConfigParser::setContextType(ContextType context)
+{
+	_context_type = context;
 }
 
 void ConfigParser::setDirectiveType(const std::string& directive)
@@ -40,8 +46,37 @@ void ConfigParser::setDirectiveType(const std::string& directive)
 		_directive_type = INDEX;
 	else if (directive == "error_page")
 		_directive_type = ERROR_PAGE;
-	//else
-		//exception
+	else
+		_directive_type = UNKNOWN;
+}
+
+bool ConfigParser::isInHTTPContext()
+{
+	return _directive_type == HTTP || _directive_type == ACCESS_LOG
+			|| _directive_type == ERROR_LOG || _directive_type == SERVER;
+}
+
+bool ConfigParser::isInServerContext()
+{
+	return _directive_type == LISTEN || _directive_type == SERVER_NAME
+			|| _directive_type == LOCATION;
+}
+
+bool ConfigParser::isInLocationContext()
+{
+	return  _directive_type == ALIAS || _directive_type == INDEX
+			|| _directive_type == ERROR_PAGE;
+}
+
+bool ConfigParser::isAllowedDirective()
+{
+	if (_context_type == HTTP_CONTEXT)
+		return isInHTTPContext();
+	else if (_context_type == SERVER_CONTEXT)
+		return isInServerContext();
+	else if (_context_type == LOCATION_CONTEXT)
+		return isInLocationContext();
+	return false;
 }
 
 void ConfigParser::parseFile(const std::string& filepath)
@@ -52,7 +87,7 @@ void ConfigParser::parseFile(const std::string& filepath)
 	if (!ifs)
 	{
 		std::cerr << "Open Error" << std::endl;
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 	getAndSplitLines(ifs);
 	ifs.close();
@@ -100,20 +135,21 @@ void ConfigParser::parseLines()
 	//parse each line
 	for ( ; _line_number < _lines.size(); _line_number++)
 	{
+		setContextType(HTTP_CONTEXT);
 		_one_line.clear();
 		_one_line = _lines[_line_number];
-		if (_one_line.empty())
+		if (_one_line.empty() || _one_line[0] == "#")
 			continue ;
 		if (_one_line[0] == "}")
 			break ;
 		setDirectiveType(_one_line[0]);
-		// error handling
-
-		if (_directive_type == HTTP)
+		if (!isAllowedDirective())
+		{
+			throw ConfigError(NOT_ALLOWED_DIRECTIVE, _one_line[0], _filepath, _line_number + 1);
+		}
+		else if (_directive_type == HTTP)
 			setHTTPContext();
-		else
-			//exception
-			;
+		//else
 	}
 }
 
@@ -124,11 +160,13 @@ void ConfigParser::setHTTPContext()
 	{
 		_one_line.clear();
 		_one_line = _lines[_line_number];
-		if (_one_line.empty())
+		if (_one_line.empty() || _one_line[0] == "#")
 			continue ;
 		if (_one_line[0] == "}")
 			break ;
 		setDirectiveType(_one_line[0]);
+		if (!isAllowedDirective())
+			throw ConfigError(NOT_ALLOWED_DIRECTIVE, _one_line[0], _filepath, _line_number + 1);
 		if (_directive_type == ACCESS_LOG)
 			_config.getHTTPBlock().setAccessLogFile(_one_line[1]);
 		else if (_directive_type == ERROR_LOG)
@@ -148,15 +186,18 @@ const ServerContext ConfigParser::getServerContext()
 	_line_number++;
 	for ( ; _line_number < _lines.size(); _line_number++)
 	{
+		setContextType(SERVER_CONTEXT);
 		_one_line.clear();
 		_one_line = _lines[_line_number];
-		if (_one_line.empty())
+		if (_one_line.empty() || _one_line[0] == "#")
 			continue ;
 		if (_one_line[0] == "}")
 			break ;
 		setDirectiveType(_one_line[0]);
+		if (!isAllowedDirective())
+			throw ConfigError(NOT_ALLOWED_DIRECTIVE, _one_line[0], _filepath, _line_number + 1);
 		if (_directive_type == LISTEN)
-			server_context.setListen(stoi(_one_line[1]));
+			server_context.setListen(_one_line[1]);
 		else if (_directive_type == SERVER_NAME)
 			server_context.setServerName(_one_line[1]);
 		else if (_directive_type == LOCATION)
@@ -172,42 +213,25 @@ const LocationContext ConfigParser::getLocationContext()
 {
 	LocationContext location_context = LocationContext();
 
-	location_context.setPath(_one_line[1]);
+	location_context.addDirective("path", _one_line[1]);
+	std::cout << "path: " << _one_line[1] << std::endl;
 	_line_number++;
 	for ( ; _line_number < _lines.size(); _line_number++)
 	{
+		setContextType(LOCATION_CONTEXT);
 		_one_line.clear();
 		_one_line = _lines[_line_number];
-		if (_one_line.empty())
+		if (_one_line.empty() || _one_line[0] == "#")
 			continue ;
 		if (_one_line[0] == "}")
 			break ;
 		setDirectiveType(_one_line[0]);
-		if (_directive_type == ALIAS)
-			location_context.setAlias(_one_line[1]);
-		else if (_directive_type == INDEX)
-			location_context.setIndex(_one_line[1]);
+		if (!isAllowedDirective())
+			throw ConfigError(NOT_ALLOWED_DIRECTIVE, _one_line[0], _filepath, _line_number + 1);
 		else if (_directive_type == ERROR_PAGE)
-			location_context.addErrorPage(stoi(_one_line[1]), _one_line[2]);
+			location_context.addDirective(_one_line[1], _one_line[2]);
+		else
+			location_context.addDirective(_one_line[0], _one_line[1]);
 	}
 	return location_context;
-}
-
-int ConfigParser::stoi(const std::string& str)
-{
-	int num = 0;
-	int sign = 1;
-	int i = 0;
-
-	if (str[i] == '-')
-	{
-		sign = -1;
-		i++;
-	}
-	while (str[i])
-	{
-		num = num * 10 + (str[i] - '0');
-		i++;
-	}
-	return (num * sign);
 }

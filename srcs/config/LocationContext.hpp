@@ -10,23 +10,14 @@ class LocationContext
 	public:
 		LocationContext();
 		~LocationContext();
-		LocationContext(const LocationContext &other);
-		LocationContext &operator=(const LocationContext &rhs);
-
-		void setPath(const std::string& path);
-		void setAlias(const std::string& alias);
-		void setIndex(const std::string& index);
-		void addErrorPage(const int status_code, const std::string& error_page);
-		const std::string& getPath() const;
-		const std::string& getAlias() const;
-		const std::string& getIndex() const;
-		const std::map<int, std::string>& getErrorPage() const;
-
+		// void addErrorPage(const std::string& status_code, const std::string& error_page);
+		void addDirective(const std::string& directive, const std::string& value);
+		// const std::string& getErrorPage(const std::string& status_code) const;
+		const std::string& getDirective(const std::string& directive) const;
+		
 	private:
-		std::string _path;
-		std::string _alias;
-		std::string _index;
-		std::map<int, std::string> _error_page;
+		// std::map<std::string, std::string> _error_page;
+		std::map<std::string, std::string> _directives;
 
 };
 

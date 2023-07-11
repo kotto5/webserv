@@ -25,22 +25,21 @@ Router &Router::operator=(const Router &rhs)
 
 IHandler *Router::createHandler(const Request &request)
 {
-	std::string alias;
+	std::string alias = "";
 	try
 	{
-		// Serverブロックを取得
-		const ServerContext &serverContext =
-			Config::getInstance()->getHTTPBlock().getServerContexts(80, request.getHeader("host"));
-		const LocationContext &locationContext = serverContext.getLocationContext(request.getUri());
-		alias = locationContext.getAlias();
 		// エイリアスがある場合は置き換える
+		alias = Config::getInstance()
+			->getHTTPBlock()
+			.getServerContext("80", request.getHeader("host"))
+			.getLocationContext(request.getUri())
+			.getDirective("alias");
 	}
 	catch (std::runtime_error &e)
 	{
 		// 一致するロケーションブロックがない場合は404を返す
 		std::cout << e.what() << std::endl;
 	}
-
 	// メソッドに対応するhandlerを取得
 	std::string method = request.getMethod();
 
