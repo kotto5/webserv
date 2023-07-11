@@ -60,8 +60,10 @@ const LocationContext& ServerContext::getLocationContext(const std::string& path
 	std::string::size_type max = 0;
 	for (std::vector<LocationContext>::const_iterator it = locations.begin(); it != locations.end(); ++it)
 	{
-		// 前方一致の長さを取得する
-		std::string::size_type currentMatch = it->getDirective("path").find(path);
+		// ロケーションパスを取得
+		std::string locationPath = it->getDirective("path");
+		// 前方一致の最大の長さを取得する
+		std::string::size_type currentMatch = getMaxPrefixLength(path, locationPath);
 		if (currentMatch != std::string::npos)
 		{
 			if (!isMatched || max < currentMatch)
@@ -77,4 +79,22 @@ const LocationContext& ServerContext::getLocationContext(const std::string& path
 		throw std::runtime_error("No matching LocationContext found for the given path.");
 	}
 	return *matched;
+}
+
+/**
+ * @brief 前方一致する最大の長さを求める
+ *
+ * @detail
+ * @param str1 比較する文字列1
+ * @param str2 比較する文字列2
+ * @return std::string::size_type 前方一致する最大の長さ
+ */
+std::string::size_type ServerContext::getMaxPrefixLength(const std::string& str1, const std::string& str2) const
+{
+	std::string::size_type i = 0;
+	while (i < str1.size() && i < str2.size() && str1[i] == str2[i])
+	{
+		++i;
+	}
+	return i;
 }

@@ -18,11 +18,12 @@ class ServerContext
 		void addLocationBlock(const LocationContext& location);
 		const std::vector<LocationContext>& getLocations() const;
 		const LocationContext& getLocationContext(const std::string& path) const;
-    
+
     private:
         std::string _listen;
         std::string _server_name;
 		std::vector<LocationContext> _locations;
+		std::string::size_type getMaxPrefixLength(const std::string &str1, const std::string &str2) const;
 };
 
 #endif

@@ -43,9 +43,9 @@ TEST_F(ConfigTest, getHTTPBlock)
 TEST_F(ConfigTest, getServerBlock)
 {
 	HTTPContext httpBlock = config->getHTTPBlock();
-	std::map<int, std::vector<ServerContext> > servers = httpBlock.getServers();
-	std::vector<ServerContext> serverContexts = servers[80];
-	EXPECT_EQ(serverContexts[0].getListen(), 80);
+	const std::map<std::string, std::vector<ServerContext> > servers = httpBlock.getServers();
+	std::vector<ServerContext> serverContexts = servers.at("80");
+	EXPECT_EQ(serverContexts[0].getListen(), "80");
 	EXPECT_EQ(serverContexts[0].getServerName(), "webserve1");
 }
 
@@ -53,24 +53,22 @@ TEST_F(ConfigTest, getServerBlock)
 TEST_F(ConfigTest, getLocationBlock)
 {
 	HTTPContext httpBlock = config->getHTTPBlock();
-	std::map<int, std::vector<ServerContext> > servers = httpBlock.getServers();
-	std::vector<ServerContext> serverContexts = servers[80];
+	const std::map<std::string, std::vector<ServerContext> > servers = httpBlock.getServers();
+	std::vector<ServerContext> serverContexts = servers.at("80");
 	std::vector<LocationContext> locationContexts = serverContexts[0].getLocations();
-	EXPECT_EQ(locationContexts[0].getPath(), "/");
-	EXPECT_EQ(locationContexts[0].getAlias(), "./docs");
-	EXPECT_EQ(locationContexts[0].getIndex(), "index.html");
-	// EXPECT_EQ(locationContexts[0].getRoot(), "./html");
-	// EXPECT_EQ(locationContexts[0].getAutoIndex(), "on");
+	EXPECT_EQ(locationContexts[0].getDirective("path"), "/");
+	EXPECT_EQ(locationContexts[0].getDirective("alias"), "./docs");
+	EXPECT_EQ(locationContexts[0].getDirective("index"), "index.html");
 }
 
 // 6. ポート番号が一致するServerブロックをすべて取得できるか
 TEST_F(ConfigTest, getServerContexts)
 {
 	HTTPContext httpBlock = config->getHTTPBlock();
-	const ServerContext &sc = httpBlock.getServerContexts(80, "webserve1");
+	const ServerContext &sc = httpBlock.getServerContext("80", "webserve1");
 	const LocationContext lc = sc.getLocationContext("/");
-	EXPECT_EQ(lc.getPath(), "/");
-	EXPECT_EQ(lc.getAlias(), "./docs");
-	EXPECT_EQ(lc.getIndex(), "index.html");
+	EXPECT_EQ(lc.getDirective("path"), "/");
+	EXPECT_EQ(lc.getDirective("alias"), "./docs");
+	EXPECT_EQ(lc.getDirective("index"), "index.html");
 }
 }
