@@ -8,23 +8,22 @@
 
 class ServerContext
 {
-public:
-	ServerContext();
-	~ServerContext();
-	ServerContext &operator=(const ServerContext &rhs);
-	ServerContext(const ServerContext &other);
-	void setListen(int listen);
-	void setServerName(const std::string &server_name);
-	int getListen() const;
-	const std::string &getServerName() const;
-	void addLocationBlock(const LocationContext &location);
-	const std::vector<LocationContext> &getLocations() const;
-	const LocationContext &getLocationContext(const std::string &path) const;
+    public:
+        ServerContext();
+        ~ServerContext();
+        void setListen(const std::string& listen);
+        void setServerName(const std::string& server_name);
+        const std::string& getListen() const;
+        const std::string& getServerName() const;
+		void addLocationBlock(const LocationContext& location);
+		const std::vector<LocationContext>& getLocations() const;
+		const LocationContext& getLocationContext(const std::string& path) const;
 
-private:
-	int _listen;
-	std::string _server_name;
-	std::vector<LocationContext> _locations;
+    private:
+        std::string _listen;
+        std::string _server_name;
+		std::vector<LocationContext> _locations;
+		std::string::size_type getMaxPrefixLength(const std::string &str1, const std::string &str2) const;
 };
 
 #endif

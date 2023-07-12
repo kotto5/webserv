@@ -47,7 +47,10 @@ std::string Request::getProtocol() const
 
 std::string Request::getHeader(const std::string &key) const
 {
-	return this->_headers.find(key)->second;
+	std::map<std::string, std::string>::const_iterator it = this->_headers.find(key);
+	if (it != this->_headers.end())
+		return it->second;
+	return "";
 }
 
 std::string Request::getBody() const
