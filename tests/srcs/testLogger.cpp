@@ -9,6 +9,7 @@ class LoggerTest : public ::testing::Test
 {
 protected:
 	Logger *logger;
+	SystemError *e;
 
 	const std::string accessLogfilePath = "./logs/access.log";
 	const std::string errorLogfilePath = "./logs/error.log";
@@ -19,21 +20,23 @@ protected:
 	std::map<std::string, std::string> headers;
 	const std::string body = "Hello World";
 
+
 	virtual void SetUp()
 	{
 		// ログファイルを一旦削除
-	//	remove(accessLogfilePath.c_str());
-	//	remove(errorLogfilePath.c_str());
+		remove(accessLogfilePath.c_str());
+		remove(errorLogfilePath.c_str());
 
 		// Loggerインスタンスを生成
 		logger = new Logger(
-			AccessLogfilePath,
-			ErrorLogfilePath
+			accessLogfilePath,
+			errorLogfilePath
 		);
 
 		// テストデータの挿入
 		headers.insert(std::make_pair("content-length", "100"));
 		headers.insert(std::make_pair("content-type", "text/html"));
+		e = new SystemError("ErrorMessage", 500);
 	}
 };
 
@@ -57,19 +60,19 @@ TEST_F(LoggerTest, getInstance)
 // 3.ログファイルのパスを参照できるか
 TEST_F(LoggerTest, getLogfilePath)
 {
-	accessLogfilePath = Logger::getInstance()->getAccessLogfilePath();
-	errorLogfilePath = Logger::getInstance()->getErrorLogfilePath();
+	const std::string aPath = Logger::getInstance()->getAccessLogPath();
+	const std::string ePath = Logger::getInstance()->getErrorLogPath();
 
-	EXPECT_EQ(accessLogfilePath, "./logs/access.log");
-	EXPECT_EQ(errorLogfilePath, "./logs/error.log");
+	EXPECT_EQ(aPath, "./logs/access.log");
+	EXPECT_EQ(ePath, "./logs/error.log");
 }
 
 // 4. アクセスログを書き込めるか
 TEST_F(LoggerTest, writeAccessLog)
 {
 	// テストデータの挿入
-	Request req = Request(method, url, protocol, headers, body);
-	Response res = Response(200, headers, body);
+	const Request req = Request(method, url, protocol, headers, body);
+	const Response res = Response(200, headers, body);
 
 	// アクセスログへの書き込み
 	Logger::getInstance()->writeAccessLog(req, res);
@@ -82,6 +85,30 @@ TEST_F(LoggerTest, writeAccessLog)
 	// テストデータの検証
 	EXPECT_TRUE(line.find("GET /index.html HTTP/1.1") != std::string::npos);
 	EXPECT_TRUE(line.find("200") != std::string::npos);
+
+	// ファイルを閉じる
+	ifs.close();
+}
+
+// 5. エラーログを書き込めるか
+TEST_F(LoggerTest, writeErrorLog)
+{
+	// テストデータの挿入
+	const Request req = Request(method, url, protocol, headers, body);
+	const Response res = Response(200, headers, body);
+
+	// エラーログへの書き込み
+	Logger::getInstance()->writeErrorLog(&req, &res, e);
+
+	// ファイルの読み込み
+	std::ifstream ifs(accessLogfilePath);
+	std::string line;
+	std::getline(ifs, line);
+
+	// テストデータの検証
+	EXPECT_TRUE(line.find("GET /index.html HTTP/1.1") != std::string::npos);
+	EXPECT_TRUE(line.find("ErrorMessage") != std::string::npos);
+	EXPECT_TRUE(line.find("500") != std::string::npos);
 
 	// ファイルを閉じる
 	ifs.close();
