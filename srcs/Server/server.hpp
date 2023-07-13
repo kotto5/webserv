@@ -54,16 +54,19 @@ class Server {
 		int				run();
 		int				handle_sockets(fd_set *read_fds, fd_set *write_fds, fd_set *expect_fds, int &activity);
 		int				accept(int listen_socket);
-		int				setFd(int fd, int type);
-		int				setcgiFd(int fd, int client_fd);
 		int				recv(std::list<int>::iterator itr, std::string &request);
-		int				recv_cgi(std::list<int>::iterator itr, std::string &request);
 		int				send(std::list<int>::iterator itr, std::string &response);
+		int				recv_cgi(std::list<int>::iterator itr, std::string &request);
 		int				send_cgi(std::list<int>::iterator itr, std::string &response);
 		static int		set_fd_set(fd_set &set, std::list<int> sockets, int &maxFd);
-		static Request	*make_request(const std::string &row_request);
+		static Request		*parse_request(const std::string &row_request);
 		static std::string	make_response(Request *request);
 		static bool		does_finish_recv_request(const std::string &request);
+
+		int				setFd(int fd, int type);
+		int				setcgiFd(int fd, int client_fd);
+		int				erasecgiFd(int fd);
+		int				eraseFd(int fd, int type);
 };
 
 #endif
