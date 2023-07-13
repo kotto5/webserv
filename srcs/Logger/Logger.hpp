@@ -1,6 +1,8 @@
 #ifndef LOGGER_HPP
 #define LOGGER_HPP
 
+#include "Request.hpp"
+#include "Response.hpp"
 #include <fstream>
 #include <string>
 #include <iostream>
@@ -8,16 +10,16 @@
 class Logger
 {
 	public:
+		Logger(const std::string& accessLogPath,
+			   const std::string& errorLogPath);
+		~Logger();
 		static Logger* getInstance();
-		void setAccessLogPath(const std::string &path);
-		void setErrorLogPath(const std::string &path);
-		void writeAccessLog(const std::string &message);
+		const std::string& getAccessLogPath() const;
+		const std::string& getErrorLogPath() const;
+		void writeAccessLog(Request request, Response response);
 		void writeErrorLog(const std::string &message);
 
 	private:
-		// コンストラクタとデストラクタをプライベートにしてインスタンス化を制限
-		Logger();
-		~Logger();
 		std::string _accessLogPath;
 		std::string _errorLogPath;
 		static Logger* _instance;
