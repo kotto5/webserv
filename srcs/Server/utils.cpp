@@ -40,7 +40,7 @@ int _socketpair(int domain, int type, int protocol, int sv[2]) {
     socklen_t client_len = sizeof(client_name);
 
     // 1. Create a socket.
-    listener = socket(domain, type, protocol);
+    listener = socket(domain, SOCK_STREAM, protocol);
     if (listener == -1) {
         return -1;
     }
@@ -48,9 +48,10 @@ int _socketpair(int domain, int type, int protocol, int sv[2]) {
     // 2. Bind the socket to an address.
     memset(&name, 0, sizeof(name));
     name.sin_family = domain;
+    name.sin_addr.s_addr = INADDR_ANY;
     name.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-    name.sin_port = 0;  // Use a random port.
     if (bind(listener, (struct sockaddr *)&name, sizeof(name)) == -1) {
+        perror("bind");
         close(listener);
         return -1;
     }
@@ -90,33 +91,20 @@ int _socketpair(int domain, int type, int protocol, int sv[2]) {
 
     // Close the listener socket as we no longer need it.
     close(listener);
-
     return 0;
 }
 
-int	connectCgi()
+int	runCgi(Request *request, int socket)
 {
-	int sv[2];
-	if (_socketpair(AF_UNIX, SOCK_STREAM, 0, sv) == -1)
-	{
-		perror("socketpair");
-		return (-1);
-	}
-	int	pairent_sock = sv[0];
-	int	child_sock = sv[1];
-
 	int	pid = fork();
 	if (pid == -1)
-	{
-		perror("fork");
-		exit(1);
-	}
+        return (ERROR);
 	else if (pid == 0)
 	{
-		close(pairent_sock);
-		dup2(child_sock, 0);
-		dup2(child_sock, 1);
-		close(child_sock);
+        (void)request;
+		dup2(socket, 0);
+		dup2(socket, 1);
+		close(socket);
 		std::string path = "/Users/kakiba/AAproject/42_webserv/docs/index.php";
 		// std::string query = request.getQuery();
 		// std::string path_query = path + "?" + query;
@@ -126,11 +114,7 @@ int	connectCgi()
 		char *envp[] = {NULL};
 		execve(php_path, argv, envp);
 		perror("execve");
-		exit(0);
+		exit(1);
 	}
-	else
-	{
-		close(child_sock);
-		return (pairent_sock);
-	}
+    return (0);
 }

@@ -3,6 +3,7 @@
 #include "Server/server.hpp"
 #include <iostream>
 #include <map>
+#include "utils.hpp"
 
 int main(int argc, char **argv)
 {
@@ -23,3 +24,14 @@ int main(int argc, char **argv)
 
 	return 0;
 }
+
+// int	main()
+// {
+// 	int	sockets[2];
+// 	if (_socketpair(AF_INET, SOCK_STREAM, 0, sockets) == -1)
+// 	{
+// 		std::cout << "socketpair error" << std::endl;
+// 		exit (-1);
+// 	}
+// 	return (0);
+// }

@@ -14,7 +14,6 @@ public:
 
 	// Member function
 	virtual Response	handleRequest(const Request &request) = 0;
-	virtual int			sendRequestCgi(const Request &request) = 0;
 protected:
 	int _status;
 };

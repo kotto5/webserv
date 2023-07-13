@@ -42,9 +42,9 @@ class Server {
 		std::list<int>				server_sockets;
 		std::list<int>				recv_sockets;
 		std::list<int>				send_sockets;
-		std::map<int, std::string>	requests;
-		std::map<int, std::string>	responses;
-		std::map<int, int>			cgi_send;
+		std::map<int, std::string>	Recvs;
+		std::map<int, std::string>	Sends;
+		std::map<int, int>			cgi_client;
 
 	public:
 		Server();
@@ -57,7 +57,9 @@ class Server {
 		int				setFd(int fd, int type);
 		int				setcgiFd(int fd, int client_fd);
 		int				recv(std::list<int>::iterator itr, std::string &request);
+		int				recv_cgi(std::list<int>::iterator itr, std::string &request);
 		int				send(std::list<int>::iterator itr, std::string &response);
+		int				send_cgi(std::list<int>::iterator itr, std::string &response);
 		static int		set_fd_set(fd_set &set, std::list<int> sockets, int &maxFd);
 		static Request	*make_request(const std::string &row_request);
 		static std::string	make_response(Request *request);

@@ -21,7 +21,6 @@ public:
 
 	// Member functions
 	virtual Response	handleRequest(const Request &request);
-	virtual int			sendRequestCgi(const Request &request);
 };
 
 #endif
