@@ -29,6 +29,12 @@ typedef enum E_STATUS {
 	RECV_FINISHED = 1
 } T_STATUS;
 
+typedef enum E_TYPE {
+	TYPE_RECV = 0,
+	TYPE_SEND = 1,
+	TYPE_CGI = 2
+} T_TYPE;
+
 typedef	std::pair<std::string, std::string>	massages;
 
 class Server {
@@ -38,6 +44,7 @@ class Server {
 		std::list<int>				send_sockets;
 		std::map<int, std::string>	requests;
 		std::map<int, std::string>	responses;
+		std::map<int, int>			cgi_send;
 
 	public:
 		Server();
@@ -47,11 +54,13 @@ class Server {
 		int				run();
 		int				handle_sockets(fd_set *read_fds, fd_set *write_fds, fd_set *expect_fds, int &activity);
 		int				accept(int listen_socket);
+		int				setFd(int fd, int type);
+		int				setcgiFd(int fd, int client_fd);
 		int				recv(std::list<int>::iterator itr, std::string &request);
 		int				send(std::list<int>::iterator itr, std::string &response);
 		static int		set_fd_set(fd_set &set, std::list<int> sockets, int &maxFd);
 		static Request	*make_request(const std::string &row_request);
-		static std::string		make_response(std::string request_raw);
+		static std::string	make_response(Request *request);
 		static bool		does_finish_recv_request(const std::string &request);
 };
 

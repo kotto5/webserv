@@ -116,7 +116,15 @@ int	Server::recv(std::list<int>::iterator itr, std::string &request_raw) {
 	if (does_finish_recv_request(request_raw) == true)
 	{
 		std::cout << "send finished!"  << std::endl;
-		responses[*itr] = make_response(request_raw);
+		Request	*request = make_request(request_raw);
+		if (request->getUri().find(".php") != std::string::npos)
+		{
+			int	pipe_read_fd = connectCgi();
+			pipe_read_fd = sendRequestCgi(*request);
+		}
+		responses[*itr] = make_response(request);
+		Router	router;
+		IHandler	*handler = router.createHandler(*request);
 		send_sockets.push_back(*itr);
 		requests.erase(*itr);
 		recv_sockets.erase(itr);
@@ -215,19 +223,12 @@ Request	*Server::make_request(const std::string &row_request){
 	return (new Request(method, uri, protocol, headers, body));
 }
 
-std::string	Server::make_response(std::string request_raw){
-	int	pipe_read_fd = 0;
-
-
-	Request	*request = make_request(request_raw);
+std::string	Server::make_response(Request *request){
 	Router	router;
 	IHandler	*handler = router.createHandler(*request);
-	if (request.getUri().find(".php") != std::string::npos)
-	{
-		pipe_read_fd = handler->sendRequestCgi(*request);
-	}
-	else
-		Response response = handler->handleRequest(*request);
+	if (handler == NULL)
+		return ("HTTP/1.1 404 Not Found\r\n\r\n");
+	Response response = handler->handleRequest(*request);
 	delete (request);
 	return (response.toString());
 }
@@ -260,5 +261,20 @@ int	Server::set_fd_set(fd_set &set, std::list<int> sockets, int &maxFd)
 		if (*itr > maxFd)
 			maxFd = *itr;
 	}
+	return (0);
+}
+
+int	Server::setFd(int fd, int type)
+{
+	if (type == TYPE_RECV)
+		recv_sockets.push_back(fd);
+	else if (type == TYPE_SEND)
+		send_sockets.push_back(fd);
+	return (0);
+}
+
+int	Server::setcgiFd(int fd, int client_fd)
+{
+	cgi_send[fd] = client_fd;
 	return (0);
 }
