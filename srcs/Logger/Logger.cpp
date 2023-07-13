@@ -32,6 +32,7 @@ Logger* Logger::getInstance()
 void Logger::writeAccessLog(Request request, Response response)
 {
 	std::ofstream logFile;
+
     logFile.open(_accessLogPath.c_str(), std::ios::app);
     if (logFile.is_open()) {
         // 現在の時間を取得し、それを文字列としてフォーマット
@@ -43,22 +44,45 @@ void Logger::writeAccessLog(Request request, Response response)
         logFile << timestamp << " "
                 << request.getMethod() << " "
                 << request.getUri() << " "
-                << response.getStatus() << " ";
+                << response.getStatus() << std::endl;
+		
         logFile.close();
     }
 	else
         std::cerr << "Unable to open access log file" << std::endl;
 }
 
-void Logger::writeErrorLog(const std::string &message)
+void Logger::writeErrorLog(Request* request = NULL, 
+							Response* response = NULL, 
+							SystemError* systemError = NULL)
 {
-	std::ofstream logFile;
-	logFile.open(_errorLogPath.c_str(), std::ios::app);
-	if (logFile.is_open())
-	{
-		logFile << message << std::endl;
-		logFile.close();
-	}
-	else
-		std::cerr << "Unable to open error log file" << std::endl;
+    std::ofstream logFile;
+    logFile.open(_errorLogPath.c_str(), std::ios::app);
+    if (logFile.is_open()) {
+        // 現在の時間を取得し、それを文字列としてフォーマット
+        std::time_t now = std::time(0);
+        char timestamp[100];
+        std::strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S", std::localtime(&now));
+
+        // ログメッセージを作成
+        logFile << timestamp << " ";
+
+        // Request and Response information, if available
+        if (request) {
+            logFile << request->getUri() << " " << request->getMethod() << " " << request->getUri() << " ";
+        }
+        if (response) {
+            //logFile << response->getStatus() << " " << response->getSize() << " ";
+        }
+
+        // SystemError information
+        if (systemError) {
+            logFile << systemError->getErrorMessage() << " " << systemError->getErrorCode();
+        }
+
+        logFile << std::endl;
+        logFile.close();
+    } else {
+        std::cerr << "Unable to open error log file" << std::endl;
+    }
 }
