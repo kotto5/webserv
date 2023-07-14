@@ -30,7 +30,7 @@ Logger* Logger::getInstance()
 	return _instance;
 }
 
-void Logger::writeAccessLog(Request request, Response response)
+void Logger::writeAccessLog(const Request& request, const Response& response)
 {
 	std::ofstream logFile;
 
@@ -54,7 +54,7 @@ void Logger::writeAccessLog(Request request, Response response)
         std::cerr << "Unable to open access log file" << std::endl;
 }
 
-void Logger::writeErrorLog(Request* request, Response* response, SystemError* systemError)
+void Logger::writeErrorLog(const Request* request, const Response* response, const SystemError* systemError)
 {
     std::ofstream logFile;
     logFile.open(_errorLogPath.c_str(), std::ios::app);
@@ -70,7 +70,7 @@ void Logger::writeErrorLog(Request* request, Response* response, SystemError* sy
 
         // Request and Response information, if available
         if (request) {
-            logFile << request->getUri() << " " << request->getMethod() << " " << request->getUri() << " ";
+            logFile << request->getProtocol() << " ";
         }
         if (response) {
             logFile << response->getStatus() << " " << response->getHeader("Content-Length") << " ";

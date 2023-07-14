@@ -3,7 +3,7 @@
 
 #include "Request.hpp"
 #include "Response.hpp"
-#include "SystemError.hpp"
+#include "../Error/SystemError.hpp"
 #include <fstream>
 #include <string>
 #include <iostream>
@@ -20,8 +20,8 @@ class Logger
 		static Logger* getInstance();
 		const std::string& getAccessLogPath() const;
 		const std::string& getErrorLogPath() const;
-		void writeAccessLog(Request request, Response response);
-		void writeErrorLog(Request* request = NULL, Response* response = NULL, SystemError* systemError = NULL);
+		void writeAccessLog(const Request& request, const Response& response);
+		void writeErrorLog(const Request* request = NULL, const Response* response = NULL, const SystemError* systemError = NULL);
 
 	private:
 		std::string _accessLogPath;
