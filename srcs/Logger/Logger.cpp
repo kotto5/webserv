@@ -9,7 +9,7 @@ Logger::Logger(const std::string& accessLogPath,
 }
 
 Logger::~Logger()
-{	
+{
 }
 
 const std::string& Logger::getAccessLogPath() const
@@ -25,7 +25,7 @@ const std::string& Logger::getErrorLogPath() const
 Logger* Logger::getInstance()
 {
     if (_instance == NULL)
-		_instance = new Logger(DEFAULT_ACCESS_LOG_PATH, 
+		_instance = new Logger(DEFAULT_ACCESS_LOG_PATH,
                                 DEFAULT_ERROR_LOG_PATH);
 	return _instance;
 }
@@ -41,13 +41,13 @@ void Logger::writeAccessLog(const Request& request, const Response& response)
         std::time_t now = std::time(0);
         char timestamp[100];
         std::strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S", std::localtime(&now));
-
         // ログメッセージを作成。ここではgetterメソッドを仮定しています。
         logFile << timestamp << " "
                 << request.getMethod() << " "
                 << request.getUri() << " "
-                << response.getStatus() << std::endl;
-		
+                << request.getProtocol() << " "
+				<< response.getStatus() << std::endl;
+
         logFile.close();
     }
 	else
@@ -89,3 +89,6 @@ void Logger::writeErrorLog(const Request* request, const Response* response, con
 }
 
 Logger* Logger::_instance = NULL;
+
+const std::string Logger::DEFAULT_ERROR_LOG_PATH = "./logs/error.log";
+const std::string Logger::DEFAULT_ACCESS_LOG_PATH = "./logs/access.log";

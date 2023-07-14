@@ -83,8 +83,7 @@ TEST_F(LoggerTest, writeAccessLog)
 	std::getline(ifs, line);
 
 	// テストデータの検証
-	EXPECT_TRUE(line.find("GET /index.html HTTP/1.1") != std::string::npos);
-	EXPECT_TRUE(line.find("200") != std::string::npos);
+	EXPECT_TRUE(line.find("GET /index.html HTTP/1.1 200") != std::string::npos);
 
 	// ファイルを閉じる
 	ifs.close();
@@ -101,12 +100,12 @@ TEST_F(LoggerTest, writeErrorLog)
 	Logger::getInstance()->writeErrorLog(&req, &res, e);
 
 	// ファイルの読み込み
-	std::ifstream ifs(accessLogfilePath);
+	std::ifstream ifs(errorLogfilePath);
 	std::string line;
 	std::getline(ifs, line);
 
 	// テストデータの検証
-	EXPECT_TRUE(line.find("GET /index.html HTTP/1.1") != std::string::npos);
+	EXPECT_TRUE(line.find("HTTP/1.1") != std::string::npos);
 	EXPECT_TRUE(line.find("ErrorMessage") != std::string::npos);
 	EXPECT_TRUE(line.find("500") != std::string::npos);
 

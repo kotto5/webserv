@@ -10,9 +10,6 @@
 
 class Logger
 {
-	#define DEFAULT_ACCESS_LOG_PATH "./logs/access.log"
-	#define DEFAULT_ERROR_LOG_PATH "./logs/error.log"
-
 	public:
 		Logger(const std::string& accessLogPath,
 			   const std::string& errorLogPath);
@@ -24,6 +21,8 @@ class Logger
 		void writeErrorLog(const Request* request = NULL, const Response* response = NULL, const SystemError* systemError = NULL);
 
 	private:
+		static const std::string DEFAULT_ACCESS_LOG_PATH;
+		static const std::string DEFAULT_ERROR_LOG_PATH;
 		std::string _accessLogPath;
 		std::string _errorLogPath;
 		static Logger* _instance;
