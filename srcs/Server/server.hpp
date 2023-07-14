@@ -23,11 +23,12 @@
 #define RED "\x1b[41m"
 #define DEF "\x1b[49m"
 
-typedef enum E_STATUS {
-	RECV_CONTINUE = 0,
-	RECV_ERROR = -1,
-	RECV_FINISHED = 1
-} T_STATUS;
+typedef enum E_TYPE {
+	TYPE_RECV = 0,
+	TYPE_SEND = 1,
+	TYPE_SERVER = 2,
+	TYPE_CGI = 3,
+} T_TYPE;
 
 typedef	std::pair<std::string, std::string>	massages;
 
@@ -36,8 +37,9 @@ class Server {
 		std::list<int>				server_sockets;
 		std::list<int>				recv_sockets;
 		std::list<int>				send_sockets;
-		std::map<int, std::string>	requests;
-		std::map<int, std::string>	responses;
+		std::map<int, std::string>	Recvs;
+		std::map<int, std::string>	Sends;
+		std::map<int, int>			cgi_client;
 
 	public:
 		Server();
@@ -47,12 +49,20 @@ class Server {
 		int				run();
 		int				handle_sockets(fd_set *read_fds, fd_set *write_fds, fd_set *expect_fds, int &activity);
 		int				accept(int listen_socket);
-		int				recv(std::list<int>::iterator itr, std::string &request);
-		int				send(std::list<int>::iterator itr, std::string &response);
-		static int		set_fd_set(fd_set &set, std::list<int> sockets, int &maxFd);
-		static Request	*make_request(const std::string &row_request);
-		static std::string		make_response(std::string request_raw);
-		static bool		does_finish_recv_request(const std::string &request);
+		ssize_t				recv(std::list<int>::iterator itr, std::string &recieving);
+		ssize_t				send(std::list<int>::iterator itr, std::string &response);
+		int					finish_recv(std::list<int>::iterator itr, std::string &recieving, bool is_cgi_connection);
+		int					finish_send(std::list<int>::iterator itr, bool is_cgi_connection);
+		bool				request_wants_cgi(Request *request);
+		int					new_connect_cgi(Request *request, int client_fd);
+		int					setFd(int type, int fd, int client_fd = -1);
+		int					eraseFd(int fd, int type);
+
+	static bool			does_finish_recv(const std::string &request, bool is_cgi_connection, ssize_t recv_ret);
+	static bool			does_finish_send(const std::string &request, ssize_t recv_ret);
+	static int			set_fd_set(fd_set &set, std::list<int> sockets, int &maxFd);
+	static Request		*parse_request(const std::string &row_request);
+	static std::string	make_response(Request *request);
 };
 
 #endif

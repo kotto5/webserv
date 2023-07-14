@@ -26,3 +26,99 @@ void partitionAndAddToMap(std::map<std::string, std::string>& m, const std::stri
 		m.insert(std::map<std::string, std::string>::value_type(part1, part2));
 	}
 }
+
+// redefine socketpair function
+// 1 : make socket it listen()
+// 2 : make socket it connect()
+// 3 : make socket from accept()
+// if all system call is success, return 0
+
+
+int _socketpair(int domain, int type, int protocol, int sv[2]) {
+    int listener;
+    struct sockaddr_in name, client_name;
+    socklen_t client_len = sizeof(client_name);
+
+    // 1. Create a socket.
+    listener = socket(domain, SOCK_STREAM, protocol);
+    if (listener == -1) {
+        return -1;
+    }
+
+    // 2. Bind the socket to an address.
+    memset(&name, 0, sizeof(name));
+    name.sin_family = domain;
+    name.sin_addr.s_addr = INADDR_ANY;
+    name.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    if (bind(listener, (struct sockaddr *)&name, sizeof(name)) == -1) {
+        perror("bind");
+        close(listener);
+        return -1;
+    }
+
+    // 3. Listen on the socket.
+    if (listen(listener, 1) == -1) {
+        close(listener);
+        return -1;
+    }
+
+    // 4. Get the port number.
+    socklen_t name_len = sizeof(name);
+    if (getsockname(listener, (struct sockaddr *)&name, &name_len) == -1) {
+        close(listener);
+        return -1;
+    }
+
+    // 5. Create and connect the second socket.
+    sv[1] = socket(domain, type, protocol);
+    if (sv[1] == -1) {
+        close(listener);
+        return -1;
+    }
+    if (connect(sv[1], (struct sockaddr *)&name, name_len) == -1) {
+        close(listener);
+        close(sv[1]);
+        return -1;
+    }
+
+    // 6. Accept the connection on the listener socket.
+    sv[0] = accept(listener, (struct sockaddr *)&client_name, &client_len);
+    if (sv[0] == -1) {
+        close(listener);
+        close(sv[1]);
+        return -1;
+    }
+
+    // Close the listener socket as we no longer need it.
+    close(listener);
+    return 0;
+}
+
+int	runCgi(Request *request, int socket)
+{
+	int	pid = fork();
+	if (pid == -1)
+        return (ERROR);
+	else if (pid == 0)
+	{
+        (void)request;
+		dup2(socket, 0);
+		dup2(socket, 1);
+		close(socket);
+		std::string path = "/Users/kakiba/AAproject/42_webserv/docs/index.php";
+		// std::string query = request.getQuery();
+		// std::string path_query = path + "?" + query;
+		std::string path_query = path;
+		char	*php_path = (char *)"/usr/bin/php";
+		char *argv[] = {php_path, const_cast<char *>(path_query.c_str()), NULL};
+		char *envp[] = {NULL};
+		execve(php_path, argv, envp);
+		perror("execve");
+		exit(1);
+	}
+    return (0);
+}
+
+int isValidFd(int fd) {
+    return (fcntl(fd, F_GETFD) != -1 || errno != EBADF);
+}
