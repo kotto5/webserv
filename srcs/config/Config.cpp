@@ -19,9 +19,9 @@ HTTPContext& Config::getHTTPBlock()
 	return _http_block;
 }
 
-Config *Config::getInstance()
+Config* Config::getInstance()
 {
 	return _instance;
 }
 
-Config *Config::_instance = NULL;
+Config* Config::_instance = NULL;

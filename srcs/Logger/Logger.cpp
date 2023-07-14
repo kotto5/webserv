@@ -25,7 +25,8 @@ const std::string& Logger::getErrorLogPath() const
 Logger* Logger::getInstance()
 {
     if (_instance == NULL)
-		_instance = new Logger("./logs/access.log", "./logs/error.log");
+		_instance = new Logger(DEFAULT_ACCESS_LOG_PATH, 
+                                DEFAULT_ERROR_LOG_PATH);
 	return _instance;
 }
 
@@ -34,7 +35,8 @@ void Logger::writeAccessLog(Request request, Response response)
 	std::ofstream logFile;
 
     logFile.open(_accessLogPath.c_str(), std::ios::app);
-    if (logFile.is_open()) {
+    if (logFile.is_open())
+    {
         // 現在の時間を取得し、それを文字列としてフォーマット
         std::time_t now = std::time(0);
         char timestamp[100];
@@ -52,13 +54,12 @@ void Logger::writeAccessLog(Request request, Response response)
         std::cerr << "Unable to open access log file" << std::endl;
 }
 
-void Logger::writeErrorLog(Request* request = NULL, 
-							Response* response = NULL, 
-							SystemError* systemError = NULL)
+void Logger::writeErrorLog(Request* request, Response* response, SystemError* systemError)
 {
     std::ofstream logFile;
     logFile.open(_errorLogPath.c_str(), std::ios::app);
-    if (logFile.is_open()) {
+    if (logFile.is_open())
+    {
         // 現在の時間を取得し、それを文字列としてフォーマット
         std::time_t now = std::time(0);
         char timestamp[100];
@@ -72,7 +73,7 @@ void Logger::writeErrorLog(Request* request = NULL,
             logFile << request->getUri() << " " << request->getMethod() << " " << request->getUri() << " ";
         }
         if (response) {
-            //logFile << response->getStatus() << " " << response->getSize() << " ";
+            logFile << response->getStatus() << " " << response->getHeader("Content-Length") << " ";
         }
 
         // SystemError information
@@ -82,7 +83,9 @@ void Logger::writeErrorLog(Request* request = NULL,
 
         logFile << std::endl;
         logFile.close();
-    } else {
-        std::cerr << "Unable to open error log file" << std::endl;
     }
+    else
+        std::cerr << "Unable to open error log file" << std::endl;
 }
+
+Logger* Logger::_instance = NULL;
