@@ -32,7 +32,8 @@ typedef enum E_STATUS {
 typedef enum E_TYPE {
 	TYPE_RECV = 0,
 	TYPE_SEND = 1,
-	TYPE_CGI = 2
+	TYPE_SERVER = 2,
+	TYPE_CGI = 3,
 } T_TYPE;
 
 typedef	std::pair<std::string, std::string>	massages;
@@ -63,10 +64,13 @@ class Server {
 		static std::string	make_response(Request *request);
 		static bool		does_finish_recv_request(const std::string &request);
 
-		int				setFd(int fd, int type);
-		int				setcgiFd(int fd, int client_fd);
-		int				erasecgiFd(int fd);
-		int				eraseFd(int fd, int type);
+int		setFd(int type, int fd, int client_fd = -1);
+int		eraseFd(int fd, int type);
+int		setcgiFd(int fd, int client_fd);
+		
+
+		// int				setFd(T_TYPE type, int fd, int client_fd = -1);
+		// int				eraseFd(T_TYPE fd, int type);
 };
 
 #endif

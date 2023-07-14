@@ -99,7 +99,7 @@ int	Server::accept(int listen_socket){
 		return (1);
 	}
 	set_non_blocking(new_socket);
-	setFd(new_socket, TYPE_RECV);
+	setFd(TYPE_RECV, new_socket);
 	std::cout << RED << "New connection, socket fd is " << new_socket << ", port is " << ntohs(client_address.sin_port) << DEF << std::endl;
 	std::cout << DEF;
 	return (new_socket);
@@ -144,19 +144,14 @@ int	Server::recv(std::list<int>::iterator itr, std::string &request_raw) {
 			close(sockets[S_CHILD]);
 			std::cout << sockets[S_CHILD] << "  " <<  sockets[S_PARENT] << std::endl;
 			set_non_blocking(S_PARENT);
-			// setFd(sockets[S_PARENT], TYPE_SEND);
+			setFd(TYPE_SEND, sockets[S_PARENT]);
+			setFd(TYPE_CGI, sockets[S_PARENT], *itr);
 			Sends[sockets[S_PARENT]] = request->getBody();
-			if (isValidFd(sockets[S_PARENT]) == false)
-				std::cout << "invalid fd" << std::endl;
-			// send_sockets.push_back(sockets[S_PARENT]);
-			setFd(sockets[S_PARENT], TYPE_SEND);
-			setcgiFd(sockets[S_PARENT], *itr);
 		}
 		else
 		{
 			Sends[*itr] = make_response(request);
-			// send_sockets.push_back(*itr);
-			setFd(*itr, TYPE_SEND);
+			setFd(TYPE_SEND, *itr);
 		}
 		delete (request);
 		Recvs.erase(*itr);
@@ -184,8 +179,7 @@ int	Server::recv_cgi(std::list<int>::iterator itr, std::string &request_raw) {
 		std::cout << "send finished!"  << std::endl;
 		int	client_fd = cgi_client[*itr];
 		Sends[client_fd] = request_raw;
-		// send_sockets.push_back(client_fd);
-		setFd(client_fd, TYPE_SEND);
+		setFd(TYPE_SEND, client_fd);
 		Recvs.erase(*itr);
 		recv_sockets.erase(itr);
 	}
@@ -205,8 +199,8 @@ int	Server::send(std::list<int>::iterator itr, std::string &response){
 	{
 		close(*itr);
 		Sends.erase(*itr);
-		// send_sockets.erase(itr);
-		eraseFd(*itr, TYPE_SEND);
+		send_sockets.erase(itr);
+		// eraseFd(*itr, TYPE_SEND);
 	}
 	else
 	{
@@ -227,9 +221,7 @@ int	Server::send_cgi(std::list<int>::iterator itr, std::string &response){
 	if (static_cast<size_t>(ret) == response.length())
 	{
 		Sends.erase(*itr);
-		setFd(*itr, TYPE_RECV);
-		// recv_sockets.push_back(*itr);
-		// send_sockets.erase(itr);
+		setFd(TYPE_RECV, *itr);
 		eraseFd(*itr, TYPE_SEND);
 	}
 	else
@@ -349,12 +341,18 @@ int	Server::set_fd_set(fd_set &set, std::list<int> sockets, int &maxFd)
 	return (0);
 }
 
-int	Server::setFd(int fd, int type)
+int	Server::setFd(int type, int fd, int client_fd)
 {
 	if (type == TYPE_RECV)
 		recv_sockets.push_back(fd);
 	else if (type == TYPE_SEND)
 		send_sockets.push_back(fd);
+	else if (type == TYPE_SERVER)
+		server_sockets.push_back(fd);
+	else if (type == TYPE_CGI)
+		cgi_client[fd] = client_fd;
+	else
+		return (1);
 	return (0);
 }
 
@@ -364,17 +362,17 @@ int	Server::eraseFd(int fd, int type)
 		recv_sockets.remove(fd);
 	else if (type == TYPE_SEND)
 		send_sockets.remove(fd);
+	else if (type == TYPE_SERVER)
+		server_sockets.remove(fd);
+	else if (type == TYPE_CGI)
+		cgi_client.erase(fd);
+	else
+		return (1);
 	return (0);
 }
 
 int	Server::setcgiFd(int fd, int client_fd)
 {
 	cgi_client[fd] = client_fd;
-	return (0);
-}
-
-int	Server::erasecgiFd(int fd)
-{
-	cgi_client.erase(fd);
 	return (0);
 }
