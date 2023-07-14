@@ -55,14 +55,16 @@ class Server {
 		int				run();
 		int				handle_sockets(fd_set *read_fds, fd_set *write_fds, fd_set *expect_fds, int &activity);
 		int				accept(int listen_socket);
-		int				recv(std::list<int>::iterator itr, std::string &request);
-		int				send(std::list<int>::iterator itr, std::string &response);
-		int				recv_cgi(std::list<int>::iterator itr, std::string &request);
+		ssize_t				recv(std::list<int>::iterator itr, std::string &recieving);
+		ssize_t				send(std::list<int>::iterator itr, std::string &response);
 		int				send_cgi(std::list<int>::iterator itr, std::string &response);
+int	recv_handle_finish(std::list<int>::iterator itr, std::string &recieving, bool is_cgi);
+int	send_handle_finish(std::list<int>::iterator itr, std::string &recieving, bool is_cgi);
 		static int		set_fd_set(fd_set &set, std::list<int> sockets, int &maxFd);
 		static Request		*parse_request(const std::string &row_request);
 		static std::string	make_response(Request *request);
 		static bool		does_finish_recv_request(const std::string &request);
+bool	does_finish_recv(const std::string &request, bool is_cgi, ssize_t recv_ret);
 
 int		setFd(int type, int fd, int client_fd = -1);
 int		eraseFd(int fd, int type);
