@@ -10,40 +10,53 @@
 
 class ConfigParser
 {
-public:
-	ConfigParser(Config &config);
-	~ConfigParser();
-	void parseFile(const std::string &filepath);
-	void getAndSplitLines(std::ifstream &ifs);
-	std::vector<std::string> splitLine(const std::string &line);
-	void parseLines();
-	void setHTTPContext();
-	const ServerContext getServerContext();
-	const LocationContext getLocationContext();
-	void setDirectiveType(const std::string &directive);
+    enum ContextType
+    {
+        HTTP_CONTEXT,
+        SERVER_CONTEXT,
+        LOCATION_CONTEXT
+    };
 
-	enum DirectiveType
-	{
-		HTTP,
-		ACCESS_LOG,
-		ERROR_LOG,
-		SERVER,
-		LISTEN,
-		SERVER_NAME,
-		LOCATION,
-		ALIAS,
-		INDEX,
-		ERROR_PAGE
-	};
+    enum DirectiveType
+    {
+        HTTP,
+        ACCESS_LOG,
+        ERROR_LOG,
+        SERVER,
+        LISTEN,
+        SERVER_NAME,
+        LOCATION,
+        ALIAS,
+        INDEX,
+        ERROR_PAGE,
+        UNKNOWN
+    };
 
-private:
-	Config &_config;
-	size_t _line_number;
-	std::string _filepath;
-	std::vector<std::vector<std::string> > _lines;
-	std::vector<std::string> _one_line;
-	DirectiveType _directive_type;
-	int stoi(const std::string &str);
+    public:
+        ConfigParser(Config& config);
+        ~ConfigParser();
+        void parseFile(const std::string& filepath);
+        void getAndSplitLines(std::ifstream& ifs);
+        std::vector<std::string> splitLine(const std::string& line);
+        void parseLines();
+        void setHTTPContext();
+        const ServerContext getServerContext();
+        const LocationContext getLocationContext();
+        void setContextType(ContextType context);
+        void setDirectiveType(const std::string& directive);
+        bool isAllowedDirective();
+        bool isInHTTPContext();
+        bool isInServerContext();
+        bool isInLocationContext();
+
+    private:
+        Config& _config;
+        size_t _line_number;
+        std::string _filepath;
+        std::vector<std::vector<std::string> > _lines;
+        std::vector<std::string> _one_line;
+        ContextType _context_type;
+        DirectiveType _directive_type;
 };
 
 #endif
