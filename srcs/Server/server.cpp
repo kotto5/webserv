@@ -106,10 +106,6 @@ int	Server::accept(int listen_socket){
 	return (new_socket);
 }
 
-int isValidFd(int fd) {
-    return fcntl(fd, F_GETFD) != -1 || errno != EBADF;
-}
-
 int	Server::new_connect_cgi(Request *request, int client_fd)
 {
 	int	sockets[2];
@@ -131,11 +127,13 @@ int	Server::new_connect_cgi(Request *request, int client_fd)
 	return (0);
 }
 
-bool	Server::request_wants_cgi(Request *request)
-{
-	if (request->getUri().find(".php") != std::string::npos)
-		return (true);
-	return (false);
+ssize_t	Server::recv(std::list<int>::iterator itr, std::string &recieving) {
+	ssize_t recv_ret;
+	static char buffer[BUFFER_LEN];
+	memset(buffer, 0, BUFFER_LEN);
+	recv_ret = ::recv(*itr, buffer, BUFFER_LEN, 0);
+	recieving += buffer;
+	return (recv_ret);
 }
 
 // int	recv_handle_finish(tmp, Recvs[*tmp], cgi_client.count(*tmp) == 1)
@@ -165,13 +163,26 @@ int	Server::finish_recv(std::list<int>::iterator itr, std::string &recieving, bo
 	return (0);
 }
 
-ssize_t	Server::recv(std::list<int>::iterator itr, std::string &recieving) {
-	ssize_t recv_ret;
-	static char buffer[BUFFER_LEN];
-	memset(buffer, 0, BUFFER_LEN);
-	recv_ret = ::recv(*itr, buffer, BUFFER_LEN, 0);
-	recieving += buffer;
-	return (recv_ret);
+bool	Server::request_wants_cgi(Request *request)
+{
+	if (request->getUri().find(".php") != std::string::npos)
+		return (true);
+	return (false);
+}
+
+ssize_t	Server::send(std::list<int>::iterator itr, std::string &response){
+	ssize_t ret;
+	const char *buffer;
+
+	buffer = response.c_str();
+	std::cout << "[" << buffer << "] is response" << std::endl;
+	ret = ::send(*itr, (void *)buffer, response.length(), 0);
+	return (ret);
+}
+
+bool	Server::does_finish_send(const std::string &request, ssize_t recv_ret)
+{
+	return (recv_ret != -1 && request.length() == static_cast<size_t>(recv_ret));
 }
 
 int	Server::finish_send(std::list<int>::iterator itr, bool is_cgi_connection)
@@ -187,21 +198,6 @@ int	Server::finish_send(std::list<int>::iterator itr, bool is_cgi_connection)
 	}
 	send_sockets.erase(itr);
 	return (0);
-}
-
-bool	Server::does_finish_send(const std::string &request, ssize_t recv_ret)
-{
-	return (recv_ret != -1 && request.length() == static_cast<size_t>(recv_ret));
-}
-
-ssize_t	Server::send(std::list<int>::iterator itr, std::string &response){
-	ssize_t ret;
-	const char *buffer;
-
-	buffer = response.c_str();
-	std::cout << "[" << buffer << "] is response" << std::endl;
-	ret = ::send(*itr, (void *)buffer, response.length(), 0);
-	return (ret);
 }
 
 int	Server::create_server_socket(int port)
@@ -344,11 +340,5 @@ int	Server::eraseFd(int fd, int type)
 		cgi_client.erase(fd);
 	else
 		return (1);
-	return (0);
-}
-
-int	Server::setcgiFd(int fd, int client_fd)
-{
-	cgi_client[fd] = client_fd;
 	return (0);
 }

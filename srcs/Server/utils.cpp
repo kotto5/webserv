@@ -118,3 +118,7 @@ int	runCgi(Request *request, int socket)
 	}
     return (0);
 }
+
+int isValidFd(int fd) {
+    return (fcntl(fd, F_GETFD) != -1 || errno != EBADF);
+}

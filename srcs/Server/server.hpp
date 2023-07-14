@@ -23,12 +23,6 @@
 #define RED "\x1b[41m"
 #define DEF "\x1b[49m"
 
-typedef enum E_STATUS {
-	RECV_CONTINUE = 0,
-	RECV_ERROR = -1,
-	RECV_FINISHED = 1
-} T_STATUS;
-
 typedef enum E_TYPE {
 	TYPE_RECV = 0,
 	TYPE_SEND = 1,
@@ -63,7 +57,6 @@ class Server {
 		int					new_connect_cgi(Request *request, int client_fd);
 		int					setFd(int type, int fd, int client_fd = -1);
 		int					eraseFd(int fd, int type);
-		int					setcgiFd(int fd, int client_fd);
 
 	static bool			does_finish_recv(const std::string &request, bool is_cgi_connection, ssize_t recv_ret);
 	static bool			does_finish_send(const std::string &request, ssize_t recv_ret);
