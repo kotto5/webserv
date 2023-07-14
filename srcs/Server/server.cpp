@@ -19,8 +19,8 @@ int	Server::handle_sockets(fd_set *read_fds, fd_set *write_fds, fd_set *expect_f
 {
 	std::list<int>::iterator	itr;
 	std::list<int>::iterator	tmp;
-	ssize_t	ret;
-	bool	does_connected_cgi = false;
+	ssize_t						ret;
+	bool						does_connected_cgi;
 
 	for (itr = server_sockets.begin(); read_fds && itr != server_sockets.end();)
 	{
@@ -40,7 +40,7 @@ int	Server::handle_sockets(fd_set *read_fds, fd_set *write_fds, fd_set *expect_f
 			ret = recv(tmp, Recvs[*tmp]);
 			does_connected_cgi = (cgi_client.count(*tmp) == 1);
 			if (does_finish_recv(Recvs[*tmp], does_connected_cgi, ret))
-				recv_handle_finish(tmp, Recvs[*tmp], does_connected_cgi);
+				finish_recv(tmp, Recvs[*tmp], does_connected_cgi);
 			--activity;
 		}
 	}
@@ -52,15 +52,9 @@ int	Server::handle_sockets(fd_set *read_fds, fd_set *write_fds, fd_set *expect_f
 			ret = send(tmp, Sends[*tmp]);
 			does_connected_cgi = (cgi_client.count(*tmp) == 1);
 			if (does_finish_send(Sends[*tmp], ret))
-				send_handle_finish(tmp, does_connected_cgi);
+				finish_send(tmp, does_connected_cgi);
 			else if (ret != -1)
 				Sends[*tmp] = Sends[*tmp].substr(ret);
-
-			// if (cgi_client.count(*tmp))
-			// 	send_cgi(tmp, Sends[*tmp]);
-			// else
-			// 	if (send(tmp, Sends[*tmp]) == -1)
-			// 		;
 			--activity;
 		}
 	}
@@ -116,47 +110,58 @@ int isValidFd(int fd) {
     return fcntl(fd, F_GETFD) != -1 || errno != EBADF;
 }
 
-// int	recv_handle_finish(tmp, Recvs[*tmp], cgi_client.count(*tmp) == 1)
-int	Server::recv_handle_finish(std::list<int>::iterator itr, std::string &recieving, bool is_cgi)
+int	Server::new_connect_cgi(Request *request, int client_fd)
 {
-	if (is_cgi)
+	int	sockets[2];
+	if (_socketpair(AF_INET, SOCK_STREAM, 0, sockets) == -1)
 	{
-		int	client_fd = cgi_client[*itr];
+		std::cout << "socketpair error" << std::endl;
+		exit (-1);
+	}
+	if (runCgi(request, sockets[S_CHILD])){
+		std::cout << "runCgi error" << std::endl;
+		exit (-1);
+	}
+	close(sockets[S_CHILD]);
+	std::cout << sockets[S_CHILD] << "  " <<  sockets[S_PARENT] << std::endl;
+	set_non_blocking(S_PARENT);
+	setFd(TYPE_SEND, sockets[S_PARENT]);
+	setFd(TYPE_CGI, sockets[S_PARENT], client_fd);
+	Sends[sockets[S_PARENT]] = request->getBody();
+	return (0);
+}
+
+bool	Server::request_wants_cgi(Request *request)
+{
+	if (request->getUri().find(".php") != std::string::npos)
+		return (true);
+	return (false);
+}
+
+// int	recv_handle_finish(tmp, Recvs[*tmp], cgi_client.count(*tmp) == 1)
+int	Server::finish_recv(std::list<int>::iterator itr, std::string &recieving, bool is_cgi_connection)
+{
+	int	fd_itr = *itr;
+	recv_sockets.erase(itr);
+	if (is_cgi_connection)
+	{
+		int	client_fd = cgi_client[fd_itr];
 		Sends[client_fd] = recieving;
 		setFd(TYPE_SEND, client_fd);
-		Recvs.erase(*itr);
-		recv_sockets.erase(itr);
-		return (0);
-	}
-	Request	*request = parse_request(recieving);
-	std::string to_send;
-	if (request->getUri().find(".php") != std::string::npos)
-	{
-		int	sockets[2];
-		if (_socketpair(AF_INET, SOCK_STREAM, 0, sockets) == -1)
-		{
-			std::cout << "socketpair error" << std::endl;
-			exit (-1);
-		}
-		if (runCgi(request, sockets[S_CHILD])){
-			std::cout << "runCgi error" << std::endl;
-			exit (-1);
-		}
-		close(sockets[S_CHILD]);
-		std::cout << sockets[S_CHILD] << "  " <<  sockets[S_PARENT] << std::endl;
-		set_non_blocking(S_PARENT);
-		setFd(TYPE_SEND, sockets[S_PARENT]);
-		setFd(TYPE_CGI, sockets[S_PARENT], *itr);
-		Sends[sockets[S_PARENT]] = request->getBody();
 	}
 	else
 	{
-		Sends[*itr] = make_response(request);
-		setFd(TYPE_SEND, *itr);
+		Request	*request = parse_request(recieving);
+		if (request_wants_cgi(request))
+			new_connect_cgi(request, fd_itr);
+		else
+		{
+			Sends[fd_itr] = make_response(request);
+			setFd(TYPE_SEND, fd_itr);
+		}
+		delete (request);
 	}
-	delete (request);
-	Recvs.erase(*itr);
-	recv_sockets.erase(itr);
+	Recvs.erase(fd_itr);
 	return (0);
 }
 
@@ -169,10 +174,10 @@ ssize_t	Server::recv(std::list<int>::iterator itr, std::string &recieving) {
 	return (recv_ret);
 }
 
-int	Server::send_handle_finish(std::list<int>::iterator itr, bool is_cgi)
+int	Server::finish_send(std::list<int>::iterator itr, bool is_cgi_connection)
 {
 	Sends.erase(*itr);
-	if (is_cgi)
+	if (is_cgi_connection)
 	{
 		setFd(TYPE_RECV, *itr);
 	}
@@ -278,9 +283,9 @@ std::string	Server::make_response(Request *request){
 	return (response.toString());
 }
 
-bool	Server::does_finish_recv(const std::string &request, bool is_cgi, ssize_t recv_ret)
+bool	Server::does_finish_recv(const std::string &request, bool is_cgi_connection, ssize_t recv_ret)
 {
-	if (is_cgi)
+	if (is_cgi_connection)
 		return (recv_ret == 0);
 	size_t	end_of_header;
 	if (request.find("Transfer-Encoding: chunked") != std::string::npos)
