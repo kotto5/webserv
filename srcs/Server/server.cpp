@@ -38,7 +38,7 @@ int	Server::handle_sockets(fd_set *read_fds, fd_set *write_fds, fd_set *expect_f
 		if (FD_ISSET(*tmp, read_fds))
 		{
 			ret = recv(tmp, Recvs[*tmp]);
-			does_connected_cgi = cgi_client.count(*tmp) == 1;
+			does_connected_cgi = (cgi_client.count(*tmp) == 1);
 			if (does_finish_recv(Recvs[*tmp], does_connected_cgi, ret))
 				recv_handle_finish(tmp, Recvs[*tmp], does_connected_cgi);
 			--activity;
@@ -49,11 +49,18 @@ int	Server::handle_sockets(fd_set *read_fds, fd_set *write_fds, fd_set *expect_f
 		tmp = itr++;
 		if (FD_ISSET(*tmp, write_fds))
 		{
-			if (cgi_client.count(*tmp))
-				send_cgi(tmp, Sends[*tmp]);
-			else
-				if (send(tmp, Sends[*tmp]) == -1)
-					;
+			ret = send(tmp, Sends[*tmp]);
+			does_connected_cgi = (cgi_client.count(*tmp) == 1);
+			if (does_finish_send(Sends[*tmp], ret))
+				send_handle_finish(tmp, does_connected_cgi);
+			else if (ret != -1)
+				Sends[*tmp] = Sends[*tmp].substr(ret);
+
+			// if (cgi_client.count(*tmp))
+			// 	send_cgi(tmp, Sends[*tmp]);
+			// else
+			// 	if (send(tmp, Sends[*tmp]) == -1)
+			// 		;
 			--activity;
 		}
 	}
@@ -102,7 +109,6 @@ int	Server::accept(int listen_socket){
 	set_non_blocking(new_socket);
 	setFd(TYPE_RECV, new_socket);
 	std::cout << RED << "New connection, socket fd is " << new_socket << ", port is " << ntohs(client_address.sin_port) << DEF << std::endl;
-	std::cout << DEF;
 	return (new_socket);
 }
 
@@ -113,10 +119,8 @@ int isValidFd(int fd) {
 // int	recv_handle_finish(tmp, Recvs[*tmp], cgi_client.count(*tmp) == 1)
 int	Server::recv_handle_finish(std::list<int>::iterator itr, std::string &recieving, bool is_cgi)
 {
-	std::cout << "handle_finish" << std::endl;
 	if (is_cgi)
 	{
-		std::cout << "send finished!"  << std::endl;
 		int	client_fd = cgi_client[*itr];
 		Sends[client_fd] = recieving;
 		setFd(TYPE_SEND, client_fd);
@@ -160,11 +164,29 @@ ssize_t	Server::recv(std::list<int>::iterator itr, std::string &recieving) {
 	ssize_t recv_ret;
 	static char buffer[BUFFER_LEN];
 	memset(buffer, 0, BUFFER_LEN);
-
-	std::cout << "recv!" << std::endl;
 	recv_ret = ::recv(*itr, buffer, BUFFER_LEN, 0);
 	recieving += buffer;
 	return (recv_ret);
+}
+
+int	Server::send_handle_finish(std::list<int>::iterator itr, bool is_cgi)
+{
+	Sends.erase(*itr);
+	if (is_cgi)
+	{
+		setFd(TYPE_RECV, *itr);
+	}
+	else
+	{
+		close(*itr);
+	}
+	send_sockets.erase(itr);
+	return (0);
+}
+
+bool	Server::does_finish_send(const std::string &request, ssize_t recv_ret)
+{
+	return (recv_ret != -1 && request.length() == static_cast<size_t>(recv_ret));
 }
 
 ssize_t	Server::send(std::list<int>::iterator itr, std::string &response){
@@ -174,42 +196,7 @@ ssize_t	Server::send(std::list<int>::iterator itr, std::string &response){
 	buffer = response.c_str();
 	std::cout << "[" << buffer << "] is response" << std::endl;
 	ret = ::send(*itr, (void *)buffer, response.length(), 0);
-	if (ret == -1)
-		return (1);
-	if (static_cast<size_t>(ret) == response.length())
-	{
-		close(*itr);
-		Sends.erase(*itr);
-		send_sockets.erase(itr);
-		// eraseFd(*itr, TYPE_SEND);
-	}
-	else
-	{
-		response = response.substr(ret);
-	}
-	return (RECV_FINISHED);
-}
-
-int	Server::send_cgi(std::list<int>::iterator itr, std::string &response){
-	ssize_t ret;
-	const char *buffer;
-
-	buffer = response.c_str();
-	std::cout << "[" << buffer << "] is response" << std::endl;
-	ret = ::send(*itr, (void *)buffer, response.length(), 0);
-	if (ret == -1)
-		return (1);
-	if (static_cast<size_t>(ret) == response.length())
-	{
-		Sends.erase(*itr);
-		setFd(TYPE_RECV, *itr);
-		eraseFd(*itr, TYPE_SEND);
-	}
-	else
-	{
-		response = response.substr(ret);
-	}
-	return (RECV_FINISHED);
+	return (ret);
 }
 
 int	Server::create_server_socket(int port)
@@ -289,24 +276,6 @@ std::string	Server::make_response(Request *request){
 	Response response = handler->handleRequest(*request);
 	delete handler;
 	return (response.toString());
-}
-
-bool	Server::does_finish_recv_request(const std::string &request){
-	size_t	end_of_header;
-	if (request.find("Transfer-Encoding: chunked") != std::string::npos)
-	{
-		if (request.find("\r\n0\r\n\r\n") != std::string::npos)
-			return (true);
-		else
-			return (false);
-	}
-	end_of_header = request.find("\r\n\r\n");
-	if (end_of_header == std::string::npos)
-		return (false);
-	if (request.find("content-length: ") != std::string::npos &&
-			find_start(request, end_of_header, "\r\n\r\n") == std::string::npos)
-		return (false);
-	return (true);
 }
 
 bool	Server::does_finish_recv(const std::string &request, bool is_cgi, ssize_t recv_ret)
