@@ -139,10 +139,14 @@ ssize_t	Server::recv(std::list<int>::iterator itr, std::string &recieving) {
 // int	recv_handle_finish(tmp, Recvs[*tmp], cgi_client.count(*tmp) == 1)
 int	Server::finish_recv(std::list<int>::iterator itr, std::string &recieving, bool is_cgi_connection)
 {
+	std::cout << "finish_recv [" << recieving << "]" << std::endl; 
 	int	fd_itr = *itr;
+	int	wstatus;
+
 	recv_sockets.erase(itr);
 	if (is_cgi_connection)
 	{
+		waitpid(fd_itr, &wstatus, 0);
 		int	client_fd = cgi_client[fd_itr];
 		Sends[client_fd] = recieving;
 		setFd(TYPE_SEND, client_fd);
