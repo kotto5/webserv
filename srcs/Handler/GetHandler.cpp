@@ -39,7 +39,7 @@ Response GetHandler::handleRequest(const Request &request)
 {
 	// URIからファイルを開く
 	(void)request;
-	std::ifstream htmlFile("/Users/kakiba/AAproject/42_webserv/docs/index.html");
+	std::ifstream htmlFile("docs/index.html");
 	if (!htmlFile.is_open())
 	{
 		// ファイルが開けなかった場合は404を返す
@@ -53,7 +53,7 @@ Response GetHandler::handleRequest(const Request &request)
 
 	// レスポンスを作成して返す
 	std::map<std::string, std::string> headers;
-	headers["Content-Type"] = Response::getMimeType("/Users/kakiba/AAproject/42_webserv/docs/index.html");
+	headers["Content-Type"] = Response::getMimeType("docs/index.html");
 	Response res(this->_status, headers, buffer.str());
 
 	return res;
