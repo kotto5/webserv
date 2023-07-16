@@ -9,26 +9,15 @@ private:
     Error();
     ~Error();
 public:
-
-static void   print_error(std::string msg, int error_code);
-static std::map<int, std::string> error_msg;
+	static	void	print_error(std::string msg, int error_code);
+	static	const	std::map<int, std::string> error_msg;
 };
 
-Error::Error() {}
-
-Error::~Error() {}
-
-
-
-typedef enum {
-    SYSERROR = 0,
-    REQUEST_PARSE_ERROR,
-}   error_code;
-
-std::map<int, std::string> error_msg = {
-    {REQUEST_PARSE_ERROR, "Request parse error"},
-
-};
-
+typedef enum E_ERROR_CODE{
+    E_SYSCALL,
+	E_REQ_PARSE,
+	E_RES_PARSE,
+	E_CONF_PARSE,
+}   T_ERROR_CODE;
 
 #endif
