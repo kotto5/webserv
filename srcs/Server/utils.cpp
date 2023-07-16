@@ -102,7 +102,7 @@ int	runCgi(Request *request, int socket)
     std::string script = request->getUri();
 
     std::vector<std::string> envs;
-    envs.push_back("AUTH_TYPE=Basic");
+    envs.push_back("AUTH_TYPE=" + request->getHeader("auth-scheme"));
     envs.push_back("CONTENT_LENGTH=" + std::to_string(request->getBody().length()));
     // envs.push_back("CONTENT_TYPE=" + request->getContentType());
     envs.push_back("GATEWAY_INTERFACE=CGI/1.1");
@@ -132,8 +132,7 @@ int	runCgi(Request *request, int socket)
     // envs.push_back("SERVER_PORT=" + std::to_string(request->getServerPort()));
     envs.push_back("SERVER_PROTOCOL=" + request->getProtocol());
     // envs.push_back("SERVER_SOFTWARE=" + request->getServerSoftware());
-    // envs.push_back("HTTP_ACCEPT=" + request->getAccept());
-
+    envs.push_back("HTTP_ACCEPT=" + request->getHeader("Accept")); //////////
 
     std::vector<char*> cenvs;
     std::vector<std::string>::iterator it = envs.begin();
