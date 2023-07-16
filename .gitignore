@@ -35,3 +35,4 @@ webserv
 test_webserv
 settings.json
 .DS_Store
+*.log

@@ -20,8 +20,7 @@ public:
 	GetHandler &operator=(const GetHandler &rhs);
 
 	// Member functions
-	virtual Response handleRequest(const Request &request);
-
+	virtual Response	handleRequest(const Request &request);
 };
 
 #endif
