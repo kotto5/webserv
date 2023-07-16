@@ -1,5 +1,11 @@
 <?php
-	echo '<!DOCTYPE html>
+// ステータス行
+echo "HTTP/1.1 200 OK\r\n";
+// ヘッダー
+echo "Content-Type: text/html\r\n";
+echo "\r\n";
+// ボディ
+echo '<!DOCTYPE html>
 <html>
 	<body>
 		<h2>Basic HTML Form</h2>

@@ -104,7 +104,7 @@ ut: $(TEST_NAME)
 	@./$(TEST_NAME)
 
 ut_run: $(MAKE)
-	-@./$(NAME) ./conf/default.conf& echo $$! > ./tests/pid.file
+	-@./$(NAME) ./conf/default.conf& echo $$! > ./tests/pid.log
 
 ut_clean:
 	@rm -f $(TEST_OBJS)
