@@ -103,6 +103,9 @@ $(TEST_OBJDIR)/%.o: tests/srcs/%.cpp
 ut: $(TEST_NAME)
 	@./$(TEST_NAME)
 
+ut_run: $(MAKE)
+	-@./$(NAME) ./conf/default.conf& echo $$! > ./tests/pid.file
+
 ut_clean:
 	@rm -f $(TEST_OBJS)
 	@rm -f $(TEST_NAME)
