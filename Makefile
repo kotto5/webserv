@@ -12,7 +12,7 @@ SRCS := $(shell find $(SRCDIR) -type f -name "*.cpp")
 OBJDIR := objs
 OBJS = $(patsubst $(SRCDIR)%, $(OBJDIR)%, $(SRCS:%.cpp=%.o))
 
-INCLUDES = -Isrcs/Request -Isrcs/Router -Isrcs/Response -Isrcs/Handler -Isrcs/Server
+INCLUDES = -Isrcs/Request -Isrcs/Router -Isrcs/Response -Isrcs/Handler -Isrcs/Server -Isrcs/Logger
 DEPENDS := $(patsubst $(SRCDIR)%, $(OBJDIR)%, $(SRCS:%.cpp=%.d))
 
 # Print variables
@@ -102,6 +102,9 @@ $(TEST_OBJDIR)/%.o: tests/srcs/%.cpp
 #: Run unit tests.
 ut: $(TEST_NAME)
 	@./$(TEST_NAME)
+
+ut_run: $(MAKE)
+	-@./$(NAME) ./conf/default.conf& echo $$! > ./tests/pid.log
 
 ut_clean:
 	@rm -f $(TEST_OBJS)

@@ -4,6 +4,7 @@
 #include <errno.h>
 #include "Router.hpp"
 #include "IHandler.hpp"
+#include "Logger.hpp"
 
 int	Server::setup()
 {
@@ -139,7 +140,7 @@ ssize_t	Server::recv(std::list<int>::iterator itr, std::string &recieving) {
 // int	recv_handle_finish(tmp, Recvs[*tmp], cgi_client.count(*tmp) == 1)
 int	Server::finish_recv(std::list<int>::iterator itr, std::string &recieving, bool is_cgi_connection)
 {
-	std::cout << "finish_recv [" << recieving << "]" << std::endl; 
+	std::cout << "finish_recv [" << recieving << "]" << std::endl;
 	int	fd_itr = *itr;
 	int	wstatus;
 
@@ -279,6 +280,7 @@ std::string	Server::make_response(Request *request){
 	if (handler == NULL)
 		return ("HTTP/1.1 404 Not Found\r\n\r\n");
 	Response response = handler->handleRequest(*request);
+	Logger::getInstance()->writeAccessLog(*request, response);
 	delete handler;
 	return (response.toString());
 }

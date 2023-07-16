@@ -18,7 +18,7 @@ Response::Response(const int status, std::map<std::string, std::string> headers,
 
 Response::Response(const Response &other)
 {
-	this->_body = other._body;
+	this->_status = other._status;
 	this->_headers = other._headers;
 	this->_status = other._status;
 }

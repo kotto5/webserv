@@ -1,6 +1,7 @@
 #include "Request/Request.hpp"
 #include "config/Config.hpp"
 #include "Server/server.hpp"
+#include "Logger/Logger.hpp"
 #include <iostream>
 #include <map>
 #include "utils.hpp"
@@ -53,7 +54,13 @@ int main(int argc, char **argv)
 	}
 	// 設定ファイル読み込み
 	Config *config = new Config(argv[1]);
-	(void)config;
+
+	// ロギング設定
+	Logger *logger = new Logger(
+		Config::getInstance()->getHTTPBlock().getAccessLogFile(),
+		Config::getInstance()->getHTTPBlock().getErrorLogFile()
+	);
+
 	setSignalHandler();
 	// サーバー起動
 	Server server;
@@ -61,6 +68,7 @@ int main(int argc, char **argv)
 	server.run();
 	// サーバー終了
 	delete config;
+	delete logger;
 
 	return 0;
 }
