@@ -4,6 +4,7 @@
 #include <cstdio>
 #include "server.hpp"
 #include <map>
+#include "Error.hpp"
 
 void set_non_blocking(int socket) {
 	if (fcntl(socket, F_SETFL, O_NONBLOCK) == -1) {

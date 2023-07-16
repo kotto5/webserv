@@ -1,4 +1,5 @@
 #include "ConfigError.hpp"
+#include <errno.h>
 
 ConfigError::ConfigError(const ErrorType error_type, const std::string& error_word,
 						const std::string& filepath, int line_number):
@@ -7,6 +8,13 @@ ConfigError::ConfigError(const ErrorType error_type, const std::string& error_wo
 {
 	setErrorMessage(error_type, error_word);
 }
+
+ConfigError::ConfigError(const ErrorType error_type, const std::string& error_word)
+{
+	setErrorMessage(error_type, error_word);
+}
+
+
 
 ConfigError::~ConfigError() throw()
 {
@@ -24,6 +32,9 @@ void ConfigError::setErrorMessage(const ErrorType error_type, const std::string&
 			break;
 		case UNKOWN_DIRECTIVE:
 			_error_message += "unknown directive \"" + error_word + "\"" + _file_info;
+			break;
+		case SYSTEM_ERROR:
+			_error_message += "system call error: " + error_word + ": " + strerror(errno);
 			break;
 		default:
 			break;

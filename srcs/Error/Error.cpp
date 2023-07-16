@@ -2,25 +2,31 @@
 #include "iostream"
 
 
-void   print_error(std::string msg, int error_code) {
-    if (error_code == E_SYSCALL)
+void   Error::print_error(std::string msg, Error::T_ERROR_CODE error_code) {
+    if (error_code == Error::E_SYSCALL)
         perror(msg.c_str());
     else
-        std::cerr << msg << ": " << error_msg[error_code] << std::endl;
+        std::cerr << msg << ": " << Error::error_msg.at(error_code) << std::endl;
 }
 
-// _perror(request.getBody(), REQUEST_PARSE_ERROR);
+const std::map<Error::T_ERROR_CODE, std::string> Error::createErrorMap() {
+    std::map<Error::T_ERROR_CODE, std::string> error_msg;
 
-const std::map<int, std::string> createErrorMap() {
-    std::map<int, std::string> error_msg;
+    error_msg[Error::E_REQ_PARSE] = "Request parse error";
+    error_msg[Error::E_RES_PARSE] = "Response parse error";
+    error_msg[Error::E_CONF_PARSE] = "Config parse error";
 
-    error_msg[E_REQ_PARSE] = "Request parse error";
-    error_msg[E_RES_PARSE] = "Response parse error";
-    error_msg[E_CONF_PARSE] = "Config parse error";
+    return (error_msg);
 }
 
-const std::map<int, std::string> Error::error_msg = createErrorMap();
+const std::map<Error::T_ERROR_CODE, std::string> Error::error_msg = Error::createErrorMap();
 
 Error::Error() {}
 
 Error::~Error() {}
+
+
+// int	main(){
+// 	if (open("test.txt", O_RDWR, 0666) == -1)
+// 		Error::print_error("open", Error::E_SYSCALL);
+// }
