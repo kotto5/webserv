@@ -1,6 +1,7 @@
 #include "GetHandler.hpp"
 #include <fstream>
 #include <sstream>
+#include <unistd.h>
 
 // Constructors
 GetHandler::GetHandler()
@@ -11,7 +12,7 @@ GetHandler::GetHandler()
 
 GetHandler::GetHandler(const GetHandler &other)
 {
-	this->_status = other._status;
+	*this = other;
 }
 
 // Destructor
@@ -33,6 +34,7 @@ GetHandler &GetHandler::operator=(const GetHandler &rhs)
  * @param request リクエスト
  * @return Response レスポンス
  */
+
 Response GetHandler::handleRequest(const Request &request)
 {
 	// URIからファイルを開く
@@ -51,7 +53,7 @@ Response GetHandler::handleRequest(const Request &request)
 	// レスポンスを作成して返す
 	std::map<std::string, std::string> headers;
 	headers["Content-Type"] = Response::getMimeType(request.getUri());
-	Response res(_status, headers, buffer.str());
+	Response res(this->_status, headers, buffer.str());
 
 	return res;
 }

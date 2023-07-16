@@ -20,7 +20,7 @@ Response::Response(const Response &other)
 {
 	this->_status = other._status;
 	this->_headers = other._headers;
-	this->_body = other._body;
+	this->_status = other._status;
 }
 
 // Destructor
@@ -70,6 +70,9 @@ std::string Response::getStatusMessage(int statusCode) const
  *
  * @return std::string レスポンス内容
  */
+
+#include <unistd.h>
+
 std::string Response::toString() const
 {
 	std::string response;
@@ -85,10 +88,8 @@ std::string Response::toString() const
 		const std::pair<std::string, std::string> &pair = *iter;
 		response += pair.first + ": " + pair.second + "\r\n";
 	}
-
 	// 終了行を追加
 	response += "\r\n";
-
 	// ボディを追加
 	response += this->_body;
 	return response;
