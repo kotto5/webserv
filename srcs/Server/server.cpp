@@ -1,3 +1,4 @@
+#include "Config.hpp"
 #include "server.hpp"
 #include "utils.hpp"
 #include "Request.hpp"
@@ -5,14 +6,22 @@
 #include "Router.hpp"
 #include "IHandler.hpp"
 #include "Logger.hpp"
+#include <vector>
 
 int	Server::setup()
 {
 	// config serverの数だけwhile で
-	if (create_server_socket(80))
-		return (1);
-	if (create_server_socket(81))
-		return (1);
+	// if (create_server_socket(80))
+	// 	return (1);
+	// if (create_server_socket(81))
+	// 	return (1);
+	for (std::vector<int>::const_iterator itr = Config::getInstance()->getPorts().begin();
+		 itr != Config::getInstance()->getPorts().end(); 
+		 itr++)
+	{
+		if (create_server_socket(*itr))
+			return (1);
+	}
 	return (0);
 }
 
