@@ -6,6 +6,7 @@
 #include "Router.hpp"
 #include "IHandler.hpp"
 #include "Logger.hpp"
+#include "Error.hpp"
 #include <vector>
 #include <sys/wait.h>
 
@@ -17,7 +18,7 @@ int	Server::setup()
 	// if (create_server_socket(81))
 	// 	return (1);
 	for (std::vector<std::string>::const_iterator itr = Config::getInstance()->getPorts().begin();
-		 itr != Config::getInstance()->getPorts().end(); 
+		 itr != Config::getInstance()->getPorts().end();
 		 itr++)
 	{
 		if (create_server_socket(Server::strtoi(*itr)))
