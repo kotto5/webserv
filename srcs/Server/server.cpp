@@ -7,6 +7,7 @@
 #include "IHandler.hpp"
 #include "Logger.hpp"
 #include <vector>
+#include <sys/wait.h>
 
 int	Server::setup()
 {
@@ -15,11 +16,11 @@ int	Server::setup()
 	// 	return (1);
 	// if (create_server_socket(81))
 	// 	return (1);
-	for (std::vector<int>::const_iterator itr = Config::getInstance()->getPorts().begin();
+	for (std::vector<std::string>::const_iterator itr = Config::getInstance()->getPorts().begin();
 		 itr != Config::getInstance()->getPorts().end(); 
 		 itr++)
 	{
-		if (create_server_socket(*itr))
+		if (create_server_socket(Server::strtoi(*itr)))
 			return (1);
 	}
 	return (0);
@@ -357,3 +358,15 @@ int	Server::eraseFd(int fd, int type)
 		return (1);
 	return (0);
 }
+
+int Server::strtoi(std::string str)
+{
+	int ret = 0;
+	for (std::string::iterator itr = str.begin(); itr != str.end(); itr++)
+	{
+		ret *= 10;
+		ret += *itr - '0';
+	}
+	return (ret);
+}
+
