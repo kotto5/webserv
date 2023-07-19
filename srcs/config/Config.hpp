@@ -13,9 +13,12 @@ class Config
 		static Config* getInstance();
 		const std::vector<std::string>& getPorts();
 
-	private:
-		HTTPContext _http_block;
-		static Config* _instance;
+    private:
+        HTTPContext _http_block;
+        static Config* _instance;
+        int dup2_x(int oldfd, int newfd);
+        int newfd;
+		int	setErrorLogFileStderror(std::string errorLogFile);
 };
 
 #endif

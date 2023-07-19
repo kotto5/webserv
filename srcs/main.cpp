@@ -1,12 +1,15 @@
 #include "Request/Request.hpp"
 #include "config/Config.hpp"
+#include "config/ConfigError.hpp"
 #include "Server/server.hpp"
 #include "Logger/Logger.hpp"
 #include <iostream>
 #include <map>
+#include "Error.hpp"
 #include "utils.hpp"
 #include <signal.h>
-
+#include "Request.hpp"
+#include <filesystem>
 
 // int	setSignalHandler()
 // {
@@ -45,41 +48,75 @@ int	setSignalHandler()
 	return (0);
 }
 
-int main(int argc, char **argv)
+// int main(int argc, char **argv)
+// {
+// 	if (argc != 2)
+// 	{
+// 		std::cout << "Usage: ./webserv [config_file]" << std::endl;
+// 		return 1;
+// 	}
+// 	// 設定ファイル読み込み
+// 	Config	*config;
+// 	try
+// 	{
+// 		config = new Config(argv[1]);
+// 	}
+// 	catch(const ConfigError& e)
+// 	{
+// 		std::cerr << e.what() << '\n';
+// 		std::exit(1);
+// 	}
+
+// 	// ロギング設定
+// 	Logger *logger = new Logger(
+// 		Config::getInstance()->getHTTPBlock().getAccessLogFile(),
+// 		Config::getInstance()->getHTTPBlock().getErrorLogFile()
+// 	);
+
+// 	setSignalHandler();
+// 	// サーバー起動
+// 	Server server;
+// 	if (server.setup())
+// 		return (1);
+// 	server.run();
+// 	// サーバー終了
+// 	delete config;
+// 	delete logger;
+
+// 	return 0;
+// }
+
+int	main()
 {
-	if (argc != 2)
+
+	Config	*config;
+	try
 	{
-		std::cout << "Usage: ./webserv [config_file]" << std::endl;
+		config = new Config("/Users/kakiba/AAproject/42_webserv/conf/default.conf");
+	}
+	catch(const ConfigError& e)
+	{
+		std::cerr << e.what() << '\n';
+		std::exit(1);
+	}
+
+	// open file text.txt
+	std::ifstream ifs("/Users/kakiba/AAproject/42_webserv/sample_http/Request1");
+	// std::ifstream ifs("/Users/kakiba/AAproject/42_webserv/sample_http/RequestPost1");
+	if (!ifs)
+	{
+		std::cerr << "Error: file not opened." << std::endl;
 		return 1;
 	}
-	// 設定ファイル読み込み
-	Config *config = new Config(argv[1]);
-
-	// ロギング設定
-	Logger *logger = new Logger(
-		Config::getInstance()->getHTTPBlock().getAccessLogFile(),
-		Config::getInstance()->getHTTPBlock().getErrorLogFile()
-	);
-
-	setSignalHandler();
-	// サーバー起動
-	Server server;
-	server.setup();
-	server.run();
-	// サーバー終了
-	delete config;
-	delete logger;
-
-	return 0;
+	std::string row_request;
+	// read ifs to row_request
+	row_request.assign((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
+	Request	*req = Server::parse_request(row_request);
+	std::cout << "test@@@@@@@@@@@" << std::endl;
+	if (req == NULL)
+	{
+		std::cout << "parse error" << std::endl;
+		return (1);
+	}
+	req->print_all();
 }
-
-// int	main()
-// {
-// 	int	sockets[2];
-// 	if (_socketpair(AF_INET, SOCK_STREAM, 0, sockets) == -1)
-// 	{
-// 		std::cout << "socketpair error" << std::endl;
-// 		exit (-1);
-// 	}
-// 	return (0);
-// }

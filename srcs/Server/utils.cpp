@@ -4,6 +4,7 @@
 #include <cstdio>
 #include "server.hpp"
 #include <map>
+#include "Error.hpp"
 #include <vector>
 
 void set_non_blocking(int socket) {
