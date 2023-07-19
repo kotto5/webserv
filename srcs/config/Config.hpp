@@ -9,8 +9,9 @@ class Config
     public:
         Config(const std::string& filepath);
         ~Config();
-        HTTPContext& getHTTPBlock();
-        static Config* getInstance();
+		HTTPContext& getHTTPBlock();
+		static Config* getInstance();
+		const std::vector<std::string>& getPorts();
 
     private:
         HTTPContext _http_block;
