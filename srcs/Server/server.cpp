@@ -5,6 +5,7 @@
 #include "Router.hpp"
 #include "IHandler.hpp"
 #include "Logger.hpp"
+#include "Error.hpp"
 
 int	Server::setup()
 {
@@ -80,7 +81,7 @@ int	Server::run()
 		int activity = select(max_fd + 1, &read_fds, &write_fds, NULL, NULL);
 		if (activity == -1)
 		{
-			perror("ERROR on select");
+			Error::print_error("select", Error::E_SYSCALL);
 			exit(1);
 		}
 		handle_sockets(&read_fds, &write_fds, NULL, activity);
@@ -98,7 +99,7 @@ int	Server::accept(int listen_socket){
 
 	if (new_socket < 0) {
 		std::cout << errno << std::endl;
-		perror("ERROR on accept");
+		Error::print_error("accept", Error::E_SYSCALL);
 		return (1);
 	}
 	set_non_blocking(new_socket);
@@ -155,6 +156,7 @@ int	Server::finish_recv(std::list<int>::iterator itr, std::string &recieving, bo
 	else
 	{
 		Request	*request = parse_request(recieving);
+		request->setaddr(*itr);
 		if (request_wants_cgi(request))
 			new_connect_cgi(request, fd_itr);
 		else
@@ -217,15 +219,15 @@ int	Server::create_server_socket(int port)
 	int yes = 1;
 	if (setsockopt(new_sock, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1)
 	{
-		perror("setsockopt");
+		Error::print_error("setsockopt", Error::E_SYSCALL);
 		return (1);
 	}
 	if (bind(new_sock, (struct sockaddr *)&server_address, sizeof(server_address)) == -1){
-		perror("ERROR on binding");
+		Error::print_error("binding", Error::E_SYSCALL);
 		return (1);
 	}
 	if (listen(new_sock, 200) < 0){
-		perror("ERROR on listening");
+		Error::print_error("listening", Error::E_SYSCALL);
 		return (1);
 	}
 	set_non_blocking(new_sock);
@@ -233,7 +235,29 @@ int	Server::create_server_socket(int port)
 	return (0);
 }
 
-Request	*Server::parse_request(const std::string &row_request){
+bool	is_valid_line(const std::string &line, const bool is_requestline)
+{
+	if (is_requestline)
+	{
+		long sp_count = std::count(line.begin(), line.end(), ' ');
+		if (sp_count != 2)
+			return (false);
+		std::string::size_type	sp1 = line.find(" ");
+		std::string::size_type	sp2 = line.find(" ", sp1 + 1);
+		if (sp1 == sp2 + 1 || sp2 == static_cast<std::string::size_type>(line.end() - line.begin() - 1))
+			return (false);
+	}
+	else
+	{
+		std::string::size_type	colon = line.find(": ");
+		if (colon == std::string::npos || colon == 0 || colon == line.length() - 2)
+			return (false);
+	}
+	return (true);
+}
+
+Request	*Server::parse_request(const std::string &row_request)
+{
 	std::string method;
 	std::string uri;
 	std::string protocol;
@@ -248,13 +272,15 @@ Request	*Server::parse_request(const std::string &row_request){
 		if (endPos == startPos) // empty line
 			break;
 		line = row_request.substr(startPos, endPos - startPos);
+		// std::cout << "line:: " << line << " start pos: " << startPos << " end pos: " << endPos << std::endl;
+		if (is_valid_line(line, startPos == 0) == false)
+			return (NULL);
 		if (startPos == 0){
-			std::string::size_type	tmp = line.find(" ");
-			method = line.substr(0, tmp);
-			std::string::size_type	tmp2 = line.find(" ", tmp + 1);
-			uri = line.substr(tmp + 1, tmp2 - tmp - 1);
-			tmp = line.find(" ");
-			protocol = line.find(tmp);
+			std::string::size_type	method_end = line.find(" ");
+			std::string::size_type	uri_end = line.find(" ", method_end + 1);
+			method = line.substr(0, method_end);
+			uri = line.substr(method_end + 1, uri_end - method_end - 1);
+			protocol = line.substr(uri_end + 1);
 		}
 		else
 			partitionAndAddToMap(headers, line, ": ");
@@ -263,7 +289,9 @@ Request	*Server::parse_request(const std::string &row_request){
 	if (headers.find("Content-Length") != headers.end())
 	{
 		std::string::size_type	content_length = std::stoi(headers["Content-Length"]);
-		body = row_request.substr(startPos, content_length);
+		std::cout << "content_length: " << content_length << std::endl;
+		body = row_request.substr(startPos + 2, content_length);
+		std::cout << "body: " << body.length() << std::endl;
 	}
 	if (headers.find("Transfer-Encoding") != headers.end() && headers["Transfer-Encoding"] == "chunked")
 	{
