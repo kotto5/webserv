@@ -11,7 +11,7 @@ class Config
         ~Config();
 		HTTPContext& getHTTPBlock();
 		static Config* getInstance();
-		const std::vector<std::string>& getPorts();
+		const std::vector<std::string> getPorts();
 
     private:
         HTTPContext _http_block;

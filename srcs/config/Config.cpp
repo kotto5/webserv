@@ -51,7 +51,7 @@ Config* Config::getInstance()
     return _instance;
 }
 
-const std::vector<std::string>& Config::getPorts()
+const std::vector<std::string> Config::getPorts()
 {
 	std::vector<std::string> ports;
 
