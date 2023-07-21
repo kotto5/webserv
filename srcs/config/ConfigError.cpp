@@ -1,5 +1,6 @@
 #include "ConfigError.hpp"
 #include <errno.h>
+#include <string.h>
 
 ConfigError::ConfigError(const ErrorType error_type, const std::string& error_word,
 						const std::string& filepath, int line_number):

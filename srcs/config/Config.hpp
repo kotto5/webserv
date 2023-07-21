@@ -16,9 +16,8 @@ class Config
     private:
         HTTPContext _http_block;
         static Config* _instance;
-        int dup2_x(int oldfd, int newfd);
-        int newfd;
-		int	setErrorLogFileStderror(std::string errorLogFile);
+		int	redirectErrorLogFile(std::string errorLogFile);
+        int redirectAccessLogFile(std::string accessLogFile);
 };
 
 #endif
