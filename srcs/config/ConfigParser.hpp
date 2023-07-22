@@ -7,6 +7,8 @@
 #include "ServerContext.hpp"
 #include <string>
 #include <vector>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 class ConfigParser
 {
@@ -57,6 +59,7 @@ class ConfigParser
         std::vector<std::string> _one_line;
         ContextType _context_type;
         DirectiveType _directive_type;
+		bool isFile(const char *path);
 };
 
 #endif

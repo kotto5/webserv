@@ -2,6 +2,7 @@
 #define ERROR_HPP
 
 #include <map>
+#include <string>
 
 class Error
 {
