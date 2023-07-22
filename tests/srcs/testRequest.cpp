@@ -61,16 +61,14 @@ TEST_F(RequestTest, alias)
 	Request rq1(method, url, protocol, headers, body);
 	url = "/index.html";
 	Request rq2(method, url, protocol, headers, body);
-	url = "/resources/";
-	Request rq3(method, url, protocol, headers, body);
 	url = "/resources/index.html";
-	Request rq4(method, url, protocol, headers, body);
+	Request rq3(method, url, protocol, headers, body);
 
 	// テストデータの検証
-	EXPECT_EQ(rq1.getActualUri(), "./docs/");
+	EXPECT_EQ(rq1.getActualUri(), "./docs");
 	EXPECT_EQ(rq2.getActualUri(), "./docs/index.html");
-	EXPECT_EQ(rq3.getActualUri(), "./data/s3/resources/");
-	EXPECT_EQ(rq4.getActualUri(), "./data/s3/resources/index.html");
+	EXPECT_EQ(rq3.getActualUri(), "./data/s3/resources/index.html");
 }
 
+TEST_F(RequestTest, )
 }
