@@ -67,6 +67,9 @@ std::string	Request::convertUritoPath(const std::string &uri)
 		return (uri);
 	if (path == "")
 		return (alias);
+	// aliasは'/'で終わっていることを保証する
+	if (alias[alias.length() - 1] != '/')
+		alias += '/';
 	return (alias + uri.substr(path.length()));
 }
 
