@@ -1,0 +1,146 @@
+=================================================================
+==20374==ERROR: AddressSanitizer: heap-use-after-free on address 0x603000000890 at pc 0x000108a074e7 bp 0x7ffee72ac6f0 sp 0x7ffee72ac6e8
+READ of size 8 at 0x603000000890 thread T0
+    #0 0x108a074e6 in Server::finish_recv(std::__1::__list_iterator<Socket*, void*>, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> >&, bool) (webserv:x86_64+0x1000b54e6)
+    #1 0x108a04dd7 in Server::handle_sockets(fd_set*, fd_set*, fd_set*, int&) (webserv:x86_64+0x1000b2dd7)
+    #2 0x108a08594 in Server::run() (webserv:x86_64+0x1000b6594)
+    #3 0x1089c9156 in main (webserv:x86_64+0x100077156)
+    #4 0x7fff764a63d4 in start (libdyld.dylib:x86_64+0x163d4)
+
+0x603000000890 is located 16 bytes inside of 24-byte region [0x603000000880,0x603000000898)
+freed by thread T0 here:
+    #0 0x108b22b02 in wrap__ZdlPv (libclang_rt.asan_osx_dynamic.dylib:x86_64h+0x6eb02)
+    #1 0x108956ba4 in std::__1::_DeallocateCaller::__do_call(void*) (webserv:x86_64+0x100004ba4)
+    #2 0x108956b88 in std::__1::_DeallocateCaller::__do_deallocate_handle_size(void*, unsigned long) (webserv:x86_64+0x100004b88)
+    #3 0x108a0f210 in std::__1::_DeallocateCaller::__do_deallocate_handle_size_align(void*, unsigned long, unsigned long) (webserv:x86_64+0x1000bd210)
+    #4 0x108a0f1e4 in std::__1::__libcpp_deallocate(void*, unsigned long, unsigned long) (webserv:x86_64+0x1000bd1e4)
+    #5 0x108a0f18d in std::__1::allocator<std::__1::__list_node<Socket*, void*> >::deallocate(std::__1::__list_node<Socket*, void*>*, unsigned long) (webserv:x86_64+0x1000bd18d)
+    #6 0x108a0f014 in std::__1::allocator_traits<std::__1::allocator<std::__1::__list_node<Socket*, void*> > >::deallocate(std::__1::allocator<std::__1::__list_node<Socket*, void*> >&, std::__1::__list_node<Socket*, void*>*, unsigned long) (webserv:x86_64+0x1000bd014)
+    #7 0x108a09bda in std::__1::list<Socket*, std::__1::allocator<Socket*> >::erase(std::__1::__list_const_iterator<Socket*, void*>) (webserv:x86_64+0x1000b7bda)
+    #8 0x108a070a1 in Server::finish_recv(std::__1::__list_iterator<Socket*, void*>, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> >&, bool) (webserv:x86_64+0x1000b50a1)
+    #9 0x108a04dd7 in Server::handle_sockets(fd_set*, fd_set*, fd_set*, int&) (webserv:x86_64+0x1000b2dd7)
+    #10 0x108a08594 in Server::run() (webserv:x86_64+0x1000b6594)
+    #11 0x1089c9156 in main (webserv:x86_64+0x100077156)
+    #12 0x7fff764a63d4 in start (libdyld.dylib:x86_64+0x163d4)
+
+previously allocated by thread T0 here:
+    #0 0x108b22502 in wrap__Znwm (libclang_rt.asan_osx_dynamic.dylib:x86_64h+0x6e502)
+    #1 0x108a12478 in std::__1::__libcpp_allocate(unsigned long, unsigned long) (webserv:x86_64+0x1000c0478)
+    #2 0x108a21bb1 in std::__1::allocator<std::__1::__list_node<Socket*, void*> >::allocate(unsigned long, void const*) (webserv:x86_64+0x1000cfbb1)
+    #3 0x108a218b0 in std::__1::allocator_traits<std::__1::allocator<std::__1::__list_node<Socket*, void*> > >::allocate(std::__1::allocator<std::__1::__list_node<Socket*, void*> >&, unsigned long) (webserv:x86_64+0x1000cf8b0)
+    #4 0x108a20d26 in std::__1::list<Socket*, std::__1::allocator<Socket*> >::__allocate_node(std::__1::allocator<std::__1::__list_node<Socket*, void*> >&) (webserv:x86_64+0x1000ced26)
+    #5 0x108a0c19c in std::__1::list<Socket*, std::__1::allocator<Socket*> >::push_back(Socket* const&) (webserv:x86_64+0x1000ba19c)
+    #6 0x108a09115 in Server::setFd(int, Socket*, Socket*) (webserv:x86_64+0x1000b7115)
+    #7 0x108a062a8 in Server::accept(int) (webserv:x86_64+0x1000b42a8)
+    #8 0x108a046a4 in Server::handle_sockets(fd_set*, fd_set*, fd_set*, int&) (webserv:x86_64+0x1000b26a4)
+    #9 0x108a08594 in Server::run() (webserv:x86_64+0x1000b6594)
+    #10 0x1089c9156 in main (webserv:x86_64+0x100077156)
+    #11 0x7fff764a63d4 in start (libdyld.dylib:x86_64+0x163d4)
+
+SUMMARY: AddressSanitizer: heap-use-after-free (webserv:x86_64+0x1000b54e6) in Server::finish_recv(std::__1::__list_iterator<Socket*, void*>, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> >&, bool)
+Shadow bytes around the buggy address:
+  0x1c06000000c0: fa fa fd fd fd fa fa fa fd fd fd fa fa fa fd fd
+  0x1c06000000d0: fd fa fa fa fd fd fd fa fa fa fd fd fd fa fa fa
+  0x1c06000000e0: fd fd fd fa fa fa fd fd fd fa fa fa fd fd fd fa
+  0x1c06000000f0: fa fa fd fd fd fa fa fa 00 00 00 00 fa fa 00 00
+  0x1c0600000100: 00 fa fa fa fd fd fd fa fa fa 00 00 00 00 fa fa
+=>0x1c0600000110: fd fd[fd]fa fa fa fd fd fd fa fa fa fd fd fd fa
+  0x1c0600000120: fa fa 00 00 00 00 fa fa 00 00 00 fa fa fa fd fd
+  0x1c0600000130: fd fa fa fa fd fd fd fa fa fa fd fd fd fa fa fa
+  0x1c0600000140: 00 00 00 00 fa fa 00 00 00 fa fa fa fd fd fd fa
+  0x1c0600000150: fa fa fd fd fd fa fa fa fd fd fd fa fa fa fd fd
+  0x1c0600000160: fd fa fa fa 00 00 00 00 fa fa 00 00 00 fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+  Shadow gap:              cc
+==20374==ABORTING
+=================================================================
+==20406==ERROR: AddressSanitizer: heap-use-after-free on address 0x603000000890 at pc 0x0001013df413 bp 0x7ffeee8d46f0 sp 0x7ffeee8d46e8
+READ of size 8 at 0x603000000890 thread T0
+    #0 0x1013df412 in Server::finish_recv(std::__1::__list_iterator<Socket*, void*>, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> >&, bool) (webserv:x86_64+0x1000b5412)
+    #1 0x1013dcdd7 in Server::handle_sockets(fd_set*, fd_set*, fd_set*, int&) (webserv:x86_64+0x1000b2dd7)
+    #2 0x1013e0594 in Server::run() (webserv:x86_64+0x1000b6594)
+    #3 0x1013a1156 in main (webserv:x86_64+0x100077156)
+    #4 0x7fff764a63d4 in start (libdyld.dylib:x86_64+0x163d4)
+
+0x603000000890 is located 16 bytes inside of 24-byte region [0x603000000880,0x603000000898)
+freed by thread T0 here:
+    #0 0x1014f8b02 in wrap__ZdlPv (libclang_rt.asan_osx_dynamic.dylib:x86_64h+0x6eb02)
+    #1 0x10132eba4 in std::__1::_DeallocateCaller::__do_call(void*) (webserv:x86_64+0x100004ba4)
+    #2 0x10132eb88 in std::__1::_DeallocateCaller::__do_deallocate_handle_size(void*, unsigned long) (webserv:x86_64+0x100004b88)
+    #3 0x1013e7210 in std::__1::_DeallocateCaller::__do_deallocate_handle_size_align(void*, unsigned long, unsigned long) (webserv:x86_64+0x1000bd210)
+    #4 0x1013e71e4 in std::__1::__libcpp_deallocate(void*, unsigned long, unsigned long) (webserv:x86_64+0x1000bd1e4)
+    #5 0x1013e718d in std::__1::allocator<std::__1::__list_node<Socket*, void*> >::deallocate(std::__1::__list_node<Socket*, void*>*, unsigned long) (webserv:x86_64+0x1000bd18d)
+    #6 0x1013e7014 in std::__1::allocator_traits<std::__1::allocator<std::__1::__list_node<Socket*, void*> > >::deallocate(std::__1::allocator<std::__1::__list_node<Socket*, void*> >&, std::__1::__list_node<Socket*, void*>*, unsigned long) (webserv:x86_64+0x1000bd014)
+    #7 0x1013e1bda in std::__1::list<Socket*, std::__1::allocator<Socket*> >::erase(std::__1::__list_const_iterator<Socket*, void*>) (webserv:x86_64+0x1000b7bda)
+    #8 0x1013df0a1 in Server::finish_recv(std::__1::__list_iterator<Socket*, void*>, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> >&, bool) (webserv:x86_64+0x1000b50a1)
+    #9 0x1013dcdd7 in Server::handle_sockets(fd_set*, fd_set*, fd_set*, int&) (webserv:x86_64+0x1000b2dd7)
+    #10 0x1013e0594 in Server::run() (webserv:x86_64+0x1000b6594)
+    #11 0x1013a1156 in main (webserv:x86_64+0x100077156)
+    #12 0x7fff764a63d4 in start (libdyld.dylib:x86_64+0x163d4)
+
+previously allocated by thread T0 here:
+    #0 0x1014f8502 in wrap__Znwm (libclang_rt.asan_osx_dynamic.dylib:x86_64h+0x6e502)
+    #1 0x1013ea478 in std::__1::__libcpp_allocate(unsigned long, unsigned long) (webserv:x86_64+0x1000c0478)
+    #2 0x1013f9bb1 in std::__1::allocator<std::__1::__list_node<Socket*, void*> >::allocate(unsigned long, void const*) (webserv:x86_64+0x1000cfbb1)
+    #3 0x1013f98b0 in std::__1::allocator_traits<std::__1::allocator<std::__1::__list_node<Socket*, void*> > >::allocate(std::__1::allocator<std::__1::__list_node<Socket*, void*> >&, unsigned long) (webserv:x86_64+0x1000cf8b0)
+    #4 0x1013f8d26 in std::__1::list<Socket*, std::__1::allocator<Socket*> >::__allocate_node(std::__1::allocator<std::__1::__list_node<Socket*, void*> >&) (webserv:x86_64+0x1000ced26)
+    #5 0x1013e419c in std::__1::list<Socket*, std::__1::allocator<Socket*> >::push_back(Socket* const&) (webserv:x86_64+0x1000ba19c)
+    #6 0x1013e1115 in Server::setFd(int, Socket*, Socket*) (webserv:x86_64+0x1000b7115)
+    #7 0x1013de2a8 in Server::accept(int) (webserv:x86_64+0x1000b42a8)
+    #8 0x1013dc6a4 in Server::handle_sockets(fd_set*, fd_set*, fd_set*, int&) (webserv:x86_64+0x1000b26a4)
+    #9 0x1013e0594 in Server::run() (webserv:x86_64+0x1000b6594)
+    #10 0x1013a1156 in main (webserv:x86_64+0x100077156)
+    #11 0x7fff764a63d4 in start (libdyld.dylib:x86_64+0x163d4)
+
+SUMMARY: AddressSanitizer: heap-use-after-free (webserv:x86_64+0x1000b5412) in Server::finish_recv(std::__1::__list_iterator<Socket*, void*>, std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> >&, bool)
+Shadow bytes around the buggy address:
+  0x1c06000000c0: fa fa fd fd fd fa fa fa fd fd fd fa fa fa fd fd
+  0x1c06000000d0: fd fa fa fa fd fd fd fa fa fa fd fd fd fa fa fa
+  0x1c06000000e0: fd fd fd fa fa fa fd fd fd fa fa fa fd fd fd fa
+  0x1c06000000f0: fa fa fd fd fd fa fa fa 00 00 00 00 fa fa 00 00
+  0x1c0600000100: 00 fa fa fa fd fd fd fa fa fa 00 00 00 00 fa fa
+=>0x1c0600000110: fd fd[fd]fa fa fa fd fd fd fa fa fa fd fd fd fa
+  0x1c0600000120: fa fa 00 00 00 00 fa fa 00 00 00 fa fa fa fd fd
+  0x1c0600000130: fd fa fa fa fd fd fd fa fa fa fd fd fd fa fa fa
+  0x1c0600000140: fd fd fd fd fa fa fd fd fd fd fa fa fd fd fd fd
+  0x1c0600000150: fa fa fd fd fd fd fa fa fd fd fd fd fa fa fd fd
+  0x1c0600000160: fd fd fa fa 00 00 00 00 fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+  Shadow gap:              cc
+==20406==ABORTING
