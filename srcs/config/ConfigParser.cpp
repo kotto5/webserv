@@ -82,8 +82,14 @@ bool ConfigParser::isAllowedDirective()
 void ConfigParser::parseFile(const std::string& filepath)
 {
 	_filepath = filepath;
-	std::ifstream ifs(_filepath.c_str());
 
+	// パスがディレクトリの場合はエラー
+	if (!isFile(_filepath.c_str()))
+	{
+		std::cerr << "Is directory" << std::endl;
+		exit(EXIT_FAILURE);
+	}
+	std::ifstream ifs(_filepath.c_str());
 	if (!ifs)
 	{
 		std::cerr << "Open Error" << std::endl;
@@ -235,3 +241,24 @@ const LocationContext ConfigParser::getLocationContext()
 	}
 	return location_context;
 }
+
+/**
+ * @brief パスがファイルかどうかを判定する
+ *
+ * @param path
+ */
+bool ConfigParser::isFile(const char *path)
+{
+	struct stat st;
+
+	if (stat(path, &st) == 0)
+	{
+		// パスがファイルであるか
+		if (S_ISREG(st.st_mode))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
