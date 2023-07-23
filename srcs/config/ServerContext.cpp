@@ -1,4 +1,5 @@
 #include "ServerContext.hpp"
+#include "ConfigError.hpp"
 #include <stdexcept>
 #include <iostream>
 
@@ -37,6 +38,16 @@ const std::string& ServerContext::getServerName() const
 void ServerContext::addLocationBlock(const LocationContext& location)
 {
 	_locations.push_back(location);
+}
+
+void ServerContext::addDirectives(const std::string& directive, const std::string& value,
+	const std::string& filepath, int line_number)
+{
+	// check if directive is not duplicated
+	if (_directives.find(directive) != _directives.end())
+		throw ConfigError(DUPRICATE_DIRECTIVE, directive, filepath, line_number);
+
+	_directives.insert(std::make_pair(directive, value));
 }
 
 const std::vector<LocationContext>& ServerContext::getLocations() const
