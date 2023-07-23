@@ -36,11 +36,6 @@ int	Config::setErrorLogFileStderror(std::string errorLogFile)
 	return (0);
 }
 
-Config::~Config()
-{
-    close(newfd);
-}
-
 HTTPContext& Config::getHTTPBlock()
 {
     return _http_block;
@@ -68,3 +63,22 @@ const std::vector<std::string> Config::getPorts()
 }
 
 Config* Config::_instance = NULL;
+
+// シングルトンパターンのため外部からの変更・破棄を避ける
+Config::~Config()
+{
+}
+
+Config::Config(const Config& other)
+{
+	*this = other;
+}
+
+Config& Config::operator=(const Config& other)
+{
+	if (this != &other)
+	{
+		_http_block = other._http_block;
+	}
+	return *this;
+}
