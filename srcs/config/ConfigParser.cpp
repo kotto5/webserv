@@ -168,15 +168,18 @@ void ConfigParser::setHTTPContext()
 		setDirectiveType(_one_line[0]);
 		if (!isAllowedDirective())
 			throw ConfigError(NOT_ALLOWED_DIRECTIVE, _one_line[0], _filepath, _line_number + 1);
-		http_context.addDirective(_one_line[0], _one_line[1], _filepath, _line_number + 1);
-		if (_directive_type == ACCESS_LOG)
-			http_context.setAccessLogFile(_one_line[1]);
-		else if (_directive_type == ERROR_LOG)
-			http_context.setErrorLogFile(_one_line[1]);
 		else if (_directive_type == SERVER)
 		{
 			ServerContext server_context = getServerContext();
 			http_context.addServerBlock(server_context);
+		}
+		else
+		{
+			http_context.addDirective(_one_line[0], _one_line[1], _filepath, _line_number + 1);
+			if (_directive_type == ACCESS_LOG)
+				http_context.setAccessLogFile(_one_line[1]);
+			else if (_directive_type == ERROR_LOG)
+				http_context.setErrorLogFile(_one_line[1]);
 		}
 	}
 }
@@ -198,15 +201,18 @@ const ServerContext ConfigParser::getServerContext()
 		setDirectiveType(_one_line[0]);
 		if (!isAllowedDirective())
 			throw ConfigError(NOT_ALLOWED_DIRECTIVE, _one_line[0], _filepath, _line_number + 1);
-		server_context.addDirectives(_one_line[0], _one_line[1], _filepath, _line_number + 1);
-		if (_directive_type == LISTEN)
-			server_context.setListen(_one_line[1]);
-		else if (_directive_type == SERVER_NAME)
-			server_context.setServerName(_one_line[1]);
 		else if (_directive_type == LOCATION)
 		{
 			LocationContext location_context = getLocationContext();
 			server_context.addLocationBlock(location_context);
+		}
+		else
+		{
+			server_context.addDirectives(_one_line[0], _one_line[1], _filepath, _line_number + 1);
+			if (_directive_type == LISTEN)
+				server_context.setListen(_one_line[1]);
+			else if (_directive_type == SERVER_NAME)
+				server_context.setServerName(_one_line[1]);
 		}
 	}
 	return server_context;
