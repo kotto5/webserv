@@ -175,11 +175,12 @@ void ConfigParser::setHTTPContext()
 		}
 		else
 		{
-			http_context.addDirective(_one_line[0], _one_line[1], _filepath, _line_number + 1);
+			//http_context.addDirective(_one_line[0], _one_line[1], _filepath, _line_number + 1);
 			if (_directive_type == ACCESS_LOG)
 				http_context.setAccessLogFile(_one_line[1]);
 			else if (_directive_type == ERROR_LOG)
 				http_context.setErrorLogFile(_one_line[1]);
+			http_context.addDirective(_one_line[0], _one_line[1], _filepath, _line_number + 1);
 		}
 	}
 }
@@ -208,11 +209,12 @@ const ServerContext ConfigParser::getServerContext()
 		}
 		else
 		{
-			server_context.addDirectives(_one_line[0], _one_line[1], _filepath, _line_number + 1);
+			//server_context.addDirectives(_one_line[0], _one_line[1], _filepath, _line_number + 1);
 			if (_directive_type == LISTEN)
 				server_context.setListen(_one_line[1]);
 			else if (_directive_type == SERVER_NAME)
 				server_context.setServerName(_one_line[1]);
+			server_context.addDirectives(_one_line[0], _one_line[1], _filepath, _line_number + 1);
 		}
 	}
 	return server_context;
