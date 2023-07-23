@@ -5,7 +5,6 @@
 #include "LocationContext.hpp"
 #include <unistd.h>
 #include <fcntl.h>
-#include "Error.hpp"
 
 #define NEW_FD 3
 

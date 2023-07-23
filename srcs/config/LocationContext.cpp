@@ -1,4 +1,5 @@
 #include "LocationContext.hpp"
+#include "ConfigError.hpp"
 #include <stdexcept>
 
 LocationContext::LocationContext():
@@ -16,8 +17,13 @@ LocationContext::~LocationContext()
 // 	_error_page.insert(std::make_pair(status_code, error_page));
 // }
 
-void LocationContext::addDirective(const std::string& directive, const std::string& value)
+void LocationContext::addDirective(const std::string& directive, const std::string& value,
+	const std::string& filepath, int line_number)
 {
+	// check if directive is not duplicated
+	if (_directives.find(directive) != _directives.end())
+		throw ConfigError(DUPRICATE_DIRECTIVE, directive, filepath, line_number);
+
 	_directives.insert(std::make_pair(directive, value));
 }
 

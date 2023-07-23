@@ -213,8 +213,8 @@ const LocationContext ConfigParser::getLocationContext()
 {
 	LocationContext location_context = LocationContext();
 
-	location_context.addDirective("path", _one_line[1]);
-	std::cout << "path: " << _one_line[1] << std::endl;
+	location_context.addDirective("path", _one_line[1], _filepath, _line_number + 1);
+	//std::cout << "path: " << _one_line[1] << std::endl;
 	_line_number++;
 	for ( ; _line_number < _lines.size(); _line_number++)
 	{
@@ -229,9 +229,9 @@ const LocationContext ConfigParser::getLocationContext()
 		if (!isAllowedDirective())
 			throw ConfigError(NOT_ALLOWED_DIRECTIVE, _one_line[0], _filepath, _line_number + 1);
 		else if (_directive_type == ERROR_PAGE)
-			location_context.addDirective(_one_line[1], _one_line[2]);
+			location_context.addDirective(_one_line[1], _one_line[2], _filepath, _line_number + 1);
 		else
-			location_context.addDirective(_one_line[0], _one_line[1]);
+			location_context.addDirective(_one_line[0], _one_line[1], _filepath, _line_number + 1);
 	}
 	return location_context;
 }
