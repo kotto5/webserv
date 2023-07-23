@@ -26,6 +26,9 @@ public:
 	std::string	getProtocol() const;
 	std::string getHeader(const std::string &key) const;
 	std::string getBody() const;
+
+	std::string	getActualUri() const;
+
 	std::string	convertUritoPath(const std::string &uri);
 	void		print_all() const;
 	int			seturi();
@@ -33,17 +36,25 @@ public:
 	int	setaddr(int clientSocket);
 
 private:
+	// メソッド名
 	std::string _method;
+	// URIとクエリ
 	std::string _uriAndQuery;
+	// URI
 	std::string _uri;
+	// クエリ
 	std::string _query;
+	// プロトコル
 	std::string _protocol;
+	// ヘッダ
 	std::map<std::string, std::string> _headers;
+	// ボディ
 	std::string _body;
-
-	std::string _acutual_uri;
-
+	// パス
+	std::string _actual_uri;
+	// IP
 	std::string _ip;
+	// ポート
 	int			_port;
 	std::size_t _content_length;
 	std::string	_content_type;
