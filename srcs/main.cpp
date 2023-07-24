@@ -60,6 +60,7 @@ int main(int argc, char **argv)
 	try
 	{
 		config = new Config(argv[1]);
+		(void)config;
 	}
 	catch(const ConfigError& e)
 	{
@@ -72,6 +73,7 @@ int main(int argc, char **argv)
 		Config::getInstance()->getHTTPBlock().getAccessLogFile(),
 		Config::getInstance()->getHTTPBlock().getErrorLogFile()
 	);
+	(void)logger;
 
 	setSignalHandler();
 	// サーバー起動
@@ -79,9 +81,6 @@ int main(int argc, char **argv)
 	if (server.setup())
 		return (1);
 	server.run();
-	// サーバー終了
-	delete config;
-	delete logger;
 
 	return 0;
 }
