@@ -11,6 +11,7 @@ class Config
 		HTTPContext& getHTTPBlock();
 		static Config* getInstance();
 		const std::vector<std::string> getPorts();
+		~Config();
 
     private:
         HTTPContext _http_block;
@@ -20,7 +21,7 @@ class Config
 		int	setErrorLogFileStderror(std::string errorLogFile);
 
 		// シングルトンパターンのため外部からの変更・破棄を避ける
-		~Config();
+		// ~Config();
 		Config(const Config& other);
 		Config& operator=(const Config& other);
 };

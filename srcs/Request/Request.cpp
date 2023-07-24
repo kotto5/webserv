@@ -3,6 +3,7 @@
 #include "Config.hpp"
 #include "LocationContext.hpp"
 #include "ServerContext.hpp"
+#include <cstring>
 
 // Constructors
 Request::Request(const std::string &method, const std::string &uriAndQuery, const std::string &protocol,

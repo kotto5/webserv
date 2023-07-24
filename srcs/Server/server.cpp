@@ -9,6 +9,7 @@
 #include "Error.hpp"
 #include <vector>
 #include <sys/wait.h>
+#include <algorithm>
 
 int	Server::setup()
 {
@@ -35,8 +36,8 @@ int	Server::handle_sockets(fd_set *read_fds, fd_set *write_fds, fd_set *expect_f
 		tmp = itr++;
 		if (FD_ISSET(*tmp, read_fds))
 		{
-			if (accept(*tmp) == -1)
-				;
+			// if (accept(*tmp) == -1)
+			// 	;
 			--activity;
 		}
 	}

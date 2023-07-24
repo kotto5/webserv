@@ -1,6 +1,6 @@
 # Compile variables
 NAME := webserv
-CXX := c++
+CXX := g++
 CXXFLAGS := -Wall -Wextra -Werror
 DFLAGS := -MMD -MP
 
@@ -86,7 +86,13 @@ TEST_SRCS := $(shell find tests/srcs -type f -name "*.cpp")
 TEST_OBJDIR := ./tests/objs
 TEST_OBJS := $(patsubst tests/srcs/%, $(TEST_OBJDIR)/%, $(TEST_SRCS:%.cpp=%.o)) $(filter-out objs/main.o, $(OBJS))
 TEST_CXXFLAGS := -Wall -Wextra -Werror -std=c++14 -g
-TEST_LDFLAGS := -L$(PROJECT_DIR)/tests/lib -lgtest -lgtest_main -lpthread
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Linux)
+    TEST_LDFLAGS := -L/usr/lib -lgtest -lgtest_main -lpthread
+endif
+ifeq ($(UNAME_S),Darwin)  # This is for macOS
+    TEST_LDFLAGS := -L$(PROJECT_DIR)/tests/lib -lgtest -lgtest_main -lpthread
+endif
 SRC_DIRS := $(shell find $(PROJECT_DIR)/srcs -type d)
 INC_FLAGS := $(addprefix -I, $(SRC_DIRS))
 TEST_INCS := -I$(PROJECT_DIR)/tests/include $(INC_FLAGS)
