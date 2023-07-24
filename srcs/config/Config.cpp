@@ -6,6 +6,8 @@
 #include <unistd.h>
 #include <fcntl.h>
 
+#define NEW_FD 3
+
 Config::Config(const std::string& filepath)
 {
     ConfigParser parser(*this);
@@ -13,14 +15,17 @@ Config::Config(const std::string& filepath)
     _instance = this;
 
 	std::string errorLogFile = getHTTPBlock().getErrorLogFile();
-	setErrorLogFileStderror(errorLogFile);
+	redirectErrorLogFile(errorLogFile);
+
+	std::string accessLogFile = getHTTPBlock().getAccessLogFile();
+	redirectAccessLogFile(accessLogFile);
 }
 
-int	Config::setErrorLogFileStderror(std::string errorLogFile)
+int	Config::redirectErrorLogFile(std::string errorLogFile)
 {
 	if (errorLogFile.empty())
 		return (0);
-	if (!errorLogFile.empty())
+	else
 	{
 		int logFile;
 		logFile = open(errorLogFile.c_str(), O_RDWR | O_CREAT | O_APPEND, 0666);
@@ -33,6 +38,29 @@ int	Config::setErrorLogFileStderror(std::string errorLogFile)
 			throw (ConfigError(SYSTEM_ERROR, "open"));
 	}
 	return (0);
+}
+
+int Config::redirectAccessLogFile(std::string  accessLogFile)
+{
+	if (accessLogFile.empty())
+		return (0);
+	else
+	{
+		int logFile;
+		logFile = open(accessLogFile.c_str(), O_RDWR | O_CREAT | O_APPEND, 0666);
+		if (logFile > 0)
+		{
+			if (dup2(logFile, NEW_FD) == -1)
+				throw (ConfigError(SYSTEM_ERROR, "dup2"));
+		}
+		else
+			throw (ConfigError(SYSTEM_ERROR, "open"));
+	}
+	return (0);
+}
+
+Config::~Config()
+{
 }
 
 HTTPContext& Config::getHTTPBlock()

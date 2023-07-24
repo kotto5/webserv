@@ -1,5 +1,9 @@
 #include "Logger.hpp"
 #include <ctime>
+#include <cstring>
+#include <unistd.h>
+
+#define ACCESS_LOG_FD 3
 
 Logger::Logger(const std::string& accessLogPath,
 			   const std::string& errorLogPath)
@@ -28,60 +32,39 @@ Logger* Logger::getInstance()
 
 void Logger::writeAccessLog(const Request& request, const Response& response)
 {
-	std::ofstream logFile;
-
-    logFile.open(_accessLogPath.c_str(), std::ios::app);
-    if (logFile.is_open())
-    {
-        // 現在の時間を取得し、それを文字列としてフォーマット
-        std::time_t now = std::time(0);
-        char timestamp[100];
-        std::strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S", std::localtime(&now));
+    std::time_t now = std::time(0);
+    char timestamp[100];
+    std::strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S", std::localtime(&now));
         // ログメッセージを作成。ここではgetterメソッドを仮定しています。
-        logFile << timestamp << " "
-                << request.getMethod() << " "
-                << request.getUri() << " "
-                << request.getProtocol() << " "
-				<< response.getStatus() << std::endl;
-
-        logFile.close();
-    }
-	else
-        std::cerr << "Unable to open access log file" << std::endl;
+        // logFile << timestamp << " "
+        //         << request.getMethod() << " "
+        //         << request.getUri() << " "
+        //         << request.getProtocol() << " "
+		// 		<< response.getStatus() << std::endl;
+    write(ACCESS_LOG_FD, timestamp, strlen(timestamp));
+    write(ACCESS_LOG_FD, " ", 1);
+    write(ACCESS_LOG_FD, request.getMethod().c_str(), request.getMethod().length());
+    write(ACCESS_LOG_FD, " ", 1);
+    write(ACCESS_LOG_FD, request.getUri().c_str(), request.getUri().length());
+    write(ACCESS_LOG_FD, " ", 1);
+    write(ACCESS_LOG_FD, request.getProtocol().c_str(), request.getProtocol().length());
+    write(ACCESS_LOG_FD, " ", 1);
+    write(ACCESS_LOG_FD, response.getStatus().c_str(), response.getStatus().length());
+    write(ACCESS_LOG_FD, "\n", 1);
 }
 
-void Logger::writeErrorLog(const Request* request, const Response* response, const SystemError* systemError)
+void Logger::writeErrorLog(std::string msg, Error::T_ERROR_CODE error_code)
 {
-    std::ofstream logFile;
-    logFile.open(_errorLogPath.c_str(), std::ios::app);
-    if (logFile.is_open())
-    {
-        // 現在の時間を取得し、それを文字列としてフォーマット
-        std::time_t now = std::time(0);
-        char timestamp[100];
-        std::strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S", std::localtime(&now));
+    std::time_t now = std::time(0);
+    char timestamp[100];
+    std::strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S", std::localtime(&now));
 
-        // ログメッセージを作成
-        logFile << timestamp << " ";
-
-        // Request and Response information, if available
-        if (request) {
-            logFile << request->getProtocol() << " ";
-        }
-        if (response) {
-            logFile << response->getStatus() << " " << response->getHeader("Content-Length") << " ";
-        }
-
-        // SystemError information
-        if (systemError) {
-            logFile << systemError->getErrorMessage() << " " << systemError->getErrorCode();
-        }
-
-        logFile << std::endl;
-        logFile.close();
-    }
-    else
-        std::cerr << "Unable to open error log file" << std::endl;
+    std::cerr << timestamp << " ";
+    // if (request)
+    //     std::cerr << request->getProtocol() << " ";
+    // if (response)
+    //     std::cerr << response->getStatus() << " " << response->getHeader("Content-Length") << " ";
+    Error::print_error(msg, error_code);
 }
 
 Logger* Logger::_instance = NULL;
@@ -89,23 +72,29 @@ Logger* Logger::_instance = NULL;
 const std::string Logger::DEFAULT_ERROR_LOG_PATH = "./logs/error.log";
 const std::string Logger::DEFAULT_ACCESS_LOG_PATH = "./logs/access.log";
 
+//Error class method
+void  Logger::Error::print_error(std::string msg, Logger::Error::T_ERROR_CODE error_code) {
+    if (error_code == Logger::Error::E_SYSCALL)
+        perror(msg.c_str());
+    else
+        std::cerr << msg << ": " << Logger::Error::error_msg.at(error_code) << std::endl;
+}
 
-// シングルトンパターンのため外部からの変更・破棄を避ける
-Logger::~Logger()
+const std::map<Logger::Error::T_ERROR_CODE, std::string> Logger::Error::createErrorMap() {
+    std::map<Logger::Error::T_ERROR_CODE, std::string> error_msg;
+
+    error_msg[Logger::Error::E_REQ_PARSE] = "Request parse error";
+    error_msg[Logger::Error::E_RES_PARSE] = "Response parse error";
+
+    return (error_msg);
+}
+
+const std::map<Logger::Error::T_ERROR_CODE, std::string> Logger::Error::error_msg = Logger::Error::createErrorMap();
+
+Logger::Error::Error()
 {
 }
 
-Logger::Logger(const Logger& other)
+Logger::Error::~Error()
 {
-	*this = other;
-}
-
-Logger& Logger::operator=(const Logger& other)
-{
-	if (this != &other)
-	{
-		_accessLogPath = other._accessLogPath;
-		_errorLogPath = other._errorLogPath;
-	}
-	return *this;
 }
