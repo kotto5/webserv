@@ -110,7 +110,7 @@ int	Server::accept(Socket *serverSocket)
 		return (1);
 	}
 	set_non_blocking(new_socket);
-	Socket *socket = new ClSocket(new_socket, &client_address, client_length);
+	ClSocket *socket = new ClSocket(new_socket, &client_address, client_length);
 	setFd(TYPE_RECV, socket);
 	std::cout << RED << "New connection, socket fd is " << new_socket << ", port is " << ntohs(client_address.sin_port) << DEF << std::endl;
 	return (new_socket);
@@ -148,11 +148,10 @@ ssize_t	Server::recv(Socket *sock, std::string &recieving) {
 	return (recv_ret);
 }
 
-// int	recv_handle_finish(tmp, Recvs[(*tmp)->getFd()], cgi_client.count((*tmp)->getFd()) == 1)
 int	Server::finish_recv(std::list<Socket *>::iterator itr, std::string &recieving, bool is_cgi_connection)
 {
 	std::cout << "finish_recv [" << recieving << "]" << std::endl;
-	Socket	*sock = *itr;
+	ClSocket	*sock = dynamic_cast<ClSocket *>(*itr);
 	int	wstatus;
 
 	recv_sockets.erase(itr);
@@ -162,14 +161,13 @@ int	Server::finish_recv(std::list<Socket *>::iterator itr, std::string &recievin
 		waitpid(-1, &wstatus, 0);
 		int	client_fd = cgi_client[sock]->getFd();
 		Sends[client_fd] = recieving;
-		Socket *socket = cgi_client[sock];
-		setFd(TYPE_SEND, socket);
-		// setFd(TYPE_SEND, client_fd);
+		setFd(TYPE_SEND, cgi_client[sock]);
 	}
 	else
 	{
 		Request	*request = parse_request(recieving);
-		request->setaddr(sock->getFd());
+		request->setaddr(sock);
+		request->print_all();
 		if (request_wants_cgi(request))
 			new_connect_cgi(request, sock);
 		else
@@ -228,8 +226,10 @@ int	Server::create_server_socket(int port)
 	struct sockaddr_in server_address;
 	server_address.sin_family = AF_INET;
 	server_address.sin_port = htons(port);
+	// server_address.sin_port = port;
 	server_address.sin_addr.s_addr = INADDR_ANY;
 
+	std::cout << "port: " << port << " address" << server_address.sin_addr.s_addr << std::endl;
 	int yes = 1;
 	if (setsockopt(new_sock, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1)
 	{
@@ -244,8 +244,10 @@ int	Server::create_server_socket(int port)
 		Error::print_error("listening", Error::E_SYSCALL);
 		return (1);
 	}
+	std::cout << "port: " << port << " address" << server_address.sin_addr.s_addr << std::endl;
 	set_non_blocking(new_sock);
-	Socket *socket = new Socket(new_sock, (struct sockaddr *)&server_address, sizeof(server_address));
+	// Socket *socket = new Socket(new_sock, (struct sockaddr *)&server_address, sizeof(server_address));
+	Socket *socket = new Socket(new_sock);
 	server_sockets.push_back(socket);
 	return (0);
 }
@@ -366,10 +368,12 @@ int	Server::set_fd_set(fd_set &set, std::list<Socket *> sockets, int &maxFd)
 
 int	Server::setFd(int type, Socket *sock, Socket *client_sock)
 {
-	if (type == TYPE_RECV)
-		recv_sockets.push_back(sock);
-	else if (type == TYPE_SEND)
-		send_sockets.push_back(sock);
+	ClSocket	*cl_socket = dynamic_cast<ClSocket *>(sock);
+
+	if (type == TYPE_RECV && cl_socket)
+		recv_sockets.push_back(cl_socket);
+	else if (type == TYPE_SEND && cl_socket)
+		send_sockets.push_back(cl_socket);
 	else if (type == TYPE_SERVER)
 		server_sockets.push_back(sock);
 	else if (type == TYPE_CGI)
@@ -381,10 +385,12 @@ int	Server::setFd(int type, Socket *sock, Socket *client_sock)
 
 int	Server::eraseFd(Socket *socket, int type)
 {
-	if (type == TYPE_RECV)
-		recv_sockets.remove(socket);
-	else if (type == TYPE_SEND)
-		send_sockets.remove(socket);
+	ClSocket	*cl_socket = dynamic_cast<ClSocket *>(socket);
+
+	if (type == TYPE_RECV && cl_socket)
+		recv_sockets.remove(cl_socket);
+	else if (type == TYPE_SEND && cl_socket)
+		send_sockets.remove(cl_socket);
 	else if (type == TYPE_SERVER)
 		server_sockets.remove(socket);
 	else if (type == TYPE_CGI)
