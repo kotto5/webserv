@@ -29,7 +29,6 @@ class Logger
 		};
 		Logger(const std::string& accessLogPath,
 			   const std::string& errorLogPath);
-		~Logger();
 		static Logger* getInstance();
 		const std::string& getAccessLogPath() const;
 		const std::string& getErrorLogPath() const;
@@ -42,6 +41,11 @@ class Logger
 		std::string _accessLogPath;
 		std::string _errorLogPath;
 		static Logger* _instance;
+
+		// シングルトンパターンのため外部からの変更・破棄を避ける
+		~Logger();
+		Logger(const Logger& other);
+		Logger& operator=(const Logger& other);
 };
 
 #endif

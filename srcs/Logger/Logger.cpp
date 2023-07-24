@@ -12,10 +12,6 @@ Logger::Logger(const std::string& accessLogPath,
 	_instance = this;
 }
 
-Logger::~Logger()
-{
-}
-
 const std::string& Logger::getAccessLogPath() const
 {
 	return _accessLogPath;
