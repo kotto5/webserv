@@ -229,7 +229,6 @@ int	Server::create_server_socket(int port)
 	// server_address.sin_port = port;
 	server_address.sin_addr.s_addr = INADDR_ANY;
 
-	std::cout << "port: " << port << " address" << server_address.sin_addr.s_addr << std::endl;
 	int yes = 1;
 	if (setsockopt(new_sock, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1)
 	{
@@ -244,9 +243,7 @@ int	Server::create_server_socket(int port)
 		Error::print_error("listening", Error::E_SYSCALL);
 		return (1);
 	}
-	std::cout << "port: " << port << " address" << server_address.sin_addr.s_addr << std::endl;
 	set_non_blocking(new_sock);
-	// Socket *socket = new Socket(new_sock, (struct sockaddr *)&server_address, sizeof(server_address));
 	Socket *socket = new Socket(new_sock);
 	server_sockets.push_back(socket);
 	return (0);
@@ -289,7 +286,6 @@ Request	*Server::parse_request(const std::string &row_request)
 		if (endPos == startPos) // empty line
 			break;
 		line = row_request.substr(startPos, endPos - startPos);
-		// std::cout << "line:: " << line << " start pos: " << startPos << " end pos: " << endPos << std::endl;
 		if (is_valid_line(line, startPos == 0) == false)
 			return (NULL);
 		if (startPos == 0){
