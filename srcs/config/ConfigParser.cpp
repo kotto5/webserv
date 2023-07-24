@@ -155,12 +155,12 @@ void ConfigParser::parseLines()
 		}
 		else if (_directive_type == HTTP)
 			setHTTPContext();
-		//else
 	}
 }
 
 void ConfigParser::setHTTPContext()
 {
+	HTTPContext http_context = _config.getHTTPBlock();
 	_line_number++;
 	for ( ; _line_number < _lines.size(); _line_number++)
 	{
@@ -173,14 +173,18 @@ void ConfigParser::setHTTPContext()
 		setDirectiveType(_one_line[0]);
 		if (!isAllowedDirective())
 			throw ConfigError(NOT_ALLOWED_DIRECTIVE, _one_line[0], _filepath, _line_number + 1);
-		if (_directive_type == ACCESS_LOG)
-			_config.getHTTPBlock().setAccessLogFile(_one_line[1]);
-		else if (_directive_type == ERROR_LOG)
-			_config.getHTTPBlock().setErrorLogFile(_one_line[1]);
 		else if (_directive_type == SERVER)
 		{
 			ServerContext server_context = getServerContext();
 			_config.getHTTPBlock().addServerBlock(server_context);
+		}
+		else
+		{
+			_config.getHTTPBlock().addDirective(_one_line[0], _one_line[1], _filepath, _line_number + 1);
+			if (_directive_type == ACCESS_LOG)
+				_config.getHTTPBlock().setAccessLogFile(_one_line[1]);
+			else if (_directive_type == ERROR_LOG)
+				_config.getHTTPBlock().setErrorLogFile(_one_line[1]);
 		}
 	}
 }
@@ -202,14 +206,18 @@ const ServerContext ConfigParser::getServerContext()
 		setDirectiveType(_one_line[0]);
 		if (!isAllowedDirective())
 			throw ConfigError(NOT_ALLOWED_DIRECTIVE, _one_line[0], _filepath, _line_number + 1);
-		if (_directive_type == LISTEN)
-			server_context.setListen(_one_line[1]);
-		else if (_directive_type == SERVER_NAME)
-			server_context.setServerName(_one_line[1]);
 		else if (_directive_type == LOCATION)
 		{
 			LocationContext location_context = getLocationContext();
 			server_context.addLocationBlock(location_context);
+		}
+		else
+		{
+			server_context.addDirectives(_one_line[0], _one_line[1], _filepath, _line_number + 1);
+			if (_directive_type == LISTEN)
+				server_context.setListen(_one_line[1]);
+			else if (_directive_type == SERVER_NAME)
+				server_context.setServerName(_one_line[1]);
 		}
 	}
 	return server_context;
@@ -219,8 +227,8 @@ const LocationContext ConfigParser::getLocationContext()
 {
 	LocationContext location_context = LocationContext();
 
-	location_context.addDirective("path", _one_line[1]);
-	std::cout << "path: " << _one_line[1] << std::endl;
+	location_context.addDirective("path", _one_line[1], _filepath, _line_number + 1);
+	//std::cout << "path: " << _one_line[1] << std::endl;
 	_line_number++;
 	for ( ; _line_number < _lines.size(); _line_number++)
 	{
@@ -235,9 +243,9 @@ const LocationContext ConfigParser::getLocationContext()
 		if (!isAllowedDirective())
 			throw ConfigError(NOT_ALLOWED_DIRECTIVE, _one_line[0], _filepath, _line_number + 1);
 		else if (_directive_type == ERROR_PAGE)
-			location_context.addDirective(_one_line[1], _one_line[2]);
+			location_context.addDirective(_one_line[1], _one_line[2], _filepath, _line_number + 1);
 		else
-			location_context.addDirective(_one_line[0], _one_line[1]);
+			location_context.addDirective(_one_line[0], _one_line[1], _filepath, _line_number + 1);
 	}
 	return location_context;
 }

@@ -5,7 +5,6 @@
 #include "LocationContext.hpp"
 #include <unistd.h>
 #include <fcntl.h>
-#include "Error.hpp"
 
 Config::Config(const std::string& filepath)
 {

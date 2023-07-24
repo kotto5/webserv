@@ -13,6 +13,8 @@ class HTTPContext
 		void setAccessLogFile(const std::string& accessLogFile);
 		void setErrorLogFile(const std::string& errorLogFile);
 		void addServerBlock(const ServerContext& server);
+		void addDirective(const std::string& directive, const std::string& value,
+							const std::string& filepath, int line_number);
 		const std::string& getAccessLogFile() const;
 		const std::string& getErrorLogFile() const;
 		const std::map<std::string, std::vector<ServerContext> >& getServers() const;
@@ -22,6 +24,7 @@ class HTTPContext
 		std::string _accessLogFile;
 		std::string _errorLogFile;
 		std::map<std::string, std::vector<ServerContext> > _servers;
+		std::map<std::string, std::string> _directives;
 };
 
 #endif
