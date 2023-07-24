@@ -9,6 +9,7 @@
 #include "Error.hpp"
 #include <vector>
 #include <sys/wait.h>
+#include <algorithm>
 
 int	Server::setup()
 {

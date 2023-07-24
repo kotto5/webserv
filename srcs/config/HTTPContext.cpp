@@ -1,4 +1,5 @@
 #include "HTTPContext.hpp"
+#include "ConfigError.hpp"
 #include <stdexcept>
 
 HTTPContext::HTTPContext():
@@ -49,6 +50,16 @@ void HTTPContext::addServerBlock(const ServerContext& server)
         std::vector<ServerContext> new_servers(1, server);
         _servers.insert(std::make_pair(listen, new_servers));
     }
+}
+
+void HTTPContext::addDirective(const std::string& directive, const std::string& value,
+                                const std::string& filepath, int line_number)
+{
+    // check if directive is not duplicated
+    if (_directives.find(directive) != _directives.end())
+        throw ConfigError(DUPRICATE_DIRECTIVE, directive, filepath, line_number);
+
+    _directives.insert(std::make_pair(directive, value));
 }
 
 const std::string& HTTPContext::getAccessLogFile() const

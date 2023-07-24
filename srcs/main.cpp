@@ -81,7 +81,8 @@ int main(int argc, char **argv)
 	server.run();
 	// サーバー終了
 	delete config;
-	delete logger;
+	(void)logger;
+	// delete logger;
 
 	return 0;
 }

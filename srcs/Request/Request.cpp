@@ -7,25 +7,39 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-
+#include <cstring>
 
 // Constructors
 Request::Request(const std::string &method, const std::string &uriAndQuery, const std::string &protocol,
 				const std::map<std::string, std::string> &headers, const std::string &body)
 	: _method(method), _uriAndQuery(uriAndQuery), _protocol(protocol), _headers(headers), _body(body)
 {
+	// クエリを取得
 	std::string::size_type pos = this->_uriAndQuery.find("?");
 	this->_uri = pos == std::string::npos ? this->_uriAndQuery : this->_uriAndQuery.substr(0, pos);
 	this->_query = pos == std::string::npos ? "" : this->_uriAndQuery.substr(pos + 1);
 
+	// ヘッダーのContent-Lengthを取得
 	this->_content_length = this->_body.length();
+
+	// ヘッダーのContent-Typeを取得
 	this->_content_type = this->getHeader("Content-Type");
-	this->_acutual_uri = convertUritoPath(this->_uri);
+
+	// aliasとrootを考慮したuriを取得
+	this->_actual_uri = convertUritoPath(this->_uri);
+
+	// CGIに用いるscript_nameとpath_infoを取得
 	// this->_cgi_script_name = this->get
-	this->_path_info = this->_uri.find(_cgi_script_name) == std::string::npos ? 
+	this->_path_info = this->_uri.find(_cgi_script_name) == std::string::npos ?
 	"" : this->_uri.substr(this->_uri.find(_cgi_script_name) + _cgi_script_name.length());
 }
 
+/**
+ * @brief URIを実体パスに変換する
+ *
+ * @param uri
+ * @return std::string
+ */
 std::string	Request::convertUritoPath(const std::string &uri)
 {
 	Config	*config = Config::getInstance();
@@ -58,6 +72,9 @@ std::string	Request::convertUritoPath(const std::string &uri)
 		return (uri);
 	if (path == "")
 		return (alias);
+	// aliasは'/'で終わっていることを保証する
+	if (alias[alias.length() - 1] != '/')
+		alias += '/';
 	return (alias + uri.substr(path.length()));
 }
 
@@ -112,6 +129,10 @@ std::string Request::getBody() const
 	return this->_body;
 }
 
+std::string Request::getActualUri() const
+{
+	return this->_actual_uri;
+}
 
 int	Request::setaddr(ClSocket *clientSocket)
 {
@@ -137,7 +158,7 @@ int	Request::setaddr(ClSocket *clientSocket)
 // Not use
 Request::Request() : _method(), _uri(), _headers(), _body() {}
 
-void	Request::print_all(void) const 
+void	Request::print_all(void) const
 {
 	std::cout << "method: [" << _method << "]" << std::endl;
 	std::cout << "uri: [" << _uri << "]" << std::endl;
@@ -153,10 +174,9 @@ void	Request::print_all(void) const
 	std::cout << "content_type: [" << _content_type << "]" << std::endl;
 	std::cout << "cgi_script_name: [" << _cgi_script_name << "]" << std::endl;
 	std::cout << "path_info: [" << _path_info << "]" << std::endl;
-	std::cout << "acutual_uri: [" << _acutual_uri << "]" << std::endl;
+	std::cout << "acutual_uri: [" << _actual_uri << "]" << std::endl;
 	std::cout << "remote_addr: [" << _remote_addr << "]" << std::endl;
 	std::cout << "remote_host: [" << _remote_host << "]" << std::endl;
 	std::cout << "server_name: [" << _server_name << "]" << std::endl;
 	std::cout << "server_port: [" << _server_port << "]" << std::endl;
-
 }

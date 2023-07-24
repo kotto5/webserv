@@ -8,10 +8,6 @@ Logger::Logger(const std::string& accessLogPath,
 	_instance = this;
 }
 
-Logger::~Logger()
-{
-}
-
 const std::string& Logger::getAccessLogPath() const
 {
 	return _accessLogPath;
@@ -92,3 +88,24 @@ Logger* Logger::_instance = NULL;
 
 const std::string Logger::DEFAULT_ERROR_LOG_PATH = "./logs/error.log";
 const std::string Logger::DEFAULT_ACCESS_LOG_PATH = "./logs/access.log";
+
+
+// シングルトンパターンのため外部からの変更・破棄を避ける
+Logger::~Logger()
+{
+}
+
+Logger::Logger(const Logger& other)
+{
+	*this = other;
+}
+
+Logger& Logger::operator=(const Logger& other)
+{
+	if (this != &other)
+	{
+		_accessLogPath = other._accessLogPath;
+		_errorLogPath = other._errorLogPath;
+	}
+	return *this;
+}
