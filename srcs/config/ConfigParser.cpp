@@ -82,8 +82,14 @@ bool ConfigParser::isAllowedDirective()
 void ConfigParser::parseFile(const std::string& filepath)
 {
 	_filepath = filepath;
-	std::ifstream ifs(_filepath.c_str());
 
+	// パスがディレクトリの場合はエラー
+	if (!isFile(_filepath.c_str()))
+	{
+		std::cerr << "Is directory" << std::endl;
+		exit(EXIT_FAILURE);
+	}
+	std::ifstream ifs(_filepath.c_str());
 	if (!ifs)
 	{
 		std::cerr << "Open Error" << std::endl;
@@ -149,7 +155,6 @@ void ConfigParser::parseLines()
 		}
 		else if (_directive_type == HTTP)
 			setHTTPContext();
-		//else
 	}
 }
 
@@ -171,16 +176,15 @@ void ConfigParser::setHTTPContext()
 		else if (_directive_type == SERVER)
 		{
 			ServerContext server_context = getServerContext();
-			http_context.addServerBlock(server_context);
+			_config.getHTTPBlock().addServerBlock(server_context);
 		}
 		else
 		{
-			//http_context.addDirective(_one_line[0], _one_line[1], _filepath, _line_number + 1);
+			_config.getHTTPBlock().addDirective(_one_line[0], _one_line[1], _filepath, _line_number + 1);
 			if (_directive_type == ACCESS_LOG)
-				http_context.setAccessLogFile(_one_line[1]);
+				_config.getHTTPBlock().setAccessLogFile(_one_line[1]);
 			else if (_directive_type == ERROR_LOG)
-				http_context.setErrorLogFile(_one_line[1]);
-			http_context.addDirective(_one_line[0], _one_line[1], _filepath, _line_number + 1);
+				_config.getHTTPBlock().setErrorLogFile(_one_line[1]);
 		}
 	}
 }
@@ -209,12 +213,11 @@ const ServerContext ConfigParser::getServerContext()
 		}
 		else
 		{
-			//server_context.addDirectives(_one_line[0], _one_line[1], _filepath, _line_number + 1);
+			server_context.addDirectives(_one_line[0], _one_line[1], _filepath, _line_number + 1);
 			if (_directive_type == LISTEN)
 				server_context.setListen(_one_line[1]);
 			else if (_directive_type == SERVER_NAME)
 				server_context.setServerName(_one_line[1]);
-			server_context.addDirectives(_one_line[0], _one_line[1], _filepath, _line_number + 1);
 		}
 	}
 	return server_context;
@@ -246,3 +249,24 @@ const LocationContext ConfigParser::getLocationContext()
 	}
 	return location_context;
 }
+
+/**
+ * @brief パスがファイルかどうかを判定する
+ *
+ * @param path
+ */
+bool ConfigParser::isFile(const char *path)
+{
+	struct stat st;
+
+	if (stat(path, &st) == 0)
+	{
+		// パスがファイルであるか
+		if (S_ISREG(st.st_mode))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+

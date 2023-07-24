@@ -12,14 +12,10 @@
 
 int	Server::setup()
 {
-	// config serverの数だけwhile で
-	// if (create_server_socket(80))
-	// 	return (1);
-	// if (create_server_socket(81))
-	// 	return (1);
-	for (std::vector<std::string>::const_iterator itr = Config::getInstance()->getPorts().begin();
-		 itr != Config::getInstance()->getPorts().end();
-		 itr++)
+	const std::vector<std::string> ports = Config::getInstance()->getPorts();
+	std::vector<std::string>::const_iterator itr = ports.begin();
+
+	for (itr = ports.begin(); itr != ports.end(); itr++)
 	{
 		if (create_server_socket(Server::strtoi(*itr)))
 			return (1);
