@@ -8,6 +8,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <cstring>
+#include "utils.hpp"
 
 // Constructors
 Request::Request(const std::string &method, const std::string &uriAndQuery, const std::string &protocol,
@@ -26,8 +27,14 @@ Request::Request(const std::string &method, const std::string &uriAndQuery, cons
 	this->_content_type = this->getHeader("Content-Type");
 
 	// aliasとrootを考慮したuriを取得
+	std::cout << "test test!!!!!!!!!!!!" << std::endl;
 	this->_actual_uri = convertUritoPath(this->_uri);
+	// if (this->_actual_uri == "404")
+	// 	throw Error("404", "Not Found");
+	// if (pathExist(this->_actual_uri.c_str()) && !isFile(this->_actual_uri.c_str()))
+	// 	this->_actual_uri +=
 
+	std::cout << "test test!!!!!!!!!!!!2" << std::endl;
 	// CGIに用いるscript_nameとpath_infoを取得
 	// this->_cgi_script_name = this->get
 	this->_path_info = this->_uri.find(_cgi_script_name) == std::string::npos ?
@@ -55,7 +62,7 @@ std::string	Request::convertUritoPath(const std::string &uri)
 	{
 		httpcontext = config->getHTTPBlock();
 		servercontext = httpcontext.getServerContext("80", this->getHeader("host"));
-		location = servercontext.getLocationContext(this->getUri());
+		location = servercontext.getLocationContext(ret);
 	}
 	catch (std::runtime_error &e)
 	{
@@ -64,6 +71,9 @@ std::string	Request::convertUritoPath(const std::string &uri)
 		return ("404");
 	}
 	path = location.getDirective("path");
+	if (ret.length() <= path.length())
+		ret = path;
+
 	if (location.getDirective("alias") != "")
 		alias = location.getDirective("alias");
 	else if (location.getDirective("root") != "")
@@ -75,7 +85,18 @@ std::string	Request::convertUritoPath(const std::string &uri)
 	// aliasは'/'で終わっていることを保証する
 	if (alias[alias.length() - 1] != '/')
 		alias += '/';
-	return (alias + uri.substr(path.length()));
+	std::cout << "aaaaa:::::::::::: path[" << path << "] alias[" << alias << "] uri[" << uri << "]" << std::endl;
+	std::cout << "aaaaa:::::::::::: path" << (path == ret) << std::endl;
+	if (path == ret)
+	{
+		std::string index = location.getDirective("index");
+		std::cout << "index: [" << index << "]" << std::endl;
+		// if (index == "")
+		// 	index = "index.html";
+		return (alias + index);
+	}
+	std::cout << "test dayo-n" << std::endl;
+	return (alias + ret.substr(path.length() - 1));
 }
 
 Request::Request(const Request &other)
@@ -169,7 +190,6 @@ void	Request::print_all(void) const
 	std::cout << "]" << std::endl;
 	std::cout << "body: [" << _body << "]" << std::endl;
 	std::cout << "ip: [" << _ip << "]" << std::endl;
-	std::cout << "port: [" << _port << "]" << std::endl;
 	std::cout << "content_length: [" << _content_length << "]" << std::endl;
 	std::cout << "content_type: [" << _content_type << "]" << std::endl;
 	std::cout << "cgi_script_name: [" << _cgi_script_name << "]" << std::endl;
