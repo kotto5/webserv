@@ -13,6 +13,7 @@
 
 int	Server::setup()
 {
+	// 設定されているポートをすべて取得
 	const std::vector<std::string> ports = Config::getInstance()->getPorts();
 	std::vector<std::string>::const_iterator itr = ports.begin();
 

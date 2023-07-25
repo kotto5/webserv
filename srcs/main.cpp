@@ -11,21 +11,6 @@
 #include "Request.hpp"
 #include <filesystem>
 
-// int	setSignalHandler()
-// {
-// 	struct sigaction	sa;
-// 	sa.sa_handler = SIG_IGN;
-// 	sigemptyset(&sa.sa_mask);
-// 	sa.sa_flags = SA_RESTART;
-// 	if (sigaction(SIGPIPE, &sa, NULL) == -1)
-// 	{
-// 		std::cout << "sigaction error" << std::endl;
-// 		return (1);
-// 	}
-// 	return (0);
-// }
-
-// write exit_handler
 void	exit_handler(int sig)
 {
 	(void)sig;
@@ -84,38 +69,3 @@ int main(int argc, char **argv)
 
 	return 0;
 }
-
-// int	main()
-// {
-
-// 	Config	*config;
-// 	try
-// 	{
-// 		config = new Config("/Users/kakiba/AAproject/42_webserv/conf/default.conf");
-// 	}
-// 	catch(const ConfigError& e)
-// 	{
-// 		std::cerr << e.what() << '\n';
-// 		std::exit(1);
-// 	}
-
-// 	// open file text.txt
-// 	std::ifstream ifs("/Users/kakiba/AAproject/42_webserv/sample_http/Request1");
-// 	// std::ifstream ifs("/Users/kakiba/AAproject/42_webserv/sample_http/RequestPost1");
-// 	if (!ifs)
-// 	{
-// 		std::cerr << "Error: file not opened." << std::endl;
-// 		return 1;
-// 	}
-// 	std::string row_request;
-// 	// read ifs to row_request
-// 	row_request.assign((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
-// 	Request	*req = Server::parse_request(row_request);
-// 	std::cout << "test@@@@@@@@@@@" << std::endl;
-// 	if (req == NULL)
-// 	{
-// 		std::cout << "parse error" << std::endl;
-// 		return (1);
-// 	}
-// 	req->print_all();
-// }

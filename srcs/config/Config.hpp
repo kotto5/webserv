@@ -6,18 +6,22 @@
 
 class Config
 {
-    public:
-        Config(const std::string& filepath);
-		HTTPContext& getHTTPBlock();
-		static Config* getInstance();
-		const std::vector<std::string> getPorts();
-		~Config();
+public:
+	Config(const std::string& filepath);
+	HTTPContext& getHTTPBlock();
+	static Config* getInstance();
+	const std::vector<std::string> getPorts();
 
-    private:
-        HTTPContext _http_block;
-        static Config* _instance;
-		int	redirectErrorLogFile(std::string errorLogFile);
-        int redirectAccessLogFile(std::string accessLogFile);
+private:
+	HTTPContext _http_block;
+	static Config* _instance;
+	int	redirectErrorLogFile(std::string errorLogFile);
+	int redirectAccessLogFile(std::string accessLogFile);
+
+	// シングルトンパターンのため外部からの変更・破棄を避ける
+	~Config();
+	Config& operator=(const Config& other);
+	Config(const Config& other);
 };
 
 #endif
