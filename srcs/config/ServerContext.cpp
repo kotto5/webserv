@@ -15,6 +15,23 @@ ServerContext::~ServerContext()
 {
 }
 
+ServerContext::ServerContext(const ServerContext& other)
+{
+	*this = other;
+}
+
+ServerContext& ServerContext::operator=(const ServerContext& other)
+{
+	if (this != &other)
+	{
+		_listen = other._listen;
+		_server_name = other._server_name;
+		_locations = other._locations;
+		_directives = other._directives;
+	}
+	return *this;
+}
+
 void ServerContext::setListen(const std::string& listen)
 {
 	_listen = listen;

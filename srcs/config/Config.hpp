@@ -15,8 +15,6 @@ public:
 private:
 	HTTPContext _http_block;
 	static Config* _instance;
-	int	redirectErrorLogFile(std::string errorLogFile);
-	int redirectAccessLogFile(std::string accessLogFile);
 
 	// シングルトンパターンのため外部からの変更・破棄を避ける
 	~Config();

@@ -8,6 +8,23 @@ HTTPContext::HTTPContext():
 {
 }
 
+HTTPContext::HTTPContext(const HTTPContext& other)
+{
+	*this = other;
+}
+
+HTTPContext& HTTPContext::operator=(const HTTPContext& other)
+{
+	if (this != &other)
+	{
+		_accessLogFile = other._accessLogFile;
+		_errorLogFile = other._errorLogFile;
+		_servers = other._servers;
+		_directives = other._directives;
+	}
+	return *this;
+}
+
 HTTPContext::~HTTPContext()
 {
 }
@@ -74,7 +91,7 @@ const std::string& HTTPContext::getErrorLogFile() const
 
 const std::map<std::string, std::vector<ServerContext> >& HTTPContext::getServers() const
 {
-    return _servers;
+	return _servers;
 }
 
 /**

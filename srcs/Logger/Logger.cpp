@@ -7,6 +7,37 @@ Logger::Logger(const std::string& accessLogPath, const std::string& errorLogPath
 	: _accessLogPath(accessLogPath), _errorLogPath(errorLogPath)
 {
 	_instance = this;
+
+	this->redirectAccessLogFile(accessLogPath);
+	this->redirectErrorLogFile(errorLogPath);
+}
+
+int Logger::redirectAccessLogFile(std::string  accessLogFile)
+{
+	if (accessLogFile.empty())
+	{
+		return (0);
+	}
+	// アクセスログファイルを開く（appendモード）
+	_ofsAccessLog.open(accessLogFile.c_str(), std::ios::app);
+
+	return (0);
+}
+
+int Logger::redirectErrorLogFile(std::string errorLogFile)
+{
+	if (errorLogFile.empty())
+	{
+		return (0);
+	}
+	// エラーログファイルを開く（appendモード）
+	_ofsErrorLog.open(errorLogFile.c_str(), std::ios::app);
+
+	// 標準エラー出力をリダイレクトする
+	std::cerr.rdbuf(_ofsErrorLog.rdbuf());
+
+	return (0);
+
 }
 
 const std::string& Logger::getAccessLogPath() const
@@ -47,13 +78,14 @@ void Logger::writeAccessLog(const Request& request, const Response& response)
 	std::strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S", std::localtime(&now));
 
 	// ログメッセージを作成
-	std::cerr << timestamp << " "
-		<< request.getMethod() << " "
-		<< request.getUri() << " "
-		<< request.getProtocol() << " "
-		<< response.getStatus() << std::endl;
-}
+	std::string logMessage = std::string(timestamp) + " " + request.getMethod() + " "
+		+ request.getUri() + " " + request.getProtocol() + " "
+		+ std::to_string(response.getStatus());
 
+	// 標準出力とログファイルに出力
+	std::cout << logMessage;
+	_ofsAccessLog << logMessage;
+}
 
 /**
  * @brief エラーログを出力する
@@ -68,12 +100,18 @@ void Logger::writeErrorLog(std::string msg, Error::T_ERROR_CODE error_code)
 	char timestamp[100];
 	std::strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S", std::localtime(&now));
 
-	std::cerr << timestamp << " ";
+	std::string logMessage = std::string(timestamp) + " ";
 	// if (request)
-	//     std::cerr << request->getProtocol() << " ";
+	// 	std::cerr << request->getProtocol() << " ";
 	// if (response)
-	//     std::cerr << response->getStatus() << " " << response->getHeader("Content-Length") << " ";
+	// 	std::cerr << response->getStatus() << " " << response->getHeader("Content-Length") << " ";
+
+	// 標準エラー出力とログファイルに出力
+	std::cout << logMessage;
+	_ofsErrorLog << logMessage;
+
 	Error::print_error(msg, error_code);
+
 }
 
 Logger* Logger::_instance = NULL;

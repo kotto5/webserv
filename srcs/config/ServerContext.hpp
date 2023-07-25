@@ -10,7 +10,10 @@ class ServerContext
 {
     public:
         ServerContext();
+		ServerContext(const ServerContext& other);
+		ServerContext& operator=(const ServerContext& other);
         ~ServerContext();
+
         void setListen(const std::string& listen);
         void setServerName(const std::string& server_name);
         const std::string& getListen() const;

@@ -13,6 +13,8 @@ class Logger
 	public:
 		Logger(const std::string& accessLogPath, const std::string& errorLogPath);
 		static Logger* getInstance();
+		int	redirectErrorLogFile(std::string errorLogFile);
+		int redirectAccessLogFile(std::string accessLogFile);
 		const std::string& getAccessLogPath() const;
 		const std::string& getErrorLogPath() const;
 		void writeAccessLog(const Request& request, const Response& response);
@@ -24,6 +26,10 @@ class Logger
 		std::string _accessLogPath;
 		std::string _errorLogPath;
 		static Logger* _instance;
+
+		// ログファイルのストリーム
+		std::ofstream _ofsErrorLog;
+		std::ofstream _ofsAccessLog;
 
 		// シングルトンパターンのため外部からの変更・破棄を避ける
 		~Logger();
