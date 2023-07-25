@@ -3,6 +3,10 @@
 #include "Config.hpp"
 #include "LocationContext.hpp"
 #include "ServerContext.hpp"
+#include "Socket.hpp"
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 #include <cstring>
 
 // Constructors
@@ -130,25 +134,24 @@ std::string Request::getActualUri() const
 	return this->_actual_uri;
 }
 
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-
-int	Request::setaddr(int clientSocket)
+int	Request::setaddr(ClSocket *clientSocket)
 {
 	struct sockaddr_in	addr;
 	socklen_t			addr_size = sizeof(struct sockaddr_in);
-	int					result;
 
-	memset(&addr, 0, addr_size);
-	result = getsockname(clientSocket, (struct sockaddr*)&addr, &addr_size);
-	if (result == -1)
-	{
-		Error::print_error("getsockname", Error::E_SYSCALL);
-		return (-1);
-	}
-	_ip = inet_ntoa(addr.sin_addr);
-	_port = ntohs(addr.sin_port);
+	addr = clientSocket->getLocaladdr();
+	addr_size = clientSocket->getLocallen();
+	int	port = ntohs(addr.sin_port);
+
+	_server_name = inet_ntoa(addr.sin_addr);
+	_server_port = std::to_string(port);
+
+	addr = clientSocket->getRemoteaddr();
+	addr_size = clientSocket->getRemotelen();
+
+	_remote_addr = inet_ntoa(addr.sin_addr);
+	_remote_host = _remote_addr;
+
 	return (0);
 }
 
@@ -171,5 +174,9 @@ void	Request::print_all(void) const
 	std::cout << "content_type: [" << _content_type << "]" << std::endl;
 	std::cout << "cgi_script_name: [" << _cgi_script_name << "]" << std::endl;
 	std::cout << "path_info: [" << _path_info << "]" << std::endl;
-	std::cout << "actual_uri: [" << _actual_uri << "]" << std::endl;
+	std::cout << "acutual_uri: [" << _actual_uri << "]" << std::endl;
+	std::cout << "remote_addr: [" << _remote_addr << "]" << std::endl;
+	std::cout << "remote_host: [" << _remote_host << "]" << std::endl;
+	std::cout << "server_name: [" << _server_name << "]" << std::endl;
+	std::cout << "server_port: [" << _server_port << "]" << std::endl;
 }

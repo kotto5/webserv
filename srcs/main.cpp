@@ -60,6 +60,7 @@ int main(int argc, char **argv)
 	try
 	{
 		config = new Config(argv[1]);
+		(void)config;
 	}
 	catch(const ConfigError& e)
 	{
@@ -72,6 +73,7 @@ int main(int argc, char **argv)
 		Config::getInstance()->getHTTPBlock().getAccessLogFile(),
 		Config::getInstance()->getHTTPBlock().getErrorLogFile()
 	);
+	(void)logger;
 
 	setSignalHandler();
 	// サーバー起動
@@ -79,9 +81,46 @@ int main(int argc, char **argv)
 	if (server.setup())
 		return (1);
 	server.run();
-	// サーバー終了
-	delete config;
-	delete logger;
 
 	return 0;
 }
+
+int	main()
+{
+	
+}
+
+// int	main()
+// {
+
+// 	Config	*config;
+// 	try
+// 	{
+// 		config = new Config("/Users/kakiba/AAproject/42_webserv/conf/default.conf");
+// 	}
+// 	catch(const ConfigError& e)
+// 	{
+// 		std::cerr << e.what() << '\n';
+// 		std::exit(1);
+// 	}
+
+// 	// open file text.txt
+// 	std::ifstream ifs("/Users/kakiba/AAproject/42_webserv/sample_http/Request1");
+// 	// std::ifstream ifs("/Users/kakiba/AAproject/42_webserv/sample_http/RequestPost1");
+// 	if (!ifs)
+// 	{
+// 		std::cerr << "Error: file not opened." << std::endl;
+// 		return 1;
+// 	}
+// 	std::string row_request;
+// 	// read ifs to row_request
+// 	row_request.assign((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
+// 	Request	*req = Server::parse_request(row_request);
+// 	std::cout << "test@@@@@@@@@@@" << std::endl;
+// 	if (req == NULL)
+// 	{
+// 		std::cout << "parse error" << std::endl;
+// 		return (1);
+// 	}
+// 	req->print_all();
+// }

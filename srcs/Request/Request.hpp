@@ -4,6 +4,7 @@
 #include <iostream>
 #include <map>
 #include <string>
+#include "Socket.hpp"
 
 class Request
 {
@@ -33,7 +34,7 @@ public:
 	void		print_all() const;
 	int			seturi();
 
-	int	setaddr(int clientSocket);
+	int	setaddr(ClSocket *clientSocket);
 
 private:
 	// メソッド名
@@ -60,6 +61,11 @@ private:
 	std::string	_content_type;
 	std::string	_cgi_script_name;
 	std::string	_path_info;
+	std::string	_remote_addr;
+	std::string	_remote_host;
+
+	std::string	_server_name;
+	std::string	_server_port;
 
 	// Not use
 	Request();
