@@ -228,7 +228,6 @@ const LocationContext ConfigParser::getLocationContext()
 	LocationContext location_context = LocationContext();
 
 	location_context.addDirective("path", _one_line[1], _filepath, _line_number + 1);
-	//std::cout << "path: " << _one_line[1] << std::endl;
 	_line_number++;
 	for ( ; _line_number < _lines.size(); _line_number++)
 	{

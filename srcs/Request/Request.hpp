@@ -55,8 +55,7 @@ private:
 	std::string _actual_uri;
 	// IP
 	std::string _ip;
-	// ポート
-	int			_port;
+
 	std::size_t _content_length;
 	std::string	_content_type;
 	std::string	_cgi_script_name;

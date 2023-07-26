@@ -39,35 +39,42 @@ PostHandler &PostHandler::operator=(const PostHandler &rhs)
 
 Response PostHandler::handleRequest(const Request &request)
 {
-    // create file with request.uri member
-    std::string filename = request.getActualUri();
-    std::string body = request.getBody();
+	std::string::size_type pos = request.getActualUri().find_last_of('/');
+    std::string filedir = request.getActualUri().substr(0, pos + 1);
+    std::string filename = request.getActualUri().substr(pos + 1);
 
     std::ofstream ofs;
 	std::string tmp = filename;
-	for (std::size_t i = 0; i != SIZE_MAX; ++i)
+	std::size_t i = 0;
+	while (i < SIZE_MAX)
 	{
-		if (!pathExist(tmp.c_str()))
+		if (!pathExist((filedir + tmp).c_str()))
 		{
 			filename = tmp;
 			break;
 		}
-		tmp = filename + std::to_string(i);
+		tmp = std::to_string(i) + filename;
+		i++;
 	}
-	if (pathExist(filename.c_str()))
+	if (i == SIZE_MAX)
 	{
         std::cerr << "Error: can not create file in this name more" << std::endl;
 		return (Response(500));
 	}
-	ofs.open(filename, std::ios::out);
+	ofs.open(filedir + filename, std::ios::out);
     if (!ofs)
     {
         std::cerr << "Error: file not opened." << std::endl;
 		return (Response(500));
     }
+	std::string body = request.getBody();
     ofs << body;
     ofs.close();
+
 	std::map<std::string, std::string> headers;
-	headers["Location"] = filename;
+	pos = request.getUri().find_last_of('/');
+    std::string uridir = request.getUri().substr(0, pos + 1);
+
+	headers["Location"] = uridir + filename;
     return (Response(201, headers, ""));
 }
