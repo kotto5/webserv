@@ -1,7 +1,7 @@
 # Compile variables
 NAME := webserv
 CXX := g++
-CXXFLAGS := -Wall -Wextra -Werror -fsanitize=address
+CXXFLAGS := -Wall -Wextra -Werror
 DFLAGS := -MMD -MP
 
 PROJECT_DIR := $(CURDIR)
