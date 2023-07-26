@@ -10,6 +10,7 @@ class Response
 public:
 	// Constructors
 	Response(const int status, std::map<std::string, std::string> headers, const std::string &body);
+	Response(const int status);
 	Response(const Response &other);
 
 	// Destructor

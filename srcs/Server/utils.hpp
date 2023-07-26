@@ -23,5 +23,6 @@ int		runCgi(Request *request, int socket);
 int		isValidFd(int fd);
 bool    isFile(const char *path);
 bool    pathExist(const char *path);
+bool    isDirectory(const char *path);
 
 #endif

@@ -1,6 +1,8 @@
 #include "Router.hpp"
 #include "../Handler/GetHandler.hpp"
+#include "../Handler/PostHandler.hpp"
 #include "../config/Config.hpp"
+
 
 // Constructors
 Router::Router() : _handler(NULL) {}
@@ -47,6 +49,10 @@ IHandler *Router::createHandler(const Request &request)
 	if (method == "GET")
 	{
 		_handler = new GetHandler();
+	}
+	else if (method == "POST")
+	{
+		_handler = new PostHandler();
 	}
 	return _handler;
 }

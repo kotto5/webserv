@@ -6,6 +6,7 @@
 #include <map>
 #include "Error.hpp"
 #include <vector>
+#include <sys/stat.h>
 
 #include "ConfigParser.hpp"
 #include "HTTPContext.hpp"

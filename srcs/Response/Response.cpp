@@ -16,6 +16,14 @@ Response::Response(const int status, std::map<std::string, std::string> headers,
 	setServer();
 }
 
+Response::Response(const int status)
+	: _status(status)
+{
+	setDate();
+	setContentLength();
+	setServer();
+}
+
 Response::Response(const Response &other)
 {
 	this->_status = other._status;
