@@ -60,7 +60,6 @@ std::string	Request::convertUritoPath(const std::string &uri)
 	catch (std::runtime_error &e)
 	{
 		std::cout << e.what() << std::endl;
-		std::cout << "ERRRRRRRRRRRRRRRRRRRRRRRRRRR!!!!!!!!!" << std::endl;
 		return ("404");
 	}
 	path = location.getDirective("path");
@@ -80,7 +79,6 @@ std::string	Request::convertUritoPath(const std::string &uri)
 		alias += '/';
 	if (path == ret) 
 		return (alias + location.getDirective("index"));
-	std::cout << "test dayo-n" << std::endl;
 	return (alias + ret.substr(path.length() - 1));
 }
 
