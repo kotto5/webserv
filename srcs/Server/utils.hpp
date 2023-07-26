@@ -21,5 +21,7 @@ void	partitionAndAddToMap(std::map<std::string, std::string>& m, const std::stri
 int     _socketpair(int domain, int type, int protocol, int sv[2]);
 int		runCgi(Request *request, int socket);
 int		isValidFd(int fd);
+bool    isFile(const char *path);
+bool    pathExist(const char *path);
 
 #endif
