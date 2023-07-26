@@ -6,6 +6,7 @@
 #include <map>
 #include "Error.hpp"
 #include <vector>
+#include <sys/stat.h>
 
 void set_non_blocking(int socket) {
 	if (fcntl(socket, F_SETFL, O_NONBLOCK) == -1) {
@@ -178,4 +179,25 @@ int	runCgi(Request *request, int socket)
 
 int isValidFd(int fd) {
     return (fcntl(fd, F_GETFD) != -1 || errno != EBADF);
+}
+
+bool    isFile(const char *path)
+{
+	struct stat st;
+
+	return (stat(path, &st) == 0 && S_ISREG(st.st_mode));
+}
+
+bool    isDirectly(const char *path)
+{
+	struct stat st;
+
+	return (stat(path, &st) == 0 && S_ISREG(st.st_mode));
+}
+
+bool    pathExist(const char *path)
+{
+	struct stat st;
+
+	return (stat(path, &st) == 0);
 }
