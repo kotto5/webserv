@@ -1,6 +1,7 @@
 #include "Router.hpp"
 #include "../Handler/GetHandler.hpp"
 #include "../Handler/PostHandler.hpp"
+#include "../Handler/DeleteHandler.hpp"
 #include "../config/Config.hpp"
 
 
@@ -53,6 +54,10 @@ IHandler *Router::createHandler(const Request &request)
 	else if (method == "POST")
 	{
 		_handler = new PostHandler();
+	}
+	else if (method == "DELETE")
+	{
+		_handler = new DeleteHandler();
 	}
 	return _handler;
 }
