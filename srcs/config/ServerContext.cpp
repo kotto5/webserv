@@ -81,6 +81,9 @@ const std::vector<LocationContext>& ServerContext::getLocations() const
  */
 const LocationContext& ServerContext::getLocationContext(const std::string& path) const
 {
+	std::string	fixPath = path;
+	if (!path.empty() && fixPath[fixPath.length() - 1] != '/')
+		fixPath += '/';
 	const std::vector<LocationContext>& locations = getLocations();
 
 	bool isMatched = false;
@@ -90,8 +93,11 @@ const LocationContext& ServerContext::getLocationContext(const std::string& path
 	{
 		// ロケーションパスを取得
 		std::string locationPath = it->getDirective("path");
+		std::string::size_type currentMatch = 0;
 		// 前方一致の最大の長さを取得する
-		std::string::size_type currentMatch = getMaxPrefixLength(path, locationPath);
+		if (fixPath.size() >= locationPath.size() &&
+			std::equal(std::begin(locationPath), std::end(locationPath), std::begin(fixPath)))
+			currentMatch = locationPath.size();
 		if (currentMatch != std::string::npos)
 		{
 			if (!isMatched || max < currentMatch)

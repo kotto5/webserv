@@ -8,6 +8,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <cstring>
+#include "utils.hpp"
 
 // Constructors
 Request::Request(const std::string &method, const std::string &uriAndQuery, const std::string &protocol,
@@ -27,7 +28,6 @@ Request::Request(const std::string &method, const std::string &uriAndQuery, cons
 
 	// aliasとrootを考慮したuriを取得
 	this->_actual_uri = convertUritoPath(this->_uri);
-
 	// CGIに用いるscript_nameとpath_infoを取得
 	// this->_cgi_script_name = this->get
 	this->_path_info = this->_uri.find(_cgi_script_name) == std::string::npos ?
@@ -55,15 +55,17 @@ std::string	Request::convertUritoPath(const std::string &uri)
 	{
 		httpcontext = config->getHTTPBlock();
 		servercontext = httpcontext.getServerContext("80", this->getHeader("host"));
-		location = servercontext.getLocationContext(this->getUri());
+		location = servercontext.getLocationContext(ret);
 	}
 	catch (std::runtime_error &e)
 	{
 		std::cout << e.what() << std::endl;
-		std::cout << "ERRRRRRRRRRRRRRRRRRRRRRRRRRR!!!!!!!!!" << std::endl;
 		return ("404");
 	}
 	path = location.getDirective("path");
+	if (ret.length() < path.length()) // path が /path/ に対し uri が /path だった場合の対応
+		ret = path;
+
 	if (location.getDirective("alias") != "")
 		alias = location.getDirective("alias");
 	else if (location.getDirective("root") != "")
@@ -75,7 +77,9 @@ std::string	Request::convertUritoPath(const std::string &uri)
 	// aliasは'/'で終わっていることを保証する
 	if (alias[alias.length() - 1] != '/')
 		alias += '/';
-	return (alias + uri.substr(path.length()));
+	if (path == ret) 
+		return (alias + location.getDirective("index"));
+	return (alias + ret.substr(path.length() - 1));
 }
 
 Request::Request(const Request &other)
@@ -169,7 +173,6 @@ void	Request::print_all(void) const
 	std::cout << "]" << std::endl;
 	std::cout << "body: [" << _body << "]" << std::endl;
 	std::cout << "ip: [" << _ip << "]" << std::endl;
-	std::cout << "port: [" << _port << "]" << std::endl;
 	std::cout << "content_length: [" << _content_length << "]" << std::endl;
 	std::cout << "content_type: [" << _content_type << "]" << std::endl;
 	std::cout << "cgi_script_name: [" << _cgi_script_name << "]" << std::endl;

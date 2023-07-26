@@ -107,7 +107,6 @@ int	Server::accept(Socket *serverSocket)
 	int 					new_socket = ::accept(serverSocket->getFd(), (struct sockaddr*) &client_address, &client_length);
 
 	if (new_socket < 0) {
-		std::cout << errno << std::endl;
 		Error::print_error("accept", Error::E_SYSCALL);
 		return (1);
 	}
@@ -123,15 +122,15 @@ int	Server::new_connect_cgi(Request *request, Socket *clientSocket)
 	int	sockets[2];
 	if (_socketpair(AF_INET, SOCK_STREAM, 0, sockets) == -1)
 	{
-		std::cout << "socketpair error" << std::endl;
+		Error::print_error("socketpair", Error::E_SYSCALL);
 		exit (-1);
 	}
 	if (runCgi(request, sockets[S_CHILD])){
-		std::cout << "runCgi error" << std::endl;
+
+		Error::print_error("runcgi ERROR", Error::E_SYSCALL);
 		exit (-1);
 	}
 	close(sockets[S_CHILD]);
-	std::cout << sockets[S_CHILD] << "  " <<  sockets[S_PARENT] << std::endl;
 	set_non_blocking(S_PARENT);
 
 	Socket *socket = new Socket(sockets[S_PARENT]);
@@ -301,12 +300,12 @@ Request	*Server::parse_request(const std::string &row_request)
 			partitionAndAddToMap(headers, line, ": ");
 		startPos = endPos + 2; // Skip CRLF
 	}
-	if (headers.find("Content-Length") != headers.end())
+	std::string content_length_name = "content-length";
+	if (headers.find(content_length_name) != headers.end())
 	{
-		std::string::size_type	content_length = std::stoi(headers["Content-Length"]);
+		std::string::size_type	content_length = std::stoi(headers[content_length_name]);
 		std::cout << "content_length: " << content_length << std::endl;
 		body = row_request.substr(startPos + 2, content_length);
-		std::cout << "body: " << body.length() << std::endl;
 	}
 	if (headers.find("Transfer-Encoding") != headers.end() && headers["Transfer-Encoding"] == "chunked")
 	{
