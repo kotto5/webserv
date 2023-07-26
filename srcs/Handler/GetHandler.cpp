@@ -38,7 +38,6 @@ GetHandler &GetHandler::operator=(const GetHandler &rhs)
 Response GetHandler::handleRequest(const Request &request)
 {
 	// URIからファイルを開く
-	std::cout << "GetHandler::handleRequest" << "::" <<   std::endl;
 	std::ifstream htmlFile(request.getActualUri());
 	if (!htmlFile.is_open())
 	{

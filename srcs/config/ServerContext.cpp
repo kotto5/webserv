@@ -67,7 +67,6 @@ const LocationContext& ServerContext::getLocationContext(const std::string& path
 	std::string	fixPath = path;
 	if (!path.empty() && fixPath[fixPath.length() - 1] != '/')
 		fixPath += '/';
-	std::cout << "fixPath: " << fixPath << std::endl;
 	const std::vector<LocationContext>& locations = getLocations();
 
 	bool isMatched = false;
@@ -81,10 +80,7 @@ const LocationContext& ServerContext::getLocationContext(const std::string& path
 		// 前方一致の最大の長さを取得する
 		if (fixPath.size() >= locationPath.size() &&
 			std::equal(std::begin(locationPath), std::end(locationPath), std::begin(fixPath)))
-		{
-			std::cout << "Match locationPath: " << locationPath << std::endl;
 			currentMatch = locationPath.size();
-		}
 		if (currentMatch != std::string::npos)
 		{
 			if (!isMatched || max < currentMatch)

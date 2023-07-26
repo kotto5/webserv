@@ -27,14 +27,7 @@ Request::Request(const std::string &method, const std::string &uriAndQuery, cons
 	this->_content_type = this->getHeader("Content-Type");
 
 	// aliasとrootを考慮したuriを取得
-	std::cout << "test test!!!!!!!!!!!!" << std::endl;
 	this->_actual_uri = convertUritoPath(this->_uri);
-	// if (this->_actual_uri == "404")
-	// 	throw Error("404", "Not Found");
-	// if (pathExist(this->_actual_uri.c_str()) && !isFile(this->_actual_uri.c_str()))
-	// 	this->_actual_uri +=
-
-	std::cout << "test test!!!!!!!!!!!!2" << std::endl;
 	// CGIに用いるscript_nameとpath_infoを取得
 	// this->_cgi_script_name = this->get
 	this->_path_info = this->_uri.find(_cgi_script_name) == std::string::npos ?
@@ -71,7 +64,7 @@ std::string	Request::convertUritoPath(const std::string &uri)
 		return ("404");
 	}
 	path = location.getDirective("path");
-	if (ret.length() <= path.length())
+	if (ret.length() < path.length()) // path が /path/ に対し uri が /path だった場合の対応
 		ret = path;
 
 	if (location.getDirective("alias") != "")
@@ -85,16 +78,8 @@ std::string	Request::convertUritoPath(const std::string &uri)
 	// aliasは'/'で終わっていることを保証する
 	if (alias[alias.length() - 1] != '/')
 		alias += '/';
-	std::cout << "aaaaa:::::::::::: path[" << path << "] alias[" << alias << "] uri[" << uri << "]" << std::endl;
-	std::cout << "aaaaa:::::::::::: path" << (path == ret) << std::endl;
-	if (path == ret)
-	{
-		std::string index = location.getDirective("index");
-		std::cout << "index: [" << index << "]" << std::endl;
-		// if (index == "")
-		// 	index = "index.html";
-		return (alias + index);
-	}
+	if (path == ret) 
+		return (alias + location.getDirective("index"));
 	std::cout << "test dayo-n" << std::endl;
 	return (alias + ret.substr(path.length() - 1));
 }
