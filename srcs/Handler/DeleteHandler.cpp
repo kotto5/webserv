@@ -37,38 +37,21 @@ DeleteHandler &DeleteHandler::operator=(const DeleteHandler &rhs)
  * @param request リクエスト
  * @return Response レスポンス
  */
-
 Response DeleteHandler::handleRequest(const Request &request)
 {
-    // create file with request.uri member
     std::string filename = request.getActualUri();
-    std::string body = request.getBody();
 
-    std::ofstream ofs;
-	std::string tmp = filename;
-	for (std::size_t i = 0; i != SIZE_MAX; ++i)
+	if (!isDirectory(filename.c_str()))
 	{
-		if (!pathExist(tmp.c_str()))
-		{
-			filename = tmp;
-			break;
-		}
-		tmp = filename + std::to_string(i);
+		std::cerr << "Error: file not exist." << std::endl;
+		return (Response(404));
 	}
-	if (pathExist(filename.c_str()))
+	if (remove(filename.c_str()))
 	{
-        std::cerr << "Error: can not create file in this name more" << std::endl;
+		std::cerr << "Error: file not deleted." << std::endl;
+		perror("remove");
 		return (Response(500));
 	}
-	ofs.open(filename, std::ios::out);
-    if (!ofs)
-    {
-        std::cerr << "Error: file not opened." << std::endl;
-		return (Response(500));
-    }
-    ofs << body;
-    ofs.close();
-	std::map<std::string, std::string> headers;
-	headers["Location"] = filename;
-    return (Response(201, headers, ""));
+
+    return (Response(200));
 }
