@@ -8,6 +8,18 @@
 #include <vector>
 #include <sys/stat.h>
 
+#include "ConfigParser.hpp"
+#include "HTTPContext.hpp"
+#include "ServerContext.hpp"
+#include "LocationContext.hpp"
+#include "ConfigError.hpp"
+#include <fstream>
+#include <vector>
+#include <string>
+#include <iostream>
+#include <cstdlib>
+
+
 void set_non_blocking(int socket) {
 	if (fcntl(socket, F_SETFL, O_NONBLOCK) == -1) {
 		perror("ERROR on fcntl");
@@ -180,6 +192,8 @@ int	runCgi(Request *request, int socket)
 int isValidFd(int fd) {
     return (fcntl(fd, F_GETFD) != -1 || errno != EBADF);
 }
+
+#include <cstdlib>
 
 bool    isFile(const char *path)
 {
