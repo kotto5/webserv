@@ -300,9 +300,10 @@ Request	*Server::parse_request(const std::string &row_request)
 			partitionAndAddToMap(headers, line, ": ");
 		startPos = endPos + 2; // Skip CRLF
 	}
-	if (headers.find("Content-Length") != headers.end())
+	std::string content_length_name = "content-length";
+	if (headers.find(content_length_name) != headers.end())
 	{
-		std::string::size_type	content_length = std::stoi(headers["Content-Length"]);
+		std::string::size_type	content_length = std::stoi(headers[content_length_name]);
 		std::cout << "content_length: " << content_length << std::endl;
 		body = row_request.substr(startPos + 2, content_length);
 		std::cout << "body: " << body.length() << std::endl;
