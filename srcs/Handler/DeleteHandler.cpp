@@ -32,7 +32,7 @@ DeleteHandler &DeleteHandler::operator=(const DeleteHandler &rhs)
 }
 
 /**
- * @brief GETメソッドの処理を行う
+ * @brief Deleteメソッドの処理を行う
  *
  * @param request リクエスト
  * @return Response レスポンス
