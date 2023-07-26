@@ -38,11 +38,11 @@ PostHandler &PostHandler::operator=(const PostHandler &rhs)
 Response PostHandler::handleRequest(const Request &request)
 {
     // create file with request.uri member
-    std::string path = request.getUri();
+    std::string filename = request.getActualUri();
     std::string body = request.getBody();
 
     std::ofstream ofs;
-	ofs.open(request.getActualUri(), std::ios::out);
+	ofs.open(filename, std::ios::out);
     if (!ofs)
     {
         std::cerr << "Error: file not opened." << std::endl;
@@ -50,5 +50,7 @@ Response PostHandler::handleRequest(const Request &request)
     }
     ofs << body;
     ofs.close();
-    return (Response(201));
+	std::map<std::string, std::string> headers;
+	headers["Location"] = filename;
+    return (Response(201, headers, ""));
 }
