@@ -202,7 +202,7 @@ bool    isFile(const char *path)
 	return (stat(path, &st) == 0 && S_ISREG(st.st_mode));
 }
 
-bool    isDirectly(const char *path)
+bool    isDirectory(const char *path)
 {
 	struct stat st;
 
