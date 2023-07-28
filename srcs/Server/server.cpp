@@ -22,6 +22,7 @@ int	Server::setup()
 		if (create_server_socket(Server::strtoi(*itr)))
 			return (1);
 	}
+	timeout.tv_sec = 5;
 	return (0);
 }
 
@@ -125,7 +126,7 @@ int	Server::run()
 		Server::set_fd_set(read_fds, recv_sockets, max_fd);
 		Server::set_fd_set(write_fds, send_sockets, max_fd);
 
-		int activity = select(max_fd + 1, &read_fds, &write_fds, NULL, NULL);
+		int activity = select(max_fd + 1, &read_fds, &write_fds, NULL, &timeout);
 		if (activity == -1)
 		{
 			Error::print_error("select", Error::E_SYSCALL);
