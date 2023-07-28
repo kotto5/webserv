@@ -25,6 +25,7 @@ public:
 	const sockaddr_in	&getLocaladdr();
 	socklen_t			getLocallen();
 	const std::time_t	&getLastAccess();
+	void				updateLastAccess();
 
 	static std::time_t	timeLimit;
 };

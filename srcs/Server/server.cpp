@@ -178,6 +178,8 @@ int	Server::new_connect_cgi(Request *request, Socket *clientSocket)
 
 ssize_t	Server::recv(Socket *sock, std::string &recieving) {
 	ssize_t recv_ret;
+
+	sock->updateLastAccess();
 	static char buffer[BUFFER_LEN];
 	memset(buffer, 0, BUFFER_LEN);
 	recv_ret = ::recv(sock->getFd(), buffer, BUFFER_LEN, 0);
@@ -230,6 +232,7 @@ ssize_t		Server::send(Socket *sock, std::string &response)
 	ssize_t ret;
 	const char *buffer;
 
+	sock->updateLastAccess();
 	buffer = response.c_str();
 	std::cout << "[" << buffer << "] is response" << std::endl;
 	ret = ::send(sock->getFd(), (void *)buffer, response.length(), 0);
