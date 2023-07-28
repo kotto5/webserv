@@ -84,13 +84,14 @@ bool	Server::check_timeout()
 	std::list<Socket *>::iterator	tmp;
 	Socket							*socket;
 	bool							timeoutOccurred;
+	std::time_t						current_time = std::time(NULL);
 
 	timeoutOccurred = false;
 	for (itr = recv_sockets.begin(); itr != recv_sockets.end();)
 	{
 		tmp = itr++;
 		socket = *tmp;
-		if (socket->isTimeout())
+		if (socket->isTimeout(current_time))
 		{
 			std::cout << "timeout" << std::endl;
 			eraseFd(socket, TYPE_RECV);
@@ -102,7 +103,7 @@ bool	Server::check_timeout()
 	{
 		tmp = itr++;
 		socket = *tmp;
-		if (socket->isTimeout())
+		if (socket->isTimeout(current_time))
 		{
 			std::cout << "timeout" << std::endl;
 			eraseFd(socket, TYPE_SEND);
@@ -132,7 +133,7 @@ int	Server::run()
 			Error::print_error("select", Error::E_SYSCALL);
 			exit(1);
 		}
-		if (check_timeout())
+		if (activity == 0 && check_timeout())
 			continue ;
 		handle_sockets(&read_fds, &write_fds, NULL, activity);
 	}

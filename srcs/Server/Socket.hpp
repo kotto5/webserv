@@ -21,7 +21,7 @@ public:
 	virtual ~Socket();
 
 	int getFd();
-	bool				isTimeout();
+	bool				isTimeout(std::time_t current_time = std::time(NULL));
 	const sockaddr_in	&getLocaladdr();
 	socklen_t			getLocallen();
 	const std::time_t	&getLastAccess();
