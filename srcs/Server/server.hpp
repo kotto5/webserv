@@ -60,6 +60,7 @@ class Server {
 		int					setFd(int type, Socket *sock, Socket *client_sock = NULL);
 		int					eraseFd(Socket *socket, int type);
 		// int					eraseFd(int fd, int type);
+		bool				check_timeout();
 
 	static bool			does_finish_recv(const std::string &request, bool is_cgi_connection, ssize_t recv_ret);
 	static bool			does_finish_send(const std::string &request, ssize_t recv_ret);

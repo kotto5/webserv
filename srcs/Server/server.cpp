@@ -29,15 +29,17 @@ int	Server::handle_sockets(fd_set *read_fds, fd_set *write_fds, fd_set *expect_f
 {
 	std::list<Socket *>::iterator	itr;
 	std::list<Socket *>::iterator	tmp;
-	ssize_t						ret;
-	bool						does_connected_cgi;
+	ssize_t							ret;
+	bool							does_connected_cgi;
+	Socket							*socket;
 
 	for (itr = server_sockets.begin(); activity && itr != server_sockets.end();)
 	{
 		tmp = itr++;
-		if (FD_ISSET(((*tmp)->getFd()), read_fds))
+		socket = *tmp;
+		if (FD_ISSET(((socket)->getFd()), read_fds))
 		{
-			if (accept(*tmp) == -1)
+			if (accept(socket) == -1)
 				;
 			--activity;
 		}
@@ -45,32 +47,69 @@ int	Server::handle_sockets(fd_set *read_fds, fd_set *write_fds, fd_set *expect_f
 	for (itr = recv_sockets.begin(); activity && itr != recv_sockets.end();)
 	{
 		tmp = itr++;
-		if (FD_ISSET((*tmp)->getFd(), read_fds))
+		socket = *tmp;
+		if (FD_ISSET(socket->getFd(), read_fds))
 		{
-			ret = recv(*tmp, Recvs[(*tmp)->getFd()]);
-			does_connected_cgi = (cgi_client.count(*tmp) == 1);
-			if (does_finish_recv(Recvs[(*tmp)->getFd()], does_connected_cgi, ret))
-				finish_recv(tmp, Recvs[(*tmp)->getFd()], does_connected_cgi);
+			ret = recv(socket, Recvs[socket->getFd()]);
+			does_connected_cgi = (cgi_client.count(socket) == 1);
+			if (does_finish_recv(Recvs[socket->getFd()], does_connected_cgi, ret))
+				finish_recv(tmp, Recvs[socket->getFd()], does_connected_cgi);
 			--activity;
 		}
 	}
 	for (itr = send_sockets.begin(); activity && itr != send_sockets.end();)
 	{
 		tmp = itr++;
-		if (FD_ISSET((*tmp)->getFd(), write_fds))
+		socket = *tmp;
+		if (FD_ISSET(socket->getFd(), write_fds))
 		{
-			ret = send(*tmp, Sends[(*tmp)->getFd()]);
-			does_connected_cgi = (cgi_client.count(*tmp) == 1);
-			if (does_finish_send(Sends[(*tmp)->getFd()], ret))
+			ret = send(*tmp, Sends[socket->getFd()]);
+			does_connected_cgi = (cgi_client.count(socket) == 1);
+			if (does_finish_send(Sends[socket->getFd()], ret))
 				finish_send(tmp, does_connected_cgi);
 			else if (ret != -1)
-				Sends[(*tmp)->getFd()] = Sends[(*tmp)->getFd()].substr(ret);
+				Sends[socket->getFd()] = Sends[socket->getFd()].substr(ret);
 			--activity;
 		}
 	}
 	if (expect_fds)
 		std::cout << "EXPEXTION hHAHAHAHAH!!!!" << std::endl;
 	return (0);
+}
+
+bool	Server::check_timeout()
+{
+	std::list<Socket *>::iterator	itr;
+	std::list<Socket *>::iterator	tmp;
+	Socket							*socket;
+	bool							timeoutOccurred;
+
+	timeoutOccurred = false;
+	for (itr = recv_sockets.begin(); itr != recv_sockets.end();)
+	{
+		tmp = itr++;
+		socket = *tmp;
+		if (socket->isTimeout())
+		{
+			std::cout << "timeout" << std::endl;
+			eraseFd(socket, TYPE_RECV);
+			delete (socket);
+			timeoutOccurred = true;
+		}
+	}
+	for (itr = send_sockets.begin(); itr != send_sockets.end();)
+	{
+		tmp = itr++;
+		socket = *tmp;
+		if (socket->isTimeout())
+		{
+			std::cout << "timeout" << std::endl;
+			eraseFd(socket, TYPE_SEND);
+			delete (socket);
+			timeoutOccurred = true;
+		}
+	}
+	return (timeoutOccurred);
 }
 
 int	Server::run()
@@ -92,6 +131,8 @@ int	Server::run()
 			Error::print_error("select", Error::E_SYSCALL);
 			exit(1);
 		}
+		if (check_timeout())
+			continue ;
 		handle_sockets(&read_fds, &write_fds, NULL, activity);
 	}
 }

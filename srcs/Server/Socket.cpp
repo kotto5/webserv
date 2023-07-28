@@ -20,6 +20,8 @@
 // ============ Socket class ===================
 // =============================================
 
+std::time_t	Socket::timeLimit = 10;
+
 Socket::Socket(int fd): fd_(fd), last_access_(std::time(NULL))
 {
     locallen_ = sizeof(localaddr_);
@@ -37,6 +39,8 @@ Socket::~Socket() {
 const sockaddr_in		&Socket::getLocaladdr() { return localaddr_; }
 socklen_t				Socket::getLocallen() { return locallen_; }
 const std::time_t		&Socket::getLastAccess() { return last_access_; }
+bool					Socket::isTimeout() { return std::time(NULL) - last_access_ > timeLimit; }
+// bool					Socket::isTimeout(std::time_t current_time) { return (current_time - last_access_ > timeLimit); }
 
 int Socket::getFd() { return fd_; }
 

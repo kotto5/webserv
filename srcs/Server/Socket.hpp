@@ -21,9 +21,12 @@ public:
 	virtual ~Socket();
 
 	int getFd();
+	bool				isTimeout();
 	const sockaddr_in	&getLocaladdr();
 	socklen_t			getLocallen();
 	const std::time_t	&getLastAccess();
+
+	static std::time_t	timeLimit;
 };
 
 // =============================================
