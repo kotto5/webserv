@@ -13,26 +13,30 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <utils.hpp>
+#include <ctime>
+
 
 // =============================================
 // ============ Socket class ===================
 // =============================================
 
-Socket::Socket(int fd): fd_(fd)
+Socket::Socket(int fd): fd_(fd), last_access_(std::time(NULL))
 {
     locallen_ = sizeof(localaddr_);
     getsockname(fd_, (sockaddr *)&localaddr_, &locallen_);
 }
 
-Socket::Socket(int fd, const sockaddr *addr, socklen_t len): fd_(fd),
-    localaddr_(*(sockaddr_in *)addr), locallen_(len) {}
-
-const sockaddr_in &Socket::getLocaladdr() { return localaddr_; }
-socklen_t Socket::getLocallen() { return locallen_; }
+Socket::Socket(int fd, const sockaddr *addr, socklen_t len): fd_(fd), last_access_(std::time(NULL)),
+    localaddr_(*(sockaddr_in *)addr), locallen_(len){
+}
 
 Socket::~Socket() {
     close(fd_);
 }
+
+const sockaddr_in		&Socket::getLocaladdr() { return localaddr_; }
+socklen_t				Socket::getLocallen() { return locallen_; }
+const std::time_t		&Socket::getLastAccess() { return last_access_; }
 
 int Socket::getFd() { return fd_; }
 

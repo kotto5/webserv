@@ -10,6 +10,7 @@
 #include <vector>
 #include <sys/wait.h>
 #include <algorithm>
+#include <ctime>
 
 int	Server::setup()
 {
@@ -106,7 +107,7 @@ int	Server::accept(Socket *serverSocket)
 	if (new_socket == NULL)
 		return (0);
 	setFd(TYPE_RECV, new_socket);
-	std::cout << RED << "New connection, socket fd is " << new_socket->getFd() << ", port is " << ntohs(new_socket->getRemoteaddr().sin_port) << DEF << std::endl;
+	std::cout << RED << "New connection, socket fd is " << new_socket->getFd() << ", port is " << ntohs(new_socket->getRemoteaddr().sin_port) << "time " << new_socket->getLastAccess() << DEF << std::endl;
 	return (0);
 }
 
