@@ -72,8 +72,6 @@ std::string	Request::convertUritoPath(const std::string &uri)
 		alias = location.getDirective("root");
 	if (alias == "")
 		return (uri);
-	if (path == "")
-		return (alias);
 	// aliasは'/'で終わっていることを保証する
 	if (alias[alias.length() - 1] != '/')
 		alias += '/';
