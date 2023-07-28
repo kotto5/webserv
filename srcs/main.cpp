@@ -5,7 +5,7 @@
 #include "Logger/Logger.hpp"
 #include <iostream>
 #include <map>
-#include "Error.hpp"
+#include "ErrorCode.hpp"
 #include "utils.hpp"
 #include <signal.h>
 #include "Request.hpp"

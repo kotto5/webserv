@@ -1,5 +1,5 @@
 #include "Request.hpp"
-#include "Error.hpp"
+#include "ErrorCode.hpp"
 #include "Config.hpp"
 #include "LocationContext.hpp"
 #include "ServerContext.hpp"
@@ -75,12 +75,13 @@ std::string	Request::convertUritoPath(const std::string &uri)
 		return ("404");
 	}
 	path = location.getDirective("path");
+	// URI < PATH
 	if (ret.length() < path.length()) // path が /path/ に対し uri が /path だった場合の対応
 		ret = path;
 	alias = getAliasOrRootDirective(location);
 	if (alias == "")
 		return (ret);
-	if (path == ret) 
+	if (path == ret)
 		return (alias + location.getDirective("index"));
 	return (alias + ret.substr(path.length()));
 }

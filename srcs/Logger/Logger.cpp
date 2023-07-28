@@ -8,36 +8,18 @@ Logger::Logger(const std::string& accessLogPath, const std::string& errorLogPath
 {
 	_instance = this;
 
-	this->redirectAccessLogFile(accessLogPath);
-	this->redirectErrorLogFile(errorLogPath);
+	openLogFile(_ofsAccessLog, accessLogPath);
+	openLogFile(_ofsErrorLog, errorLogPath);
 }
 
-int Logger::redirectAccessLogFile(std::string  accessLogFile)
+void Logger::openLogFile(std::ofstream &ofs, const std::string &logfile)
 {
-	if (accessLogFile.empty())
+	if (logfile.empty())
 	{
-		return (0);
+		throw std::runtime_error("Log file path is empty.");
 	}
 	// アクセスログファイルを開く（appendモード）
-	_ofsAccessLog.open(accessLogFile.c_str(), std::ios::app);
-
-	return (0);
-}
-
-int Logger::redirectErrorLogFile(std::string errorLogFile)
-{
-	if (errorLogFile.empty())
-	{
-		return (0);
-	}
-	// エラーログファイルを開く（appendモード）
-	_ofsErrorLog.open(errorLogFile.c_str(), std::ios::app);
-
-	// 標準エラー出力をリダイレクトする
-	std::cerr.rdbuf(_ofsErrorLog.rdbuf());
-
-	return (0);
-
+	ofs.open(logfile.c_str(), std::ios::app);
 }
 
 const std::string& Logger::getAccessLogPath() const
@@ -82,39 +64,54 @@ void Logger::writeAccessLog(const Request& request, const Response& response)
 		+ request.getUri() + " " + request.getProtocol() + " "
 		+ std::to_string(response.getStatus());
 
-	// 標準出力とログファイルに出力
-	std::cout << logMessage;
-	_ofsAccessLog << logMessage;
+
+	// ログファイルに出力
+	_ofsAccessLog << logMessage << std::endl;
+	// std::cout << logMessage << std::endl;
 }
 
 /**
  * @brief エラーログを出力する
  *
  * @param msg
- * @param error_code
+ * @param error_type
  */
-void Logger::writeErrorLog(std::string msg, Error::T_ERROR_CODE error_code)
+void Logger::writeErrorLog(const ErrorCode::E_TYPE type, const std::string &message, const Request* request)
 {
+	std::string error_msg = "Error: ";
+
+	// システムコールの場合はエラー番号からメッセージを取得
+	if (type == ErrorCode::E_SYSCALL)
+	{
+		error_msg += strerror(errno);
+	}
+	else
+	{
+		error_msg += ErrorCode::getErrorMessage(type);
+	}
+
 	// タイムスタンプを取得
 	std::time_t now = std::time(0);
 	char timestamp[100];
 	std::strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S", std::localtime(&now));
 
-	std::string logMessage = std::string(timestamp) + " ";
-	// if (request)
-	// 	std::cerr << request->getProtocol() << " ";
-	// if (response)
-	// 	std::cerr << response->getStatus() << " " << response->getHeader("Content-Length") << " ";
+	std::string log = std::string(timestamp) + " " + error_msg + " ";
+	if (request)
+	{
+		std::cerr << request->getMethod() + " " + request->getUri()
+			+ " " + request->getProtocol() << " "
+			+ std::to_string(errno) << std::endl;
+	}
 
-	// 標準エラー出力とログファイルに出力
-	std::cout << logMessage;
-	_ofsErrorLog << logMessage;
+	log += " " + message;
 
-	Error::print_error(msg, error_code);
-
+	// ログファイルに出力
+	_ofsErrorLog << log << std::endl;
+	// std::cerr << log << std::endl;
 }
 
 Logger* Logger::_instance = NULL;
 
+// デフォルトのログファイルパス
 const std::string Logger::DEFAULT_ERROR_LOG_PATH = "./logs/error.log";
 const std::string Logger::DEFAULT_ACCESS_LOG_PATH = "./logs/access.log";
