@@ -34,6 +34,18 @@ Request::Request(const std::string &method, const std::string &uriAndQuery, cons
 	"" : this->_uri.substr(this->_uri.find(_cgi_script_name) + _cgi_script_name.length());
 }
 
+static std::string	getAliasOrRootDirective(LocationContext &Location)
+{
+	std::string ret = Location.getDirective("alias");
+	if (ret.empty())
+		ret = Location.getDirective("root");
+	if (ret.empty())
+		return ("");
+	if (ret[ret.length() - 1] != '/')
+		ret += '/';
+	return (ret);
+}
+
 /**
  * @brief URIを実体パスに変換する
  *
@@ -65,16 +77,9 @@ std::string	Request::convertUritoPath(const std::string &uri)
 	path = location.getDirective("path");
 	if (ret.length() < path.length()) // path が /path/ に対し uri が /path だった場合の対応
 		ret = path;
-
-	if (location.getDirective("alias") != "")
-		alias = location.getDirective("alias");
-	else if (location.getDirective("root") != "")
-		alias = location.getDirective("root");
+	alias = getAliasOrRootDirective(location);
 	if (alias == "")
-		return (uri);
-	// aliasは'/'で終わっていることを保証する
-	if (alias[alias.length() - 1] != '/')
-		alias += '/';
+		return (ret);
 	if (path == ret) 
 		return (alias + location.getDirective("index"));
 	return (alias + ret.substr(path.length()));
