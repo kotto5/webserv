@@ -7,7 +7,6 @@
 #include "Error.hpp"
 #include <vector>
 #include <sys/stat.h>
-
 #include "ConfigParser.hpp"
 #include "HTTPContext.hpp"
 #include "ServerContext.hpp"

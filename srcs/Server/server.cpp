@@ -76,6 +76,7 @@ int	Server::run()
 {
 	while (1)
 	{
+		std::cout << "debug... " << std::endl;
 		int max_fd = 0;
 		fd_set read_fds;
 		fd_set write_fds;
@@ -101,19 +102,32 @@ Server::~Server() {}
 
 int	Server::accept(Socket *serverSocket)
 {
-	struct sockaddr_in		client_address;
-	socklen_t				client_length = sizeof(client_address);
-	int 					new_socket = ::accept(serverSocket->getFd(), (struct sockaddr*) &client_address, &client_length);
+	// struct sockaddr_in		client_address;
+	// socklen_t				client_length = sizeof(client_address);
+	// int 					new_socket = ::accept(serverSocket->getFd(), (struct sockaddr*) &client_address, &client_length);
 
-	if (new_socket < 0) {
-		Error::print_error("accept", Error::E_SYSCALL);
-		return (1);
+	// if (new_socket < 0) {
+	// 	Error::print_error("accept", Error::E_SYSCALL);
+	// 	return (1);
+	// }
+	SvSocket *sv_socket = dynamic_cast<SvSocket *>(serverSocket);
+	if (sv_socket == NULL)
+		std::cout << "sv_socket is NULL" << std::endl;
+	else
+		std::cout << "sv_socket is NOT NULL" << std::endl;
+	ClSocket *new_socket = sv_socket->dequeueSocket();
+	if (new_socket == NULL)
+	{
+		std::cout << "new_socket is NULL" << std::endl;
+		return (-1);
 	}
-	set_non_blocking(new_socket);
-	ClSocket *socket = new ClSocket(new_socket, &client_address, client_length);
-	setFd(TYPE_RECV, socket);
-	std::cout << RED << "New connection, socket fd is " << new_socket << ", port is " << ntohs(client_address.sin_port) << DEF << std::endl;
-	return (new_socket);
+	else
+		std::cout << "new_socket is NOT NULL" << std::endl;
+	set_non_blocking(new_socket->getFd());
+	setFd(TYPE_RECV, new_socket);
+	std::cout << "FOO!" << std::endl;
+	std::cout << RED << "New connection, socket fd is " << new_socket->getFd() << ", port is " << ntohs(new_socket->getRemoteaddr().sin_port) << DEF << std::endl;
+	return (0);
 }
 
 int	Server::new_connect_cgi(Request *request, Socket *clientSocket)
@@ -221,30 +235,7 @@ int	Server::finish_send(std::list<Socket *>::iterator itr, bool is_cgi_connectio
 
 int	Server::create_server_socket(int port)
 {
-	int	new_sock;
-	new_sock = socket(AF_INET, SOCK_STREAM, 0);
-	struct sockaddr_in server_address;
-	server_address.sin_family = AF_INET;
-	server_address.sin_port = htons(port);
-	// server_address.sin_port = port;
-	server_address.sin_addr.s_addr = INADDR_ANY;
-
-	int yes = 1;
-	if (setsockopt(new_sock, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1)
-	{
-		Error::print_error("setsockopt", Error::E_SYSCALL);
-		return (1);
-	}
-	if (bind(new_sock, (struct sockaddr *)&server_address, sizeof(server_address)) == -1){
-		Error::print_error("binding", Error::E_SYSCALL);
-		return (1);
-	}
-	if (listen(new_sock, 200) < 0){
-		Error::print_error("listening", Error::E_SYSCALL);
-		return (1);
-	}
-	set_non_blocking(new_sock);
-	Socket *socket = new Socket(new_sock);
+	Socket *socket = new SvSocket(port);
 	server_sockets.push_back(socket);
 	return (0);
 }
