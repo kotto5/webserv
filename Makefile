@@ -16,6 +16,7 @@ INCLUDES := $(shell find $(SRCDIR) -type d -exec echo -I{} \;)
 DEPENDS := $(patsubst $(SRCDIR)%, $(OBJDIR)%, $(SRCS:%.cpp=%.d))
 
 # Print variables
+
 PRINTF := printf
 DEFAULT := \033[0;39m
 BLUE := \033[0;94m
