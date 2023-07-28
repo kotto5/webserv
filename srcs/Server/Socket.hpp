@@ -22,9 +22,6 @@ public:
     socklen_t getLocallen();
 };
 
-// Socket::Socket(int fd, sockaddr *addr, socklen_t len): fd_(fd), addr_(*addr), len_(len) 
-// {}
-
 class ClSocket : public Socket
 {
 private:
@@ -42,13 +39,11 @@ public:
 class SvSocket : public Socket
 {
 private:
-    // int createSvSocket(int port);
+    static int  createSvSocket(int port);
 public:
     SvSocket(int port);
     ~SvSocket();
     ClSocket *dequeueSocket();
-
-// static int createSvSocket(int port);
 };
 
 #endif

@@ -31,7 +31,7 @@ int	Server::handle_sockets(fd_set *read_fds, fd_set *write_fds, fd_set *expect_f
 	ssize_t						ret;
 	bool						does_connected_cgi;
 
-	for (itr = server_sockets.begin(); read_fds && itr != server_sockets.end();)
+	for (itr = server_sockets.begin(); activity && itr != server_sockets.end();)
 	{
 		tmp = itr++;
 		if (FD_ISSET(((*tmp)->getFd()), read_fds))
@@ -41,7 +41,7 @@ int	Server::handle_sockets(fd_set *read_fds, fd_set *write_fds, fd_set *expect_f
 			--activity;
 		}
 	}
-	for (itr = recv_sockets.begin(); read_fds && itr != recv_sockets.end();)
+	for (itr = recv_sockets.begin(); activity && itr != recv_sockets.end();)
 	{
 		tmp = itr++;
 		if (FD_ISSET((*tmp)->getFd(), read_fds))
@@ -53,7 +53,7 @@ int	Server::handle_sockets(fd_set *read_fds, fd_set *write_fds, fd_set *expect_f
 			--activity;
 		}
 	}
-	for (itr = send_sockets.begin(); write_fds && itr != send_sockets.end();)
+	for (itr = send_sockets.begin(); activity && itr != send_sockets.end();)
 	{
 		tmp = itr++;
 		if (FD_ISSET((*tmp)->getFd(), write_fds))
@@ -76,7 +76,6 @@ int	Server::run()
 {
 	while (1)
 	{
-		std::cout << "debug... " << std::endl;
 		int max_fd = 0;
 		fd_set read_fds;
 		fd_set write_fds;
@@ -102,30 +101,11 @@ Server::~Server() {}
 
 int	Server::accept(Socket *serverSocket)
 {
-	// struct sockaddr_in		client_address;
-	// socklen_t				client_length = sizeof(client_address);
-	// int 					new_socket = ::accept(serverSocket->getFd(), (struct sockaddr*) &client_address, &client_length);
-
-	// if (new_socket < 0) {
-	// 	Error::print_error("accept", Error::E_SYSCALL);
-	// 	return (1);
-	// }
 	SvSocket *sv_socket = dynamic_cast<SvSocket *>(serverSocket);
-	if (sv_socket == NULL)
-		std::cout << "sv_socket is NULL" << std::endl;
-	else
-		std::cout << "sv_socket is NOT NULL" << std::endl;
 	ClSocket *new_socket = sv_socket->dequeueSocket();
 	if (new_socket == NULL)
-	{
-		std::cout << "new_socket is NULL" << std::endl;
-		return (-1);
-	}
-	else
-		std::cout << "new_socket is NOT NULL" << std::endl;
-	set_non_blocking(new_socket->getFd());
+		return (0);
 	setFd(TYPE_RECV, new_socket);
-	std::cout << "FOO!" << std::endl;
 	std::cout << RED << "New connection, socket fd is " << new_socket->getFd() << ", port is " << ntohs(new_socket->getRemoteaddr().sin_port) << DEF << std::endl;
 	return (0);
 }
@@ -236,6 +216,8 @@ int	Server::finish_send(std::list<Socket *>::iterator itr, bool is_cgi_connectio
 int	Server::create_server_socket(int port)
 {
 	Socket *socket = new SvSocket(port);
+	if (socket == NULL)
+		return (1);
 	server_sockets.push_back(socket);
 	return (0);
 }
@@ -397,4 +379,3 @@ int Server::strtoi(std::string str)
 	}
 	return (ret);
 }
-

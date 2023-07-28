@@ -14,6 +14,10 @@
 #include <arpa/inet.h>
 #include <utils.hpp>
 
+// =============================================
+// ============ Socket class ===================
+// =============================================
+
 Socket::Socket(int fd): fd_(fd)
 {
     locallen_ = sizeof(localaddr_);
@@ -32,6 +36,10 @@ Socket::~Socket() {
 
 int Socket::getFd() { return fd_; }
 
+// =============================================
+// ============ ClSocket class ===================
+// =============================================
+
 ClSocket::ClSocket(int fd, const sockaddr *addr, socklen_t len, sockaddr *remoteaddr, socklen_t remotelen):
     Socket(fd, addr, len), remoteaddr_(*(sockaddr_in *)remoteaddr), remotelen_(remotelen) {}
 
@@ -43,7 +51,11 @@ ClSocket::ClSocket(int fd, sockaddr *remoteaddr, socklen_t remotelen): Socket(fd
 
 ClSocket::~ClSocket() {}
 
-static int createSvSocket(int port)
+// =============================================
+// ============ SvSocket class =================
+// =============================================
+
+int SvSocket::createSvSocket(int port)
 {
 	int	new_sock;
 	new_sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -81,8 +93,9 @@ ClSocket    *SvSocket::dequeueSocket()
     struct  sockaddr_in remoteaddr;
     socklen_t remotelen = sizeof(remoteaddr);
 
-    int fd = accept(getFd(), (sockaddr *)&remoteaddr, &remotelen);
-    if (fd == -1)
+    int clientFd = accept(this->fd_, (sockaddr *)&remoteaddr, &remotelen);
+    if (clientFd == -1)
         return NULL;
-    return (new ClSocket(fd, (sockaddr *)&this->localaddr_, this->locallen_, (sockaddr *)&remoteaddr, remotelen));
+	set_non_blocking(clientFd);
+    return (new ClSocket(clientFd, (sockaddr *)&this->localaddr_, this->locallen_, (sockaddr *)&remoteaddr, remotelen));
 }

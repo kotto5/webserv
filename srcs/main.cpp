@@ -83,11 +83,3 @@ int main(int argc, char **argv)
 
 	return 0;
 }
-
-// int	main()
-// {
-// 	std::cout << "start" << std::endl;
-// 	int	a = 0;
-
-// 	std::cout << "end" << a << std::endl;
-// }
