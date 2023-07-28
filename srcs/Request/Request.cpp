@@ -79,7 +79,7 @@ std::string	Request::convertUritoPath(const std::string &uri)
 		alias += '/';
 	if (path == ret) 
 		return (alias + location.getDirective("index"));
-	return (alias + ret.substr(path.length() - 1));
+	return (alias + ret.substr(path.length()));
 }
 
 Request::Request(const Request &other)
