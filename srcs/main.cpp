@@ -5,27 +5,12 @@
 #include "Logger/Logger.hpp"
 #include <iostream>
 #include <map>
-#include "Error.hpp"
+#include "ErrorCode.hpp"
 #include "utils.hpp"
 #include <signal.h>
 #include "Request.hpp"
 #include <filesystem>
 
-// int	setSignalHandler()
-// {
-// 	struct sigaction	sa;
-// 	sa.sa_handler = SIG_IGN;
-// 	sigemptyset(&sa.sa_mask);
-// 	sa.sa_flags = SA_RESTART;
-// 	if (sigaction(SIGPIPE, &sa, NULL) == -1)
-// 	{
-// 		std::cout << "sigaction error" << std::endl;
-// 		return (1);
-// 	}
-// 	return (0);
-// }
-
-// write exit_handler
 void	exit_handler(int sig)
 {
 	(void)sig;

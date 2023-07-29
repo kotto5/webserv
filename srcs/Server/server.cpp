@@ -6,7 +6,7 @@
 #include "Router.hpp"
 #include "IHandler.hpp"
 #include "Logger.hpp"
-#include "Error.hpp"
+#include "ErrorCode.hpp"
 #include <vector>
 #include <sys/wait.h>
 #include <algorithm>
@@ -14,6 +14,7 @@
 
 int	Server::setup()
 {
+	// 設定されているポートをすべて取得
 	const std::vector<std::string> ports = Config::getInstance()->getPorts();
 	std::vector<std::string>::const_iterator itr = ports.begin();
 
@@ -130,7 +131,7 @@ int	Server::run()
 		int activity = select(max_fd + 1, &read_fds, &write_fds, NULL, &timeout);
 		if (activity == -1)
 		{
-			Error::print_error("select", Error::E_SYSCALL);
+			Logger::getInstance()->writeErrorLog(ErrorCode::E_SYSCALL, "select");
 			exit(1);
 		}
 		if (activity == 0 && check_timeout())
@@ -159,12 +160,12 @@ int	Server::new_connect_cgi(Request *request, Socket *clientSocket)
 	int	sockets[2];
 	if (_socketpair(AF_INET, SOCK_STREAM, 0, sockets) == -1)
 	{
-		Error::print_error("socketpair", Error::E_SYSCALL);
+		Logger::getInstance()->writeErrorLog(ErrorCode::E_SYSCALL, "socketpair");
 		exit (-1);
 	}
 	if (runCgi(request, sockets[S_CHILD])){
 
-		Error::print_error("runcgi ERROR", Error::E_SYSCALL);
+		Logger::getInstance()->writeErrorLog(ErrorCode::E_SYSCALL, "runCgi");
 		exit (-1);
 	}
 	close(sockets[S_CHILD]);

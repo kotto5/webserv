@@ -48,7 +48,7 @@ TEST_F(ServerTest, chunkedRequest)
 	EXPECT_EQ(status, 200);
 }
 
-// 2. CGIのリクエストを受け付けるか
+// 3. CGIのリクエストを受け付けるか
 TEST_F(ServerTest, cgiRequest)
 {
 

@@ -90,6 +90,7 @@ void ConfigParser::parseFile(const std::string& filepath)
 		exit(EXIT_FAILURE);
 	}
 	std::ifstream ifs(_filepath.c_str());
+
 	if (!ifs)
 	{
 		std::cerr << "Open Error" << std::endl;
@@ -161,6 +162,7 @@ void ConfigParser::parseLines()
 void ConfigParser::setHTTPContext()
 {
 	HTTPContext http_context = _config.getHTTPBlock();
+
 	_line_number++;
 	for ( ; _line_number < _lines.size(); _line_number++)
 	{
