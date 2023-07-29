@@ -2,6 +2,7 @@
 #include "Request.hpp"
 #include "Router.hpp"
 #include "GetHandler.hpp"
+#include "Config.hpp"
 
 namespace
 {

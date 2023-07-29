@@ -3,13 +3,27 @@
 #include <cstring>
 #include <unistd.h>
 
-Logger::Logger(const std::string& accessLogPath, const std::string& errorLogPath)
-	: _accessLogPath(accessLogPath), _errorLogPath(errorLogPath)
+void Logger::initialize(const std::string& accessLogPath, const std::string& errorLogPath)
 {
-	_instance = this;
+	if (_instance != NULL)
+	{
+		throw std::runtime_error("Logger instance already exists.");
+	}
+	_instance = new Logger();
+	// ファイルストリームを保持する
+	_instance->openLogFile(_instance->_ofsAccessLog, accessLogPath);
+	_instance->openLogFile(_instance->_ofsErrorLog, errorLogPath);
+}
 
-	openLogFile(_ofsAccessLog, accessLogPath);
-	openLogFile(_ofsErrorLog, errorLogPath);
+void Logger::release()
+{
+	if (_instance)
+	{
+		_instance->_ofsAccessLog.close();
+		_instance->_ofsErrorLog.close();
+		delete _instance;
+		_instance = NULL;
+	}
 }
 
 void Logger::openLogFile(std::ofstream &ofs, const std::string &logfile)
@@ -22,26 +36,16 @@ void Logger::openLogFile(std::ofstream &ofs, const std::string &logfile)
 	ofs.open(logfile.c_str(), std::ios::app);
 }
 
-const std::string& Logger::getAccessLogPath() const
-{
-	return _accessLogPath;
-}
-
-const std::string& Logger::getErrorLogPath() const
-{
-	return _errorLogPath;
-}
-
 /**
  * @brief シングルトンパターンのため、同一のインスタンスを返す
  *
  * @return Logger*
  */
-Logger* Logger::getInstance()
+Logger* Logger::instance()
 {
 	if (_instance == NULL)
 	{
-		_instance = new Logger(DEFAULT_ACCESS_LOG_PATH, DEFAULT_ERROR_LOG_PATH);
+		throw std::runtime_error("Logger is not initialized.");
 	}
 	return _instance;
 }
@@ -108,6 +112,19 @@ void Logger::writeErrorLog(const ErrorCode::E_TYPE type, const std::string &mess
 	/** 標準エラーに出力する場合は以下をコメントアウト */
 	// std::cerr << log << std::endl;
 }
+
+const std::ofstream &Logger::getAccessLogStream() const
+{
+	return _ofsAccessLog;
+}
+
+const std::ofstream &Logger::getErrorLogStream() const
+{
+	return _ofsErrorLog;
+}
+
+Logger::Logger(){};
+Logger::~Logger(){};
 
 Logger* Logger::_instance = NULL;
 

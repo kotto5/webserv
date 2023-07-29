@@ -7,6 +7,25 @@
 #include <fcntl.h>
 #include <iostream>
 #include <fstream>
+#include <cstring>
+
+void Config::initialize(const std::string& filepath)
+{
+	if (_instance != NULL)
+	{
+		throw std::runtime_error("Config instance already exists.");
+	}
+	_instance = new Config(filepath);
+}
+
+void Config::release()
+{
+	if (_instance)
+	{
+		delete _instance;
+		_instance = NULL;
+	}
+}
 
 Config::Config(const std::string& filepath)
 {
@@ -20,8 +39,12 @@ HTTPContext& Config::getHTTPBlock()
 	return _http_block;
 }
 
-Config* Config::getInstance()
+Config* Config::instance()
 {
+	if (_instance == NULL)
+	{
+		throw std::runtime_error("Config is not initialized.");
+	}
 	return _instance;
 }
 

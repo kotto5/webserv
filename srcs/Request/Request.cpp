@@ -54,7 +54,7 @@ static std::string	getAliasOrRootDirective(LocationContext &Location)
  */
 std::string	Request::convertUritoPath(const std::string &uri)
 {
-	Config	*config = Config::getInstance();
+	Config	*config = Config::instance();
 	HTTPContext	httpcontext;
 	ServerContext	servercontext;
 	LocationContext	location;

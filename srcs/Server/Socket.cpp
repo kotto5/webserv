@@ -76,15 +76,15 @@ int SvSocket::createSvSocket(int port)
 	int yes = 1;
 	if (setsockopt(new_sock, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1)
 	{
-		Logger::getInstance()->writeErrorLog(ErrorCode::E_SYSCALL, "setsockopt");
+		Logger::instance()->writeErrorLog(ErrorCode::E_SYSCALL, "setsockopt");
         throw std::exception();
 	}
 	if (bind(new_sock, (struct sockaddr *)&server_address, sizeof(server_address)) == -1){
-		Logger::getInstance()->writeErrorLog(ErrorCode::E_SYSCALL, "binding");
+		Logger::instance()->writeErrorLog(ErrorCode::E_SYSCALL, "binding");
         throw std::exception();
 	}
 	if (listen(new_sock, 200) < 0){
-		Logger::getInstance()->writeErrorLog(ErrorCode::E_SYSCALL, "listening");
+		Logger::instance()->writeErrorLog(ErrorCode::E_SYSCALL, "listening");
         throw std::exception();
 	}
 	set_non_blocking(new_sock);

@@ -15,7 +15,7 @@
 int	Server::setup()
 {
 	// 設定されているポートをすべて取得
-	const std::vector<std::string> ports = Config::getInstance()->getPorts();
+	const std::vector<std::string> ports = Config::instance()->getPorts();
 	std::vector<std::string>::const_iterator itr = ports.begin();
 
 	for (itr = ports.begin(); itr != ports.end(); itr++)
@@ -23,6 +23,7 @@ int	Server::setup()
 		if (create_server_socket(Server::strtoi(*itr)))
 			return (1);
 	}
+	memset(&timeout, 0, sizeof(timeout));
 	timeout.tv_sec = 5;
 	return (0);
 }
@@ -128,10 +129,10 @@ int	Server::run()
 		Server::set_fd_set(read_fds, recv_sockets, max_fd);
 		Server::set_fd_set(write_fds, send_sockets, max_fd);
 
-		int activity = select(max_fd + 1, &read_fds, &write_fds, NULL, &timeout);
+		int activity = select(max_fd + 1,&read_fds, &write_fds, NULL, &timeout);
 		if (activity == -1)
 		{
-			Logger::getInstance()->writeErrorLog(ErrorCode::E_SYSCALL, "select");
+			Logger::instance()->writeErrorLog(ErrorCode::E_SYSCALL, "select");
 			exit(1);
 		}
 		if (activity == 0 && check_timeout())
@@ -160,12 +161,12 @@ int	Server::new_connect_cgi(Request *request, Socket *clientSocket)
 	int	sockets[2];
 	if (_socketpair(AF_INET, SOCK_STREAM, 0, sockets) == -1)
 	{
-		Logger::getInstance()->writeErrorLog(ErrorCode::E_SYSCALL, "socketpair");
+		Logger::instance()->writeErrorLog(ErrorCode::E_SYSCALL, "socketpair");
 		exit (-1);
 	}
 	if (runCgi(request, sockets[S_CHILD])){
 
-		Logger::getInstance()->writeErrorLog(ErrorCode::E_SYSCALL, "runCgi");
+		Logger::instance()->writeErrorLog(ErrorCode::E_SYSCALL, "runCgi");
 		exit (-1);
 	}
 	close(sockets[S_CHILD]);
@@ -343,7 +344,7 @@ std::string	Server::make_response(Request *request){
 	if (handler == NULL)
 		return ("HTTP/1.1 404 Not Found\r\n\r\n");
 	Response response = handler->handleRequest(*request);
-	Logger::getInstance()->writeAccessLog(*request, response);
+	Logger::instance()->writeAccessLog(*request, response);
 	delete handler;
 	return (response.toString());
 }
