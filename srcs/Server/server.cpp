@@ -6,7 +6,7 @@
 #include "Router.hpp"
 #include "IHandler.hpp"
 #include "Logger.hpp"
-#include "Error.hpp"
+#include "ErrorCode.hpp"
 #include <vector>
 #include <sys/wait.h>
 #include <algorithm>
@@ -14,6 +14,7 @@
 
 int	Server::setup()
 {
+	// 設定されているポートをすべて取得
 	const std::vector<std::string> ports = Config::getInstance()->getPorts();
 	std::vector<std::string>::const_iterator itr = ports.begin();
 
@@ -130,7 +131,7 @@ int	Server::run()
 		int activity = select(max_fd + 1, &read_fds, &write_fds, NULL, &timeout);
 		if (activity == -1)
 		{
-			Error::print_error("select", Error::E_SYSCALL);
+			Logger::getInstance()->writeErrorLog(ErrorCode::E_SYSCALL, "select");
 			exit(1);
 		}
 		if (activity == 0 && check_timeout())
@@ -159,12 +160,12 @@ int	Server::new_connect_cgi(Request *request, Socket *clientSocket)
 	int	sockets[2];
 	if (_socketpair(AF_INET, SOCK_STREAM, 0, sockets) == -1)
 	{
-		Error::print_error("socketpair", Error::E_SYSCALL);
+		Logger::getInstance()->writeErrorLog(ErrorCode::E_SYSCALL, "socketpair");
 		exit (-1);
 	}
 	if (runCgi(request, sockets[S_CHILD])){
 
-		Error::print_error("runcgi ERROR", Error::E_SYSCALL);
+		Logger::getInstance()->writeErrorLog(ErrorCode::E_SYSCALL, "runCgi");
 		exit (-1);
 	}
 	close(sockets[S_CHILD]);
@@ -191,13 +192,12 @@ ssize_t	Server::recv(Socket *sock, std::string &recieving) {
 int	Server::finish_recv(std::list<Socket *>::iterator itr, std::string &recieving, bool is_cgi_connection)
 {
 	std::cout << "finish_recv [" << recieving << "]" << std::endl;
-	ClSocket	*sock = dynamic_cast<ClSocket *>(*itr);
 	int	wstatus;
 
-	recv_sockets.erase(itr);
 	if (is_cgi_connection)
 	{
 		// fork pid も cgi socket とかに入れたろうかな
+		Socket	*sock = *itr;
 		waitpid(-1, &wstatus, 0);
 		int	client_fd = cgi_client[sock]->getFd();
 		Sends[client_fd] = recieving;
@@ -205,6 +205,7 @@ int	Server::finish_recv(std::list<Socket *>::iterator itr, std::string &recievin
 	}
 	else
 	{
+		ClSocket	*sock = dynamic_cast<ClSocket *>(*itr);
 		Request	*request = parse_request(recieving);
 		request->setaddr(sock);
 		request->print_all();
@@ -217,7 +218,8 @@ int	Server::finish_recv(std::list<Socket *>::iterator itr, std::string &recievin
 		}
 		delete (request);
 	}
-	Recvs.erase(sock->getFd());
+	Recvs.erase((*itr)->getFd());
+	recv_sockets.erase(itr);
 	return (0);
 }
 
@@ -384,12 +386,10 @@ int	Server::set_fd_set(fd_set &set, std::list<Socket *> sockets, int &maxFd)
 
 int	Server::setFd(int type, Socket *sock, Socket *client_sock)
 {
-	ClSocket	*cl_socket = dynamic_cast<ClSocket *>(sock);
-
-	if (type == TYPE_RECV && cl_socket)
-		recv_sockets.push_back(cl_socket);
-	else if (type == TYPE_SEND && cl_socket)
-		send_sockets.push_back(cl_socket);
+	if (type == TYPE_RECV)
+		recv_sockets.push_back(sock);
+	else if (type == TYPE_SEND)
+		send_sockets.push_back(sock);
 	else if (type == TYPE_SERVER)
 		server_sockets.push_back(sock);
 	else if (type == TYPE_CGI)
@@ -399,18 +399,16 @@ int	Server::setFd(int type, Socket *sock, Socket *client_sock)
 	return (0);
 }
 
-int	Server::eraseFd(Socket *socket, int type)
+int	Server::eraseFd(Socket *sock, int type)
 {
-	ClSocket	*cl_socket = dynamic_cast<ClSocket *>(socket);
-
-	if (type == TYPE_RECV && cl_socket)
-		recv_sockets.remove(cl_socket);
-	else if (type == TYPE_SEND && cl_socket)
-		send_sockets.remove(cl_socket);
+	if (type == TYPE_RECV)
+		recv_sockets.remove(sock);
+	else if (type == TYPE_SEND)
+		send_sockets.remove(sock);
 	else if (type == TYPE_SERVER)
-		server_sockets.remove(socket);
+		server_sockets.remove(sock);
 	else if (type == TYPE_CGI)
-		cgi_client.erase(socket);
+		cgi_client.erase(sock);
 	else
 		return (1);
 	return (0);

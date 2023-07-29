@@ -4,7 +4,7 @@
 #include <cstdio>
 #include "server.hpp"
 #include <map>
-#include "Error.hpp"
+#include "ErrorCode.hpp"
 #include <vector>
 #include <sys/stat.h>
 #include "ConfigParser.hpp"

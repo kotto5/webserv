@@ -5,13 +5,12 @@
 #include "Logger/Logger.hpp"
 #include <iostream>
 #include <map>
-#include "Error.hpp"
+#include "ErrorCode.hpp"
 #include "utils.hpp"
 #include <signal.h>
 #include "Request.hpp"
 #include <filesystem>
 
-// write exit_handler
 void	exit_handler(int sig)
 {
 	(void)sig;

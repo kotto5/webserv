@@ -4,7 +4,7 @@
 #include <arpa/inet.h>
 
 #include "Request.hpp"
-#include "Error.hpp"
+#include "ErrorCode.hpp"
 #include "Config.hpp"
 #include "LocationContext.hpp"
 #include "ServerContext.hpp"
@@ -14,6 +14,7 @@
 #include <arpa/inet.h>
 #include <utils.hpp>
 #include <ctime>
+#include "Logger.hpp"
 
 
 // =============================================
@@ -75,15 +76,15 @@ int SvSocket::createSvSocket(int port)
 	int yes = 1;
 	if (setsockopt(new_sock, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1)
 	{
-		Error::print_error("setsockopt", Error::E_SYSCALL);
+		Logger::getInstance()->writeErrorLog(ErrorCode::E_SYSCALL, "setsockopt");
         throw std::exception();
 	}
 	if (bind(new_sock, (struct sockaddr *)&server_address, sizeof(server_address)) == -1){
-		Error::print_error("binding", Error::E_SYSCALL);
+		Logger::getInstance()->writeErrorLog(ErrorCode::E_SYSCALL, "binding");
         throw std::exception();
 	}
 	if (listen(new_sock, 200) < 0){
-		Error::print_error("listening", Error::E_SYSCALL);
+		Logger::getInstance()->writeErrorLog(ErrorCode::E_SYSCALL, "listening");
         throw std::exception();
 	}
 	set_non_blocking(new_sock);
