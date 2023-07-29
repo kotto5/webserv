@@ -2,6 +2,7 @@
 #include "Logger.hpp"
 #include "Response.hpp"
 #include "Request.hpp"
+#include "ErrorCode.hpp"
 
 namespace
 {
@@ -91,27 +92,28 @@ TEST_F(LoggerTest, writeAccessLog)
 	ifs.close();
 }
 
-// // 5. エラーログを書き込めるか
-// TEST_F(LoggerTest, writeErrorLog)
-// {
-// 	// テストデータの挿入
-// 	const Request req = Request(method, url, protocol, headers, body);
-// 	const Response res = Response(200, headers, body);
+// 5. エラーログを書き込めるか
+TEST_F(LoggerTest, writeErrorLog)
+{
+	// テストデータの挿入
+	const Request req = Request(method, url, protocol, headers, body);
+	const Response res = Response(200, headers, body);
 
-// 	// エラーログへの書き込み
-// 	Logger::getInstance()->writeErrorLog(&req, &res);
+	// エラーログへの書き込み
+	Logger::getInstance()->writeErrorLog(ErrorCode::E_REQ_PARSE, "ErrorMessage", &req);
 
-// 	// ファイルの読み込み
-// 	std::ifstream ifs(errorLogfilePath);
-// 	std::string line;
-// 	std::getline(ifs, line);
+	// ファイルの読み込み
+	std::ifstream ifs(errorLogfilePath);
+	std::string line;
+	std::getline(ifs, line);
+	std::cout << line << std::endl;
 
-// 	// テストデータの検証
-// 	EXPECT_TRUE(line.find("HTTP/1.1") != std::string::npos);
-// 	EXPECT_TRUE(line.find("ErrorMessage") != std::string::npos);
-// 	EXPECT_TRUE(line.find("500") != std::string::npos);
+	// テストデータの検証
+	EXPECT_TRUE(line.find("Error: Request parse failed.") != std::string::npos);
+	EXPECT_TRUE(line.find("ErrorMessage") != std::string::npos);
+	EXPECT_TRUE(line.find("HTTP/1.1") != std::string::npos);
 
-// 	// ファイルを閉じる
-// 	ifs.close();
-// }
+	// ファイルを閉じる
+	ifs.close();
+}
 }

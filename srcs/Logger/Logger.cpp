@@ -67,6 +67,7 @@ void Logger::writeAccessLog(const Request& request, const Response& response)
 
 	// ログファイルに出力
 	_ofsAccessLog << logMessage << std::endl;
+	/** 標準出力する場合は以下をコメントアウト */
 	// std::cout << logMessage << std::endl;
 }
 
@@ -79,6 +80,7 @@ void Logger::writeAccessLog(const Request& request, const Response& response)
 void Logger::writeErrorLog(const ErrorCode::E_TYPE type, const std::string &message, const Request* request)
 {
 	std::string error_msg = "Error: ";
+	std::string request_info = "";
 
 	// システムコールの場合はエラー番号からメッセージを取得
 	if (type == ErrorCode::E_SYSCALL)
@@ -95,18 +97,16 @@ void Logger::writeErrorLog(const ErrorCode::E_TYPE type, const std::string &mess
 	char timestamp[100];
 	std::strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S", std::localtime(&now));
 
-	std::string log = std::string(timestamp) + " " + error_msg + " ";
+	// リクエスト情報を取得
 	if (request)
 	{
-		std::cerr << request->getMethod() + " " + request->getUri()
-			+ " " + request->getProtocol() << " "
-			+ std::to_string(errno) << std::endl;
+		request_info = request->getMethod() + " " + request->getUri()
+			+ " " + request->getProtocol() + " ";
 	}
 
-	log += " " + message;
-
 	// ログファイルに出力
-	_ofsErrorLog << log << std::endl;
+	_ofsErrorLog << timestamp << " " << error_msg << " " << message << " " << request_info << std::endl;
+	/** 標準エラーに出力する場合は以下をコメントアウト */
 	// std::cerr << log << std::endl;
 }
 
