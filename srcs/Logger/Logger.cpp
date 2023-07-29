@@ -59,16 +59,15 @@ void Logger::writeAccessLog(const Request& request, const Response& response)
 	char timestamp[100];
 	std::strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S", std::localtime(&now));
 
-	// ログメッセージを作成
-	std::string logMessage = std::string(timestamp) + " " + request.getMethod() + " "
-		+ request.getUri() + " " + request.getProtocol() + " "
-		+ std::to_string(response.getStatus());
+	// メッセージをログファイルに出力
+	_ofsAccessLog << std::string(timestamp) << " " << request.getMethod() << " "
+		<< request.getUri() << " " << request.getProtocol() << " "
+		<< std::to_string(response.getStatus()) << std::endl;
 
-
-	// ログファイルに出力
-	_ofsAccessLog << logMessage << std::endl;
 	/** 標準出力する場合は以下をコメントアウト */
-	// std::cout << logMessage << std::endl;
+	// std::cout << std::string(timestamp) << " " << request.getMethod() << " "
+	// 	<< request.getUri() << " " << request.getProtocol() << " "
+	// 	<< std::to_string(response.getStatus()) << std::endl;
 }
 
 /**
