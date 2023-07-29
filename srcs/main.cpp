@@ -30,6 +30,13 @@ int	setSignalHandler()
 		std::cout << "sigaction error" << std::endl;
 		return (1);
 	}
+
+	sa.sa_handler = SIG_IGN;
+	if (sigaction(SIGPIPE, &sa, NULL) == -1)
+	{
+		std::cout << "sigaction error" << std::endl;
+		return (1);
+	}
 	return (0);
 }
 
