@@ -6,35 +6,37 @@ namespace
 class ConfigTest : public ::testing::Test
 {
 protected:
-	Config *config;
 	// テストデータの作成
 	virtual void SetUp()
 	{
-		config = new Config("conf/default.conf");
+	}
+	// テストデータの破棄
+	virtual void TearDown()
+	{
 	}
 };
 
 // 1. インスタンスが正しく生成されているか
 TEST_F(ConfigTest, ConfigSetup)
 {
-	EXPECT_TRUE(config != NULL);
+	EXPECT_TRUE(Config::instance() != NULL);
 }
 
 // 2. インスタンスが取得でき、かつシングルトンであるか
 TEST_F(ConfigTest, getInstance)
 {
-	Config *config = Config::getInstance();
-	EXPECT_TRUE(config != NULL);
+	Config *config1 = Config::instance();
+	EXPECT_TRUE(config1 != NULL);
 
 	// 両者は同一のインスタンスである
-	Config *config2 = Config::getInstance();
-	EXPECT_TRUE(config == config2);
+	Config *config2 = Config::instance();
+	EXPECT_EQ(config1, config2);
 }
 
 // 3. HTTPブロックの要素が解析できているか
 TEST_F(ConfigTest, getHTTPBlock)
 {
-	HTTPContext httpBlock = config->getHTTPBlock();
+	HTTPContext httpBlock = Config::instance()->getHTTPBlock();
 	EXPECT_EQ(httpBlock.getAccessLogFile(), "./logs/access.log");
 	EXPECT_EQ(httpBlock.getErrorLogFile(), "./logs/error.log");
 }
@@ -42,7 +44,7 @@ TEST_F(ConfigTest, getHTTPBlock)
 // 4. Serverブロックの要素が解析できているか
 TEST_F(ConfigTest, getServerBlock)
 {
-	HTTPContext httpBlock = config->getHTTPBlock();
+	HTTPContext httpBlock = Config::instance()->getHTTPBlock();
 	const std::map<std::string, std::vector<ServerContext> > servers = httpBlock.getServers();
 	std::vector<ServerContext> serverContexts = servers.at("80");
 	EXPECT_EQ(serverContexts[0].getListen(), "80");
@@ -52,7 +54,7 @@ TEST_F(ConfigTest, getServerBlock)
 // 5. Locationブロックの要素が解析できているか
 TEST_F(ConfigTest, getLocationBlock)
 {
-	HTTPContext httpBlock = config->getHTTPBlock();
+	HTTPContext httpBlock = Config::instance()->getHTTPBlock();
 	const std::map<std::string, std::vector<ServerContext> > servers = httpBlock.getServers();
 	std::vector<ServerContext> serverContexts = servers.at("80");
 	std::vector<LocationContext> locationContexts = serverContexts[0].getLocations();
@@ -64,7 +66,7 @@ TEST_F(ConfigTest, getLocationBlock)
 // 6. ポート番号が一致するServerブロックをすべて取得できるか
 TEST_F(ConfigTest, getServerContexts)
 {
-	HTTPContext httpBlock = config->getHTTPBlock();
+	HTTPContext httpBlock = Config::instance()->getHTTPBlock();
 	const ServerContext &sc = httpBlock.getServerContext("80", "webserve1");
 	const LocationContext lc = sc.getLocationContext("/");
 	EXPECT_EQ(lc.getDirective("path"), "/");

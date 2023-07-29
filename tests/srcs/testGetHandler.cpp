@@ -2,6 +2,7 @@
 #include "Request.hpp"
 #include "Router.hpp"
 #include "GetHandler.hpp"
+#include "Config.hpp"
 
 namespace
 {
@@ -16,9 +17,9 @@ protected:
 	// テストデータの作成
 	virtual void SetUp()
 	{
-		reqGetHtml = new Request("GET", "docs/test.html", "HTTP/1.1", std::map<std::string, std::string>(), "");
-		reqGetPng = new Request("GET", "docs/test.png", "HTTP/1.1", std::map<std::string, std::string>(), "");
-		reqNotFound = new Request("NONE", "/index.html", "HTTP/1.1", std::map<std::string, std::string>(), "");
+		reqGetHtml = new Request("GET", "/test.html", "HTTP/1.1", std::map<std::string, std::string>(), "");
+		reqGetPng = new Request("GET", "/test.png", "HTTP/1.1", std::map<std::string, std::string>(), "");
+		reqNotFound = new Request("GET", "/none.html", "HTTP/1.1", std::map<std::string, std::string>(), "");
 	}
 };
 

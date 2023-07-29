@@ -3,7 +3,7 @@
 
 #include "Request.hpp"
 #include "Response.hpp"
-#include "../Error/SystemError.hpp"
+#include "ErrorCode.hpp"
 #include <fstream>
 #include <string>
 #include <iostream>
@@ -11,22 +11,29 @@
 class Logger
 {
 	public:
-		Logger(const std::string& accessLogPath,
-			   const std::string& errorLogPath);
-		static Logger* getInstance();
-		const std::string& getAccessLogPath() const;
-		const std::string& getErrorLogPath() const;
+		void static initialize(
+			const std::string& accessLogPath = DEFAULT_ACCESS_LOG_PATH,
+			const std::string& errorLogPath = DEFAULT_ERROR_LOG_PATH
+		);
+		void static release();
+		static Logger* instance();
+		void openLogFile(std::ofstream &ofs, const std::string &logFile);
 		void writeAccessLog(const Request& request, const Response& response);
-		void writeErrorLog(const Request* request = NULL, const Response* response = NULL, const SystemError* systemError = NULL);
+		void writeErrorLog(const ErrorCode::e_type type, const std::string &message = "", const Request* request = NULL);
+		const std::ofstream &getAccessLogStream() const;
+		const std::ofstream &getErrorLogStream() const;
 
 	private:
 		static const std::string DEFAULT_ACCESS_LOG_PATH;
 		static const std::string DEFAULT_ERROR_LOG_PATH;
-		std::string _accessLogPath;
-		std::string _errorLogPath;
 		static Logger* _instance;
 
+		// ログファイルのストリーム
+		std::ofstream _ofsAccessLog;
+		std::ofstream _ofsErrorLog;
+
 		// シングルトンパターンのため外部からの変更・破棄を避ける
+		Logger();
 		~Logger();
 		Logger(const Logger& other);
 		Logger& operator=(const Logger& other);

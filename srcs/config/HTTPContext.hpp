@@ -9,7 +9,10 @@ class HTTPContext
 {
 	public:
 		HTTPContext();
+		HTTPContext(const HTTPContext& other);
+		HTTPContext& operator=(const HTTPContext& other);
 		~HTTPContext();
+
 		void setAccessLogFile(const std::string& accessLogFile);
 		void setErrorLogFile(const std::string& errorLogFile);
 		void addServerBlock(const ServerContext& server);

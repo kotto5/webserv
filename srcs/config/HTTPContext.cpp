@@ -1,11 +1,28 @@
 #include "HTTPContext.hpp"
-#include "ConfigError.hpp"
+#include "ConfigException.hpp"
 #include <stdexcept>
 
 HTTPContext::HTTPContext():
 	_accessLogFile(""),
 	_errorLogFile("")
 {
+}
+
+HTTPContext::HTTPContext(const HTTPContext& other)
+{
+	*this = other;
+}
+
+HTTPContext& HTTPContext::operator=(const HTTPContext& other)
+{
+	if (this != &other)
+	{
+		_accessLogFile = other._accessLogFile;
+		_errorLogFile = other._errorLogFile;
+		_servers = other._servers;
+		_directives = other._directives;
+	}
+	return *this;
 }
 
 HTTPContext::~HTTPContext()
@@ -57,7 +74,7 @@ void HTTPContext::addDirective(const std::string& directive, const std::string& 
 {
     // check if directive is not duplicated
     if (_directives.find(directive) != _directives.end())
-        throw ConfigError(DUPRICATE_DIRECTIVE, directive, filepath, line_number);
+        throw ConfigException(ErrorCode::CONF_DUPLICATE_DIRECTIVE, directive, filepath, line_number);
 
     _directives.insert(std::make_pair(directive, value));
 }
@@ -74,7 +91,7 @@ const std::string& HTTPContext::getErrorLogFile() const
 
 const std::map<std::string, std::vector<ServerContext> >& HTTPContext::getServers() const
 {
-    return _servers;
+	return _servers;
 }
 
 /**

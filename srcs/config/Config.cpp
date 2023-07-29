@@ -1,58 +1,68 @@
 #include "Config.hpp"
 #include "ConfigParser.hpp"
-#include "ConfigError.hpp"
+#include "ConfigException.hpp"
 #include "ServerContext.hpp"
 #include "LocationContext.hpp"
 #include <unistd.h>
 #include <fcntl.h>
+#include <iostream>
+#include <fstream>
+#include <cstring>
+#include "ErrorCode.hpp"
+
+void Config::initialize(const std::string& filepath)
+{
+	if (_instance != NULL)
+	{
+		throw ConfigException(ErrorCode::CONF_SYSTEM_ERROR, "Config instance already exists.");
+	}
+	_instance = new Config(filepath);
+}
+
+void Config::release()
+{
+	if (_instance)
+	{
+		delete _instance;
+		_instance = NULL;
+	}
+}
 
 Config::Config(const std::string& filepath)
 {
-    ConfigParser parser(*this);
-    parser.parseFile(filepath);
-    _instance = this;
-
-	std::string errorLogFile = getHTTPBlock().getErrorLogFile();
-	setErrorLogFileStderror(errorLogFile);
-}
-
-int	Config::setErrorLogFileStderror(std::string errorLogFile)
-{
-	if (errorLogFile.empty())
-		return (0);
-	if (!errorLogFile.empty())
-	{
-		int logFile;
-		logFile = open(errorLogFile.c_str(), O_RDWR | O_CREAT | O_APPEND, 0666);
-		if (logFile > 0)
-		{
-			if (dup2(logFile, STDERR_FILENO) == -1)
-				throw (ConfigError(SYSTEM_ERROR, "dup2"));
-		}
-		else
-			throw (ConfigError(SYSTEM_ERROR, "open"));
-	}
-	return (0);
+	ConfigParser parser(*this);
+	parser.parseFile(filepath);
+	_instance = this;
 }
 
 HTTPContext& Config::getHTTPBlock()
 {
-    return _http_block;
+	return _http_block;
 }
 
-Config* Config::getInstance()
+Config* Config::instance()
 {
-    return _instance;
+	if (_instance == NULL)
+	{
+		throw ConfigException(ErrorCode::CONF_SYSTEM_ERROR, "Config is not initialized.");
+	}
+	return _instance;
 }
 
+/**
+ * @brief 設定されているポートをすべて取得
+ *
+ * @return const std::vector<std::string>
+ */
 const std::vector<std::string> Config::getPorts()
 {
 	std::vector<std::string> ports;
 
-	for (std::map<std::string, std::vector<ServerContext> >::const_iterator it = _http_block.getServers().begin();
-			it != _http_block.getServers().end(); ++it)
+	std::map<std::string, std::vector<ServerContext> >::const_iterator it;
+	for (it = _http_block.getServers().begin(); it != _http_block.getServers().end(); ++it)
 	{
-		for (std::vector<ServerContext>::const_iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+		std::vector<ServerContext>::const_iterator it2;
+		for (it2 = it->second.begin(); it2 != it->second.end(); ++it2)
 		{
 			// Directly add the listen value as the port, since it should only contain the port number
 			ports.push_back(it2->getListen());
@@ -60,8 +70,6 @@ const std::vector<std::string> Config::getPorts()
 	}
 	return ports;
 }
-
-Config* Config::_instance = NULL;
 
 // シングルトンパターンのため外部からの変更・破棄を避ける
 Config::~Config()
@@ -81,3 +89,7 @@ Config& Config::operator=(const Config& other)
 	}
 	return *this;
 }
+
+Config* Config::_instance = NULL;
+
+const std::string Config::DEFAULT_CONFIG_FILEPATH = "conf/default.conf";

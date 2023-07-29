@@ -13,14 +13,12 @@ protected:
 	std::string protocol = "HTTP/1.1";
 	std::map<std::string, std::string> headers;
 	std::string body = "Hello World";
-	Config *config;
 
 	// テストデータの作成
 	virtual void SetUp()
 	{
 		headers.insert(std::make_pair("content-length", "100"));
 		headers.insert(std::make_pair("content-type", "text/html"));
-		config = new Config("conf/default.conf");
 	}
 };
 
@@ -67,9 +65,9 @@ TEST_F(RequestTest, alias)
 	Request rq4(method, url, protocol, headers, body);
 
 	// テストデータの検証
-	EXPECT_EQ(rq1.getActualUri(), "./docs/");
+	EXPECT_EQ(rq1.getActualUri(), "./docs/index.html");
 	EXPECT_EQ(rq2.getActualUri(), "./docs/index.html");
-	EXPECT_EQ(rq3.getActualUri(), "./data/s3/resources/");
+	EXPECT_EQ(rq3.getActualUri(), "./data/s3/resources/index.html");
 	EXPECT_EQ(rq4.getActualUri(), "./data/s3/resources/index.html");
 }
 

@@ -2,7 +2,7 @@
 #include "HTTPContext.hpp"
 #include "ServerContext.hpp"
 #include "LocationContext.hpp"
-#include "ConfigError.hpp"
+#include "ConfigException.hpp"
 #include <fstream>
 #include <vector>
 #include <string>
@@ -90,6 +90,7 @@ void ConfigParser::parseFile(const std::string& filepath)
 		exit(EXIT_FAILURE);
 	}
 	std::ifstream ifs(_filepath.c_str());
+
 	if (!ifs)
 	{
 		std::cerr << "Open Error" << std::endl;
@@ -151,7 +152,7 @@ void ConfigParser::parseLines()
 		setDirectiveType(_one_line[0]);
 		if (!isAllowedDirective())
 		{
-			throw ConfigError(NOT_ALLOWED_DIRECTIVE, _one_line[0], _filepath, _line_number + 1);
+			throw ConfigException(ErrorCode::CONF_NOT_ALLOWED_DIRECTIVE, _one_line[0], _filepath, _line_number + 1);
 		}
 		else if (_directive_type == HTTP)
 			setHTTPContext();
@@ -161,6 +162,7 @@ void ConfigParser::parseLines()
 void ConfigParser::setHTTPContext()
 {
 	HTTPContext http_context = _config.getHTTPBlock();
+
 	_line_number++;
 	for ( ; _line_number < _lines.size(); _line_number++)
 	{
@@ -172,7 +174,7 @@ void ConfigParser::setHTTPContext()
 			break ;
 		setDirectiveType(_one_line[0]);
 		if (!isAllowedDirective())
-			throw ConfigError(NOT_ALLOWED_DIRECTIVE, _one_line[0], _filepath, _line_number + 1);
+			throw ConfigException(ErrorCode::CONF_NOT_ALLOWED_DIRECTIVE, _one_line[0], _filepath, _line_number + 1);
 		else if (_directive_type == SERVER)
 		{
 			ServerContext server_context = getServerContext();
@@ -205,7 +207,7 @@ const ServerContext ConfigParser::getServerContext()
 			break ;
 		setDirectiveType(_one_line[0]);
 		if (!isAllowedDirective())
-			throw ConfigError(NOT_ALLOWED_DIRECTIVE, _one_line[0], _filepath, _line_number + 1);
+			throw ConfigException(ErrorCode::CONF_NOT_ALLOWED_DIRECTIVE, _one_line[0], _filepath, _line_number + 1);
 		else if (_directive_type == LOCATION)
 		{
 			LocationContext location_context = getLocationContext();
@@ -240,7 +242,7 @@ const LocationContext ConfigParser::getLocationContext()
 			break ;
 		setDirectiveType(_one_line[0]);
 		if (!isAllowedDirective())
-			throw ConfigError(NOT_ALLOWED_DIRECTIVE, _one_line[0], _filepath, _line_number + 1);
+			throw ConfigException(ErrorCode::CONF_NOT_ALLOWED_DIRECTIVE, _one_line[0], _filepath, _line_number + 1);
 		else if (_directive_type == ERROR_PAGE)
 			location_context.addDirective(_one_line[1], _one_line[2], _filepath, _line_number + 1);
 		else

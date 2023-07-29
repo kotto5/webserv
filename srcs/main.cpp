@@ -1,31 +1,18 @@
-#include "Request/Request.hpp"
-#include "config/Config.hpp"
-#include "config/ConfigError.hpp"
-#include "Server/server.hpp"
-#include "Logger/Logger.hpp"
+#include "Request.hpp"
+#include "Config.hpp"
+#include "ConfigException.hpp"
+#include "server.hpp"
+#include "Logger.hpp"
 #include <iostream>
 #include <map>
-#include "Error.hpp"
+#include "ErrorCode.hpp"
 #include "utils.hpp"
 #include <signal.h>
 #include "Request.hpp"
 #include <filesystem>
+#include "ErrorCode.hpp"
+#include "ServerException.hpp"
 
-// int	setSignalHandler()
-// {
-// 	struct sigaction	sa;
-// 	sa.sa_handler = SIG_IGN;
-// 	sigemptyset(&sa.sa_mask);
-// 	sa.sa_flags = SA_RESTART;
-// 	if (sigaction(SIGPIPE, &sa, NULL) == -1)
-// 	{
-// 		std::cout << "sigaction error" << std::endl;
-// 		return (1);
-// 	}
-// 	return (0);
-// }
-
-// write exit_handler
 void	exit_handler(int sig)
 {
 	(void)sig;
@@ -45,42 +32,64 @@ int	setSignalHandler()
 		std::cout << "sigaction error" << std::endl;
 		return (1);
 	}
+
+	sa.sa_handler = SIG_IGN;
+	if (sigaction(SIGPIPE, &sa, NULL) == -1)
+	{
+		std::cout << "sigaction error" << std::endl;
+		return (1);
+	}
 	return (0);
+}
+
+void runServer()
+{
+	try
+	{
+		// シグナルハンドラ設定
+		setSignalHandler();
+		// サーバー起動
+		Server server;
+		server.setup();
+		server.run();
+	}
+	catch(const ServerException &e)
+	{
+		Logger::instance()->writeErrorLog(ErrorCode::SYSTEM_CALL, e.what());
+		Config::release();
+		Logger::release();
+		std::exit(1);
+	}
 }
 
 int main(int argc, char **argv)
 {
-	if (argc != 2)
+	if (argc > 2)
 	{
 		std::cout << "Usage: ./webserv [config_file]" << std::endl;
 		return 1;
 	}
-	// 設定ファイル読み込み
-	Config	*config;
 	try
 	{
-		config = new Config(argv[1]);
-		(void)config;
+		// 設定ファイル読み込み
+		if (argc == 1)
+			Config::initialize();
+		else
+			Config::initialize(argv[1]);
+		// ロギング初期化
+		Logger::initialize(
+			Config::instance()->getHTTPBlock().getAccessLogFile(),
+			Config::instance()->getHTTPBlock().getErrorLogFile()
+		);
+		// サーバー起動
+		runServer();
+		Config::release();
+		Logger::release();
 	}
-	catch(const ConfigError& e)
+	catch(const ConfigException& e)
 	{
-		std::cerr << e.what() << '\n';
+		std::cerr << e.what() << std::endl;
 		std::exit(1);
 	}
-
-	// ロギング設定
-	Logger *logger = new Logger(
-		Config::getInstance()->getHTTPBlock().getAccessLogFile(),
-		Config::getInstance()->getHTTPBlock().getErrorLogFile()
-	);
-	(void)logger;
-
-	setSignalHandler();
-	// サーバー起動
-	Server server;
-	if (server.setup())
-		return (1);
-	server.run();
-
 	return 0;
 }

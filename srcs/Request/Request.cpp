@@ -1,6 +1,7 @@
 #include "Request.hpp"
-#include "Error.hpp"
+#include "ErrorCode.hpp"
 #include "Config.hpp"
+#include "ConfigException.hpp"
 #include "LocationContext.hpp"
 #include "ServerContext.hpp"
 #include "Socket.hpp"
@@ -34,6 +35,18 @@ Request::Request(const std::string &method, const std::string &uriAndQuery, cons
 	"" : this->_uri.substr(this->_uri.find(_cgi_script_name) + _cgi_script_name.length());
 }
 
+static std::string	getAliasOrRootDirective(LocationContext &Location)
+{
+	std::string ret = Location.getDirective("alias");
+	if (ret.empty())
+		ret = Location.getDirective("root");
+	if (ret.empty())
+		return ("");
+	if (ret[ret.length() - 1] != '/')
+		ret += '/';
+	return (ret);
+}
+
 /**
  * @brief URIを実体パスに変換する
  *
@@ -42,7 +55,7 @@ Request::Request(const std::string &method, const std::string &uriAndQuery, cons
  */
 std::string	Request::convertUritoPath(const std::string &uri)
 {
-	Config	*config = Config::getInstance();
+	Config	*config = Config::instance();
 	HTTPContext	httpcontext;
 	ServerContext	servercontext;
 	LocationContext	location;
@@ -57,29 +70,21 @@ std::string	Request::convertUritoPath(const std::string &uri)
 		servercontext = httpcontext.getServerContext("80", this->getHeader("host"));
 		location = servercontext.getLocationContext(ret);
 	}
-	catch (std::runtime_error &e)
+	catch (const std::runtime_error &e)
 	{
 		std::cout << e.what() << std::endl;
 		return ("404");
 	}
 	path = location.getDirective("path");
+	// URI < PATH
 	if (ret.length() < path.length()) // path が /path/ に対し uri が /path だった場合の対応
 		ret = path;
-
-	if (location.getDirective("alias") != "")
-		alias = location.getDirective("alias");
-	else if (location.getDirective("root") != "")
-		alias = location.getDirective("root");
+	alias = getAliasOrRootDirective(location);
 	if (alias == "")
-		return (uri);
-	if (path == "")
-		return (alias);
-	// aliasは'/'で終わっていることを保証する
-	if (alias[alias.length() - 1] != '/')
-		alias += '/';
-	if (path == ret) 
+		return (ret);
+	if (path == ret)
 		return (alias + location.getDirective("index"));
-	return (alias + ret.substr(path.length() - 1));
+	return (alias + ret.substr(path.length()));
 }
 
 Request::Request(const Request &other)
