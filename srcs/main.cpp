@@ -41,37 +41,35 @@ int	setSignalHandler()
 }
 
 int main(int argc, char **argv)
-{	if (argc != 2)
+{
+	if (argc != 2)
 	{
 		std::cout << "Usage: ./webserv [config_file]" << std::endl;
 		return 1;
 	}
-	// 設定ファイル読み込み
-	Config	*config;
 	try
 	{
-		config = new Config(argv[1]);
-		(void)config;
+		// 設定ファイル読み込み
+		Config::initialize(argv[1]);
+		Logger::initialize(
+			Config::instance()->getHTTPBlock().getAccessLogFile(),
+			Config::instance()->getHTTPBlock().getErrorLogFile()
+		);
 	}
-	catch(const ConfigError& e)
+	catch(const std::exception& e)
 	{
 		std::cerr << e.what() << '\n';
 		std::exit(1);
 	}
-
-	// ロギング設定
-	Logger *logger = new Logger(
-		Config::getInstance()->getHTTPBlock().getAccessLogFile(),
-		Config::getInstance()->getHTTPBlock().getErrorLogFile()
-	);
-	(void)logger;
-
+	// シグナルハンドラ設定
 	setSignalHandler();
 	// サーバー起動
 	Server server;
-	if (server.setup())
+	if (server.setup()) {
 		return (1);
+	}
 	server.run();
-
+	Config::release();
+	Logger::release();
 	return 0;
 }

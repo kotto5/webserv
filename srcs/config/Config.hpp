@@ -7,9 +7,10 @@
 class Config
 {
 public:
-	Config(const std::string& filepath);
+	static void initialize(const std::string& filepath);
+	static void release();
 	HTTPContext& getHTTPBlock();
-	static Config* getInstance();
+	static Config* instance();
 	const std::vector<std::string> getPorts();
 
 private:
@@ -17,6 +18,8 @@ private:
 	static Config* _instance;
 
 	// シングルトンパターンのため外部からの変更・破棄を避ける
+	Config();
+	Config(const std::string& filepath);
 	~Config();
 	Config& operator=(const Config& other);
 	Config(const Config& other);

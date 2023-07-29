@@ -32,7 +32,7 @@ IHandler *Router::createHandler(const Request &request)
 	try
 	{
 		// エイリアスがある場合は置き換える
-		alias = Config::getInstance()
+		alias = Config::instance()
 			->getHTTPBlock()
 			.getServerContext("80", request.getHeader("host"))
 			.getLocationContext(request.getUri())

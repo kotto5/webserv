@@ -13,14 +13,12 @@ protected:
 	std::string protocol = "HTTP/1.1";
 	std::map<std::string, std::string> headers;
 	std::string body = "Hello World";
-	Config *config;
 
 	// テストデータの作成
 	virtual void SetUp()
 	{
 		headers.insert(std::make_pair("content-length", "100"));
 		headers.insert(std::make_pair("content-type", "text/html"));
-		config = new Config("conf/default.conf");
 	}
 };
 
