@@ -24,7 +24,7 @@
 #define RED "\x1b[41m"
 #define DEF "\x1b[49m"
 
-typedef enum E_TYPE {
+typedef enum e_type {
 	TYPE_RECV = 0,
 	TYPE_SEND = 1,
 	TYPE_SERVER = 2,

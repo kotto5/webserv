@@ -1,6 +1,7 @@
 #include "Request.hpp"
 #include "ErrorCode.hpp"
 #include "Config.hpp"
+#include "ConfigException.hpp"
 #include "LocationContext.hpp"
 #include "ServerContext.hpp"
 #include "Socket.hpp"
@@ -69,7 +70,7 @@ std::string	Request::convertUritoPath(const std::string &uri)
 		servercontext = httpcontext.getServerContext("80", this->getHeader("host"));
 		location = servercontext.getLocationContext(ret);
 	}
-	catch (std::runtime_error &e)
+	catch (const std::runtime_error &e)
 	{
 		std::cout << e.what() << std::endl;
 		return ("404");

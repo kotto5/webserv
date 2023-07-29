@@ -11,6 +11,7 @@
 #include <sys/wait.h>
 #include <algorithm>
 #include <ctime>
+#include "ServerException.hpp"
 
 int	Server::setup()
 {
@@ -76,7 +77,7 @@ int	Server::handle_sockets(fd_set *read_fds, fd_set *write_fds, fd_set *expect_f
 		}
 	}
 	if (expect_fds)
-		std::cout << "EXPEXTION hHAHAHAHAH!!!!" << std::endl;
+		throw ServerException("unexpected fds");
 	return (0);
 }
 
@@ -131,10 +132,7 @@ int	Server::run()
 
 		int activity = select(max_fd + 1,&read_fds, &write_fds, NULL, &timeout);
 		if (activity == -1)
-		{
-			Logger::instance()->writeErrorLog(ErrorCode::E_SYSCALL, "select");
-			exit(1);
-		}
+			throw ServerException("select");
 		if (activity == 0 && check_timeout())
 			continue ;
 		handle_sockets(&read_fds, &write_fds, NULL, activity);
@@ -152,7 +150,6 @@ int	Server::accept(Socket *serverSocket)
 	if (new_socket == NULL)
 		return (0);
 	setFd(TYPE_RECV, new_socket);
-	std::cout << RED << "New connection, socket fd is " << new_socket->getFd() << ", port is " << ntohs(new_socket->getRemoteaddr().sin_port) << "time " << new_socket->getLastAccess() << DEF << std::endl;
 	return (0);
 }
 
@@ -160,15 +157,9 @@ int	Server::new_connect_cgi(Request *request, Socket *clientSocket)
 {
 	int	sockets[2];
 	if (_socketpair(AF_INET, SOCK_STREAM, 0, sockets) == -1)
-	{
-		Logger::instance()->writeErrorLog(ErrorCode::E_SYSCALL, "socketpair");
-		exit (-1);
-	}
-	if (runCgi(request, sockets[S_CHILD])){
-
-		Logger::instance()->writeErrorLog(ErrorCode::E_SYSCALL, "runCgi");
-		exit (-1);
-	}
+		throw ServerException("socketpair");
+	if (runCgi(request, sockets[S_CHILD]))
+		throw ServerException("runCgi");
 	close(sockets[S_CHILD]);
 	set_non_blocking(S_PARENT);
 

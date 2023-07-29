@@ -1,5 +1,5 @@
 #include "ServerContext.hpp"
-#include "ConfigError.hpp"
+#include "ConfigException.hpp"
 #include <stdexcept>
 #include <iostream>
 
@@ -62,7 +62,7 @@ void ServerContext::addDirectives(const std::string& directive, const std::strin
 {
 	// check if directive is not duplicated
 	if (_directives.find(directive) != _directives.end())
-		throw ConfigError(DUPRICATE_DIRECTIVE, directive, filepath, line_number);
+		throw ConfigException(ErrorCode::CONF_DUPLICATE_DIRECTIVE, directive, filepath, line_number);
 
 	_directives.insert(std::make_pair(directive, value));
 }

@@ -105,7 +105,7 @@ TEST_F(LoggerTest, writeErrorLog)
 	const Response res = Response(200, headers, body);
 
 	// エラーログへの書き込み
-	Logger::instance()->writeErrorLog(ErrorCode::E_REQ_PARSE, "ErrorMessage", &req);
+	Logger::instance()->writeErrorLog(ErrorCode::REQ_PARSE, "ErrorMessage", &req);
 
 	// ファイルの読み込み
 	std::ifstream ifs(errorLogfilePath);
