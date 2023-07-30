@@ -15,6 +15,7 @@
 #include <utils.hpp>
 #include <ctime>
 #include "Logger.hpp"
+#include "ServerException.hpp"
 
 
 // =============================================
@@ -76,16 +77,15 @@ int SvSocket::createSvSocket(int port)
 	int yes = 1;
 	if (setsockopt(new_sock, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1)
 	{
-		Logger::instance()->writeErrorLog(ErrorCode::E_SYSCALL, "setsockopt");
-        throw std::exception();
+        throw ServerException("setsockopt");
 	}
-	if (bind(new_sock, (struct sockaddr *)&server_address, sizeof(server_address)) == -1){
-		Logger::instance()->writeErrorLog(ErrorCode::E_SYSCALL, "binding");
-        throw std::exception();
+	if (bind(new_sock, (struct sockaddr *)&server_address, sizeof(server_address)) == -1)
+	{
+        throw ServerException("binding");
 	}
-	if (listen(new_sock, 200) < 0){
-		Logger::instance()->writeErrorLog(ErrorCode::E_SYSCALL, "listening");
-        throw std::exception();
+	if (listen(new_sock, 200) < 0)
+	{
+        throw ServerException("listening");
 	}
 	set_non_blocking(new_sock);
     return (new_sock);

@@ -1,6 +1,6 @@
 #include "Config.hpp"
 #include "ConfigParser.hpp"
-#include "ConfigError.hpp"
+#include "ConfigException.hpp"
 #include "ServerContext.hpp"
 #include "LocationContext.hpp"
 #include <unistd.h>
@@ -8,12 +8,13 @@
 #include <iostream>
 #include <fstream>
 #include <cstring>
+#include "ErrorCode.hpp"
 
 void Config::initialize(const std::string& filepath)
 {
 	if (_instance != NULL)
 	{
-		throw std::runtime_error("Config instance already exists.");
+		throw ConfigException(ErrorCode::CONF_SYSTEM_ERROR, "Config instance already exists.");
 	}
 	_instance = new Config(filepath);
 }
@@ -43,7 +44,7 @@ Config* Config::instance()
 {
 	if (_instance == NULL)
 	{
-		throw std::runtime_error("Config is not initialized.");
+		throw ConfigException(ErrorCode::CONF_SYSTEM_ERROR, "Config is not initialized.");
 	}
 	return _instance;
 }
@@ -90,3 +91,5 @@ Config& Config::operator=(const Config& other)
 }
 
 Config* Config::_instance = NULL;
+
+const std::string Config::DEFAULT_CONFIG_FILEPATH = "conf/default.conf";

@@ -19,7 +19,7 @@ class Logger
 		static Logger* instance();
 		void openLogFile(std::ofstream &ofs, const std::string &logFile);
 		void writeAccessLog(const Request& request, const Response& response);
-		void writeErrorLog(const ErrorCode::E_TYPE type, const std::string &message = "", const Request* request = NULL);
+		void writeErrorLog(const ErrorCode::e_type type, const std::string &message = "", const Request* request = NULL);
 		const std::ofstream &getAccessLogStream() const;
 		const std::ofstream &getErrorLogStream() const;
 
