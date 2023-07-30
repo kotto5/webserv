@@ -239,7 +239,6 @@ static bool	isValidLine(const std::string &line, const bool isRequestLine)
 
 bool	setBody(std::string &body, const std::string &row, const std::string::size_type startPos, const std::string::size_type content_length)
 {
-	// std::cout << "content_length: " << content_length << std::endl;
 	body += row.substr(startPos + 2, content_length);
 	return (true);
 }
@@ -281,19 +280,9 @@ int	Request::parsing(const std::string &row)
 				return (0);
 			line = _readBuffer.substr(_readPos, endPos - _readPos);
 			if (isValidLine(line, _readPos == 0) == false)
-			{
-				std::cout << "invariddddddddddddddd      line: [" << line << "]" << std::endl;
 				return (1);
-			}
 			if (_readPos == 0)
-			{
 				setRequestLine(line, _method, _uriAndQuery, _protocol);
-				// std::cout << "=================" << std::endl;
-				// std::cout << "method: [" << _method << "]" << std::endl;
-				// std::cout << "uri: [" << _uri << "]" << std::endl;
-				// std::cout << "protocol: [" << _protocol << "]" << std::endl;
-				// std::cout << "=================" << std::endl;
-			}
 			else
 				addHeaderToLower(_headers, line, ": ");
 			_readPos = endPos + 2; // Skip CRLF
@@ -303,31 +292,8 @@ int	Request::parsing(const std::string &row)
 	if (_isBodyEnd == true)
 		return (0);
 	setBody(row);
-
-	// _body += row.substr(_readPos);
-	// if (_headers["content-length"].empty() == false)
-	// {
-	// 	if (_body.find("\r\n\r\n") == std::string::npos)
-	// 		return (0);
-	// 	std::string::size_type	content_length = std::stoi(_headers["content-length"]); 
-	// 	if (_body.length() > content_length)
-	// 		_body.erase(content_length);
-	// 	_isBodyEnd = true;
-	// }
-	// else if (_headers["transfer-encoding"] == "chunked")
-	// {
-	// 	if (_body.find("\r\n0\r\n\r\n") == std::string::npos)
-	// 		return (0);
-	// 	// TODO: body = decode_chunked(body);
-	// 	_isBodyEnd = true;
-	// }
-	// else
-	// 	_isBodyEnd = true;
 	if (_isBodyEnd == true)
-	{
-		// _readBuffer.clear();
 		setinfo();
-	}
 	return (0);
 }
 
