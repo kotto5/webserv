@@ -11,7 +11,7 @@
 #include "HTTPContext.hpp"
 #include "ServerContext.hpp"
 #include "LocationContext.hpp"
-#include "ConfigError.hpp"
+#include "ConfigException.hpp"
 #include <fstream>
 #include <vector>
 #include <string>
@@ -19,10 +19,10 @@
 #include <cstdlib>
 #include <algorithm>
 
-void set_non_blocking(int socket) {
-	if (fcntl(socket, F_SETFL, O_NONBLOCK) == -1) {
-		perror("ERROR on fcntl");
-		exit(1);
+void set_non_blocking(int socket){
+	if (fcntl(socket, F_SETFL, O_NONBLOCK) == -1)
+	{
+		throw ServerException("fcntl");
 	}
 }
 
@@ -172,8 +172,7 @@ int	runCgi(Request *request, int socket)
 		// char *argv[] = {php_path, const_cast<char *>(path_query.c_str()), const_cast<char* const*>(cenvs.data())};
 		char *argv[] = {php_path, const_cast<char *>(path_query.c_str())};
 		execve(php_path, argv, (char* const*)(cenvs.data()));
-		perror("execve");
-		exit(1);
+		throw ServerException("execve failed");
 	}
     return (0);
 }

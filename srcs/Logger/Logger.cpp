@@ -2,12 +2,13 @@
 #include <ctime>
 #include <cstring>
 #include <unistd.h>
+#include "ServerException.hpp"
 
 void Logger::initialize(const std::string& accessLogPath, const std::string& errorLogPath)
 {
 	if (_instance != NULL)
 	{
-		throw std::runtime_error("Logger instance already exists.");
+		throw ServerException("Logger instance already exists.");
 	}
 	_instance = new Logger();
 	// ファイルストリームを保持する
@@ -30,7 +31,7 @@ void Logger::openLogFile(std::ofstream &ofs, const std::string &logfile)
 {
 	if (logfile.empty())
 	{
-		throw std::runtime_error("Log file path is empty.");
+		throw ServerException("Log file path is empty.");
 	}
 	// アクセスログファイルを開く（appendモード）
 	ofs.open(logfile.c_str(), std::ios::app);
@@ -45,7 +46,7 @@ Logger* Logger::instance()
 {
 	if (_instance == NULL)
 	{
-		throw std::runtime_error("Logger is not initialized.");
+		throw ServerException("Logger is not initialized.");
 	}
 	return _instance;
 }
@@ -80,13 +81,13 @@ void Logger::writeAccessLog(const Request& request, const Response& response)
  * @param msg
  * @param error_type
  */
-void Logger::writeErrorLog(const ErrorCode::E_TYPE type, const std::string &message, const Request* request)
+void Logger::writeErrorLog(const ErrorCode::e_type type, const std::string &message, const Request* request)
 {
 	std::string error_msg = "Error: ";
 	std::string request_info = "";
 
 	// システムコールの場合はエラー番号からメッセージを取得
-	if (type == ErrorCode::E_SYSCALL)
+	if (type == ErrorCode::SYSTEM_CALL)
 	{
 		error_msg += strerror(errno);
 	}

@@ -9,8 +9,8 @@ namespace
 class LoggerTest : public ::testing::Test
 {
 protected:
-	const std::string accessLogfilePath = "./logs/access.log";
-	const std::string errorLogfilePath = "./logs/error.log";
+	const std::string accessLogfilePath = "./logs/ut_access.log";
+	const std::string errorLogfilePath = "./logs/ut_error.log";
 
 	const std::string method = "GET";
 	const std::string url = "/index.html";
@@ -105,7 +105,7 @@ TEST_F(LoggerTest, writeErrorLog)
 	const Response res = Response(200, headers, body);
 
 	// エラーログへの書き込み
-	Logger::instance()->writeErrorLog(ErrorCode::E_REQ_PARSE, "ErrorMessage", &req);
+	Logger::instance()->writeErrorLog(ErrorCode::REQ_PARSE, "ErrorMessage", &req);
 
 	// ファイルの読み込み
 	std::ifstream ifs(errorLogfilePath);

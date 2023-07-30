@@ -54,7 +54,11 @@ int Response::getStatus() const
 
 std::string Response::getHeader(const std::string &key) const
 {
-	return this->_headers.at(key);
+	if(this->_headers.find(key) != this->_headers.end())
+	{
+		return this->_headers.at(key);
+	}
+	return "";
 }
 
 std::string Response::getBody() const

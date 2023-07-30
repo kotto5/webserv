@@ -8,14 +8,17 @@ class ErrorCode
 {
 public:
 	typedef enum {
-		E_SYSCALL, // システムコールの失敗
-		E_REQ_PARSE, // リクエストの解析に失敗
-		E_RES_PARSE, // レスポンスの解析に失敗
-		E_CONF_PARSE, // 設定ファイルの解析に失敗
-	}	E_TYPE;
+		SYSTEM_CALL, // システムコールの失敗
+		REQ_PARSE, // リクエストの解析に失敗
+		RES_PARSE, // レスポンスの解析に失敗
+		CONF_DUPLICATE_DIRECTIVE, // 設定ファイル：重複したディレクティブ
+		CONF_NOT_ALLOWED_DIRECTIVE, // 設定ファイル：許可されていないディレクティブ
+		CONF_UNKOWN_DIRECTIVE, // 設定ファイル：未知のディレクティブ
+		CONF_SYSTEM_ERROR // 設定ファイル
+	}	e_type;
 
-	static const std::map<E_TYPE, std::string> ERROR_CODE;
-	static const std::string &getErrorMessage(E_TYPE type);
+	static const std::map<e_type, std::string> ERROR_CODE;
+	static const std::string &getErrorMessage(e_type type);
 };
 
 #endif
