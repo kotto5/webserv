@@ -120,7 +120,7 @@ TEST_F(PostHandlerTest, createFileWithInvalidPath)
 	Response res = handler.handleRequest(req);
 
 	// テストデータの検証
-	EXPECT_EQ(res.getStatus(), 500);
+	EXPECT_EQ(res.getStatus(), 404);
 	EXPECT_EQ(res.getBody(), "");
 }
 }
