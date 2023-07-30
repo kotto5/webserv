@@ -74,7 +74,7 @@ Response PostHandler::handleRequest(const Request &request)
 	std::map<std::string, std::string> headers;
 	pos = request.getUri().find_last_of('/');
     std::string uridir = request.getUri().substr(0, pos + 1);
-
 	headers["Location"] = uridir + filename;
+	headers["Content-Type"] = Response::getMimeType(request.getActualUri());
     return (Response(201, headers, ""));
 }

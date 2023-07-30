@@ -9,8 +9,8 @@ namespace
 class LoggerTest : public ::testing::Test
 {
 protected:
-	const std::string accessLogfilePath = "./logs/access.log";
-	const std::string errorLogfilePath = "./logs/error.log";
+	const std::string accessLogfilePath = "./logs/ut_access.log";
+	const std::string errorLogfilePath = "./logs/ut_error.log";
 
 	const std::string method = "GET";
 	const std::string url = "/index.html";
