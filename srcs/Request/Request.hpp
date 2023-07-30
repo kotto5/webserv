@@ -14,6 +14,7 @@ public:
 			const std::map<std::string, std::string> &headers, const std::string &body);
 	Request(const std::string &row_request);
 	Request(const Request &other);
+	Request();
 
 	// Destructor
 	~Request();
@@ -36,6 +37,7 @@ public:
 
 	int	setaddr(ClSocket *clientSocket);
 	static Request *parse(const std::string &row);
+	int	parsing(const std::string &row);
 
 private:
 	// メソッド名
@@ -67,13 +69,16 @@ private:
 	std::string	_server_name;
 	std::string	_server_port;
 
-
 	static	void		setRequestLine(const std::string &line);
 	static	std::string	convertUritoPath(const std::string &uri, const std::string &path);
 	static void			addHeaderToLower(std::map<std::string, std::string>& m, const std::string& inputStr, const std::string& keyword);
 	static void			setRequestLine(const std::string &line, std::string &method, std::string &uri, std::string &protocol);
 	// Not use
-	Request();
+
+	std::string				_readBuffer;
+	std::string::size_type	_readPos;
+	bool					_isHeaderEnd;
+	bool					_isBodyEnd;
 };
 
 #endif

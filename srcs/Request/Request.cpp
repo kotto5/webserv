@@ -9,6 +9,7 @@
 #include <arpa/inet.h>
 #include <cstring>
 #include "utils.hpp"
+#include <algorithm>
 
 // Constructors
 Request::Request(const std::string &method, const std::string &uriAndQuery, const std::string &protocol,
@@ -33,6 +34,8 @@ Request::Request(const std::string &method, const std::string &uriAndQuery, cons
 	this->_path_info = this->_uri.find(_cgi_script_name) == std::string::npos ?
 	"" : this->_uri.substr(this->_uri.find(_cgi_script_name) + _cgi_script_name.length());
 }
+
+Request::Request():_isHeaderEnd(false), _isBodyEnd(false){}
 
 static std::string	getAliasOrRootDirective(LocationContext &Location)
 {
@@ -163,9 +166,6 @@ int	Request::setaddr(ClSocket *clientSocket)
 	return (0);
 }
 
-// Not use
-Request::Request() : _method(), _uri(), _headers(), _body() {}
-
 void	Request::print_all(void) const
 {
 	std::cout << "method: [" << _method << "]" << std::endl;
@@ -233,7 +233,7 @@ static bool	isValidLine(const std::string &line, const bool isRequestLine)
 bool	setBody(std::string &body, const std::string &row, const std::string::size_type startPos, const std::string::size_type content_length)
 {
 	// std::cout << "content_length: " << content_length << std::endl;
-	body = row.substr(startPos + 2, content_length);
+	body += row.substr(startPos + 2, content_length);
 	return (true);
 }
 
@@ -271,4 +271,53 @@ Request	*Request::parse(const std::string &row)
 		// TODO: body = decode_chunked(body);
 	}
 	return (new Request(method, uri, protocol, headers, body));
+}
+
+int	Request::parsing(const std::string &row)
+{
+	_readBuffer += row;
+
+	std::string	line;
+	std::string::size_type endPos;
+	if (_isHeaderEnd == false)
+	{
+		while ((endPos = row.find("\r\n", _readPos)) != _readPos)
+		{
+			if (endPos == std::string::npos) // no new line (incomplete)
+				return (0);
+			line = row.substr(_readPos, endPos - _readPos);
+			if (isValidLine(line, _readPos == 0) == false)
+				return (0);
+			if (_readPos == 0)
+				setRequestLine(line, _method, _uri, _protocol);
+			else
+				addHeaderToLower(_headers, line, ": ");
+			_readPos = endPos + 2; // Skip CRLF
+		}
+		_isHeaderEnd = true;
+	}
+	if (_isBodyEnd == true)
+		return (0);
+	_body += row.substr(_readPos);
+	if (_headers["content-length"].empty() == false)
+	{
+		if (_body.find("\r\n\r\n") == std::string::npos)
+			return (0);
+		std::string::size_type	content_length = std::stoi(_headers["content-length"]); 
+		if (_body.length() > content_length)
+			_body.erase(content_length);
+		_isBodyEnd = true;
+	}
+	else if (_headers["transfer-encoding"] == "chunked")
+	{
+		if (_body.find("\r\n0\r\n\r\n") == std::string::npos)
+			return (0);
+		// TODO: body = decode_chunked(body);
+		_isBodyEnd = true;
+	}
+	else
+		_isBodyEnd = true;
+	if (_isBodyEnd == true)
+		_readBuffer.clear();
+	return (0);
 }
