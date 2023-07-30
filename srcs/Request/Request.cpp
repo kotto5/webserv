@@ -16,7 +16,11 @@ Request::Request(const std::string &method, const std::string &uriAndQuery, cons
 				const std::map<std::string, std::string> &headers, const std::string &body)
 	: _method(method), _uriAndQuery(uriAndQuery), _protocol(protocol), _headers(headers), _body(body)
 {
-	// クエリを取得
+	setinfo();
+}
+
+void	Request::setinfo()
+{
 	std::string::size_type pos = this->_uriAndQuery.find("?");
 	this->_uri = pos == std::string::npos ? this->_uriAndQuery : this->_uriAndQuery.substr(0, pos);
 	this->_query = pos == std::string::npos ? "" : this->_uriAndQuery.substr(pos + 1);
@@ -296,7 +300,7 @@ int	Request::parsing(const std::string &row)
 		}
 		_isHeaderEnd = true;
 	}
-	if (_isBodyEnd == true)
+	if (_isBodyEnd == false)
 		return (0);
 	_body += row.substr(_readPos);
 	if (_headers["content-length"].empty() == false)
@@ -318,6 +322,18 @@ int	Request::parsing(const std::string &row)
 	else
 		_isBodyEnd = true;
 	if (_isBodyEnd == true)
+	{
 		_readBuffer.clear();
+		setinfo();
+	}
 	return (0);
+}
+
+bool	Request::isEnd() const {
+	return (_isHeaderEnd && _isBodyEnd);
+}
+
+std::string	Request::getRowRequest() const
+{
+	return (_readBuffer);
 }

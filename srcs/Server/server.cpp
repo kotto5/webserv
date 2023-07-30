@@ -53,10 +53,12 @@ int	Server::handle_sockets(fd_set *read_fds, fd_set *write_fds, fd_set *expect_f
 		socket = *tmp;
 		if (FD_ISSET(socket->getFd(), read_fds))
 		{
-			ret = recv(socket, Recvs[socket->getFd()]);
+			ret = recv(socket, Requests[socket->getFd()]);
 			does_connected_cgi = (cgi_client.count(socket) == 1);
-			if (does_finish_recv(Recvs[socket->getFd()], does_connected_cgi, ret))
-				finish_recv(tmp, Recvs[socket->getFd()], does_connected_cgi);
+			if (Requests[socket->getFd()]->isEnd() || (does_connected_cgi && ret == 0))
+			{
+				finish_recv(tmp, Requests[socket->getFd()], does_connected_cgi);
+			}
 			--activity;
 		}
 	}
@@ -152,6 +154,7 @@ int	Server::accept(Socket *serverSocket)
 	if (new_socket == NULL)
 		return (0);
 	setFd(TYPE_RECV, new_socket);
+	Requests[new_socket->getFd()] = new Request();
 	std::cout << RED << "New connection, socket fd is " << new_socket->getFd() << ", port is " << ntohs(new_socket->getRemoteaddr().sin_port) << "time " << new_socket->getLastAccess() << DEF << std::endl;
 	return (0);
 }
@@ -179,20 +182,20 @@ int	Server::new_connect_cgi(Request *request, Socket *clientSocket)
 	return (0);
 }
 
-ssize_t	Server::recv(Socket *sock, std::string &recieving) {
+ssize_t	Server::recv(Socket *sock, Request *request) {
 	ssize_t recv_ret;
 
 	sock->updateLastAccess();
 	static char buffer[BUFFER_LEN];
 	memset(buffer, 0, BUFFER_LEN);
 	recv_ret = ::recv(sock->getFd(), buffer, BUFFER_LEN, 0);
-	recieving += buffer;
+	request->parsing(buffer);
 	return (recv_ret);
 }
 
-int	Server::finish_recv(std::list<Socket *>::iterator itr, std::string &recieving, bool is_cgi_connection)
+int	Server::finish_recv(std::list<Socket *>::iterator itr, Request *request, bool is_cgi_connection)
 {
-	std::cout << "finish_recv [" << recieving << "]" << std::endl;
+	std::cout << "finish_recv [" << request->getRowRequest() << "]" << std::endl;
 	int	wstatus;
 
 	if (is_cgi_connection)
@@ -201,13 +204,12 @@ int	Server::finish_recv(std::list<Socket *>::iterator itr, std::string &recievin
 		Socket	*sock = *itr;
 		waitpid(-1, &wstatus, 0);
 		int	client_fd = cgi_client[sock]->getFd();
-		Sends[client_fd] = recieving;
+		Sends[client_fd] = request->getRowRequest();
 		setFd(TYPE_SEND, cgi_client[sock]);
 	}
 	else
 	{
 		ClSocket	*sock = dynamic_cast<ClSocket *>(*itr);
-		Request	*request = Request::parse(recieving);
 		request->setaddr(sock);
 		request->print_all();
 		if (request_wants_cgi(request))
@@ -219,7 +221,7 @@ int	Server::finish_recv(std::list<Socket *>::iterator itr, std::string &recievin
 		}
 		delete (request);
 	}
-	Recvs.erase((*itr)->getFd());
+	Requests.erase((*itr)->getFd());
 	recv_sockets.erase(itr);
 	return (0);
 }

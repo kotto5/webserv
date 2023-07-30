@@ -21,6 +21,7 @@ public:
 
 	// Operators
 	Request &operator=(const Request &rhs);
+	std::string	getRowRequest() const;
 
 	// Getters/Setters
 	std::string getMethod() const;
@@ -38,6 +39,8 @@ public:
 	int	setaddr(ClSocket *clientSocket);
 	static Request *parse(const std::string &row);
 	int	parsing(const std::string &row);
+	bool	isEnd() const;
+	void	setinfo();
 
 private:
 	// メソッド名
