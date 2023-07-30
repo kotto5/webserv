@@ -53,5 +53,5 @@ Response DeleteHandler::handleRequest(const Request &request)
 		return (Response(500));
 	}
 
-    return (Response(200));
+    return (Response(204));
 }
