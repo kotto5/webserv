@@ -181,9 +181,94 @@ void	Request::print_all(void) const
 	std::cout << "content_type: [" << _content_type << "]" << std::endl;
 	std::cout << "cgi_script_name: [" << _cgi_script_name << "]" << std::endl;
 	std::cout << "path_info: [" << _path_info << "]" << std::endl;
-	std::cout << "acutual_uri: [" << _actual_uri << "]" << std::endl;
+	std::cout << "actual_uri: [" << _actual_uri << "]" << std::endl;
 	std::cout << "remote_addr: [" << _remote_addr << "]" << std::endl;
 	std::cout << "remote_host: [" << _remote_host << "]" << std::endl;
 	std::cout << "server_name: [" << _server_name << "]" << std::endl;
 	std::cout << "server_port: [" << _server_port << "]" << std::endl;
+}
+
+void	Request::addHeaderToLower(std::map<std::string, std::string>& m, const std::string& inputStr, const std::string& keyword) {
+	size_t pos = inputStr.find(keyword);
+
+	if (pos != std::string::npos) {
+		std::string part1 = inputStr.substr(0, pos);
+		std::string part2 = inputStr.substr(pos + keyword.length());
+
+		transform(part1.begin(), part1.end(), part1.begin(), ::tolower);
+		m.insert(std::map<std::string, std::string>::value_type(part1, part2));
+	}
+}
+
+void	Request::setRequestLine(const std::string &line, std::string &method, std::string &uri, std::string &protocol)
+{
+	std::string::size_type	method_end = line.find(" ");
+	std::string::size_type	uri_end = line.find(" ", method_end + 1);
+	method = line.substr(0, method_end);
+	uri = line.substr(method_end + 1, uri_end - method_end - 1);
+	protocol = line.substr(uri_end + 1);
+}
+
+static bool	isValidLine(const std::string &line, const bool isRequestLine)
+{
+	if (isRequestLine)
+	{
+		long sp_count = std::count(line.begin(), line.end(), ' ');
+		if (sp_count != 2)
+			return (false);
+		std::string::size_type	sp1 = line.find(" ");
+		std::string::size_type	sp2 = line.find(" ", sp1 + 1);
+		if (sp1 == sp2 + 1 || sp2 == static_cast<std::string::size_type>(line.end() - line.begin() - 1))
+			return (false);
+	}
+	else
+	{
+		std::string::size_type	colon = line.find(": ");
+		if (colon == std::string::npos || colon == 0 || colon == line.length() - 2)
+			return (false);
+	}
+	return (true);
+}
+
+bool	setBody(std::string &body, const std::string &row, const std::string::size_type startPos, const std::string::size_type content_length)
+{
+	// std::cout << "content_length: " << content_length << std::endl;
+	body = row.substr(startPos + 2, content_length);
+	return (true);
+}
+
+Request	*Request::parse(const std::string &row)
+{
+	std::string method;
+	std::string uri;
+	std::string protocol;
+	std::map<std::string, std::string> headers;
+	std::string body;
+
+	std::string::size_type startPos = 0;
+	std::string::size_type endPos;
+	std::string	line;
+	while ((endPos = row.find("\r\n", startPos)) != std::string::npos)
+	{
+		if (endPos == startPos) // empty line
+			break;
+		line = row.substr(startPos, endPos - startPos);		
+		if (isValidLine(line, startPos == 0) == false)
+			return (NULL);
+		if (startPos == 0)
+			setRequestLine(line, method, uri, protocol);
+		else
+			addHeaderToLower(headers, line, ": ");
+		startPos = endPos + 2; // Skip CRLF
+	}
+	std::string content_length = headers["content-length"];
+	if (content_length.empty() == false)
+		setBody(body, row, startPos, std::stoi(content_length));
+	if (headers.find("Transfer-Encoding") != headers.end() && headers["Transfer-Encoding"] == "chunked")
+	{
+		std::string::size_type	end_of_body = row.find("\r\n0\r\n\r\n");
+		body = row.substr(startPos, end_of_body - startPos);
+		// TODO: body = decode_chunked(body);
+	}
+	return (new Request(method, uri, protocol, headers, body));
 }
