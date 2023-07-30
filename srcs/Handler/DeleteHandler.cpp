@@ -5,6 +5,7 @@
 #include <filesystem>
 #include "utils.hpp"
 #include <cstdio>
+#include "Logger.hpp"
 
 // Constructors
 DeleteHandler::DeleteHandler()
@@ -41,17 +42,20 @@ Response DeleteHandler::handleRequest(const Request &request)
 {
     std::string filename = request.getActualUri();
 
-	if (!isDirectory(filename.c_str()))
+	if (!pathExist(filename.c_str()))
 	{
-		std::cerr << "Error: file not exist." << std::endl;
+		Logger::instance()->writeErrorLog(ErrorCode::DELETE_FILE_NOT_EXIST, "", &request);
 		return (Response(404));
 	}
 	if (remove(filename.c_str()))
 	{
-		std::cerr << "Error: file not deleted." << std::endl;
-		perror("remove");
+		if (errno == EACCES)
+		{
+			Logger::instance()->writeErrorLog(ErrorCode::DELETE_FILE_NO_PERMISSION, "", &request);
+			return (Response(403));
+		}
+		Logger::instance()->writeErrorLog(ErrorCode::SYSTEM_CALL, "", &request);
 		return (Response(500));
 	}
-
     return (Response(204));
 }

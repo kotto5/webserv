@@ -65,7 +65,7 @@ TEST_F(DeleteHandlerTest, deleteFileWithInvalidPath)
 	EXPECT_EQ(res.getBody(), "");
 }
 
-// 2.ファイルの削除に失敗した場合にエラーになるか
+// 2. ファイルの削除に失敗した場合にエラーになるか
 TEST_F(DeleteHandlerTest, deleteFileFailed)
 {
 	// テストファイルを作成
@@ -80,8 +80,10 @@ TEST_F(DeleteHandlerTest, deleteFileFailed)
 	Response res = handler.handleRequest(req);
 
 	// テストデータの検証
-	EXPECT_EQ(res.getStatus(), 500);
+	EXPECT_EQ(res.getStatus(), 404);
 	EXPECT_EQ(res.getBody(), "");
-}
 
+	// テストファイルのパーミッションを戻す
+	chmod("docs/resource/unit_test/", 0777);
+}
 }
