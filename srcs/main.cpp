@@ -46,6 +46,12 @@ void runServer()
 {
 	try
 	{
+		// ロギング初期化
+		Logger::initialize(
+			Config::instance()->getHTTPBlock().getAccessLogFile(),
+			Config::instance()->getHTTPBlock().getErrorLogFile()
+		);
+
 		// シグナルハンドラ設定
 		setSignalHandler();
 		// サーバー起動
@@ -76,20 +82,15 @@ int main(int argc, char **argv)
 			Config::initialize();
 		else
 			Config::initialize(argv[1]);
-		// ロギング初期化
-		Logger::initialize(
-			Config::instance()->getHTTPBlock().getAccessLogFile(),
-			Config::instance()->getHTTPBlock().getErrorLogFile()
-		);
-		// サーバー起動
-		runServer();
-		Config::release();
-		Logger::release();
 	}
 	catch(const ConfigException& e)
 	{
 		std::cerr << e.what() << std::endl;
 		std::exit(1);
 	}
+	// サーバー起動
+	runServer();
+	Config::release();
+	Logger::release();
 	return 0;
 }
