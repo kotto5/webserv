@@ -5,8 +5,9 @@
 #include <map>
 #include <string>
 #include "Socket.hpp"
+#include "HttpMessage.hpp"
 
-class Request
+class Request : public HttpMessage
 {
 public:
 	// Constructors
@@ -20,44 +21,28 @@ public:
 
 	// Operators
 	Request &operator=(const Request &rhs);
-	std::string	getRowRequest() const;
 
 	// Getters/Setters
-	std::string getMethod() const;
-	std::string getUri() const;
-	std::string	getProtocol() const;
-	std::string getHeader(const std::string &key) const;
-	std::string getBody() const;
-
-	std::string	getActualUri() const;
+	const std::string	&getMethod() const;
+	const std::string	&getUri() const;
+	const std::string	&getActualUri() const;
 
 	std::string	convertUritoPath(const std::string &uri);
 	void		print_all() const;
 	int			seturi();
-
-	int	setaddr(ClSocket *clientSocket);
-	int	parsing(const std::string &row);
-	bool	isEnd() const;
-	void	setinfo();
+	int			setaddr(ClSocket *clientSocket);
+	void		setinfo();
 
 private:
-	// メソッド名
+	virtual	void			setFirstLine(const std::string &line);
+
 	std::string _method;
-	// URIとクエリ
 	std::string _uriAndQuery;
-	// URI
 	std::string _uri;
-	// クエリ
 	std::string _query;
-	// プロトコル
-	std::string _protocol;
-	// ヘッダ
 	std::map<std::string, std::string> _headers;
-	// ボディ
 	std::string _body;
-	// パス
 	std::string _actual_uri;
-	// IP
 	std::string _ip;
 
 	std::size_t _content_length;
@@ -70,17 +55,6 @@ private:
 	std::string	_server_name;
 	std::string	_server_port;
 
-	static	void		setRequestLine(const std::string &line);
-	static	std::string	convertUritoPath(const std::string &uri, const std::string &path);
-	static void			addHeaderToLower(std::map<std::string, std::string>& m, const std::string& inputStr, const std::string& keyword);
-	static void			setRequestLine(const std::string &line, std::string &method, std::string &uri, std::string &protocol);
-	void				setBody(const std::string &row);
-	// Not use
-
-	std::string				_readBuffer;
-	std::string::size_type	_readPos;
-	bool					_isHeaderEnd;
-	bool					_isBodyEnd;
 };
 
 #endif

@@ -187,7 +187,7 @@ ssize_t	Server::recv(Socket *sock, Request *request) {
 
 int	Server::finish_recv(std::list<Socket *>::iterator itr, Request *request, bool is_cgi_connection)
 {
-	std::cout << "finish_recv [" << request->getRowRequest() << "]" << std::endl;
+	std::cout << "finish_recv [" << request->getRow() << "]" << std::endl;
 	int	wstatus;
 
 	if (is_cgi_connection)
@@ -196,13 +196,14 @@ int	Server::finish_recv(std::list<Socket *>::iterator itr, Request *request, boo
 		Socket	*sock = *itr;
 		waitpid(-1, &wstatus, 0);
 		int	client_fd = cgi_client[sock]->getFd();
-		Sends[client_fd] = request->getRowRequest();
+		Sends[client_fd] = request->getRow();
 		setFd(TYPE_SEND, cgi_client[sock]);
 	}
 	else
 	{
 		ClSocket	*sock = dynamic_cast<ClSocket *>(*itr);
 		request->setaddr(sock);
+		request->setinfo();
 		request->print_all();
 		if (request_wants_cgi(request))
 			new_connect_cgi(request, sock);
