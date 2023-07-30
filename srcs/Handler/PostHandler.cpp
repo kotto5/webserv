@@ -60,14 +60,13 @@ Response PostHandler::handleRequest(const Request &request)
 	if (i == SIZE_MAX)
 	{
 		// ファイル数が上限に達した
-		Logger::instance()->writeErrorLog(ErrorCode::POST_INDEX_FULL, NULL, &request);
+		Logger::instance()->writeErrorLog(ErrorCode::POST_INDEX_FULL, "", &request);
 		return (Response(500));
 	}
-	std::cout << filedir << std::endl;
 	if (!pathExist(filedir.c_str()))
 	{
 		// ディレクトリが存在しない
-		Logger::instance()->writeErrorLog(ErrorCode::POST_NOT_EXISTS, NULL, &request);
+		Logger::instance()->writeErrorLog(ErrorCode::POST_NOT_EXISTS, "", &request);
 		return (Response(404));
 	}
 	std::ofstream ofs(filedir + filename, std::ios::out);
@@ -76,10 +75,10 @@ Response PostHandler::handleRequest(const Request &request)
 		if (errno == EACCES)
 		{
 			// ファイルにアクセスできない
-			Logger::instance()->writeErrorLog(ErrorCode::POST_FILE_ACCESS, NULL, &request);
+			Logger::instance()->writeErrorLog(ErrorCode::POST_FILE_ACCESS, "j", &request);
 			return (Response(403));
 		}
-		Logger::instance()->writeErrorLog(ErrorCode::POST_FILE_OPEN, NULL, &request);
+		Logger::instance()->writeErrorLog(ErrorCode::POST_FILE_OPEN, "", &request);
 		return (Response(500));
     }
 	std::string body = request.getBody();

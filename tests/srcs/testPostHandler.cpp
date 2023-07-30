@@ -123,4 +123,21 @@ TEST_F(PostHandlerTest, createFileWithInvalidPath)
 	EXPECT_EQ(res.getStatus(), 404);
 	EXPECT_EQ(res.getBody(), "");
 }
+
+TEST_F(PostHandlerTest, createFileFailed)
+{
+	// ディレクトリのパーミッションを変更
+	chmod("docs/resource/unit_test/", 0000);
+
+	PostHandler handler;
+	Request req(method, "/resource/unit_test/sample.txt", protocol, headers, body);
+	Response res = handler.handleRequest(req);
+
+	// テストデータの検証
+	EXPECT_EQ(res.getStatus(), 403);
+	EXPECT_EQ(res.getBody(), "");
+
+	// テストファイルのパーミッションを戻す
+	chmod("docs/resource/unit_test/", 0777);
+}
 }
