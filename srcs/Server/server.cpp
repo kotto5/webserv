@@ -207,7 +207,7 @@ int	Server::finish_recv(std::list<Socket *>::iterator itr, std::string &recievin
 	else
 	{
 		ClSocket	*sock = dynamic_cast<ClSocket *>(*itr);
-		Request	*request = parse_request(recieving);
+		Request	*request = Request::parse(recieving);
 		request->setaddr(sock);
 		request->print_all();
 		if (request_wants_cgi(request))
@@ -270,72 +270,6 @@ int	Server::create_server_socket(int port)
 		return (1);
 	server_sockets.push_back(socket);
 	return (0);
-}
-
-bool	is_valid_line(const std::string &line, const bool is_requestline)
-{
-	if (is_requestline)
-	{
-		long sp_count = std::count(line.begin(), line.end(), ' ');
-		if (sp_count != 2)
-			return (false);
-		std::string::size_type	sp1 = line.find(" ");
-		std::string::size_type	sp2 = line.find(" ", sp1 + 1);
-		if (sp1 == sp2 + 1 || sp2 == static_cast<std::string::size_type>(line.end() - line.begin() - 1))
-			return (false);
-	}
-	else
-	{
-		std::string::size_type	colon = line.find(": ");
-		if (colon == std::string::npos || colon == 0 || colon == line.length() - 2)
-			return (false);
-	}
-	return (true);
-}
-
-Request	*Server::parse_request(const std::string &row_request)
-{
-	std::string method;
-	std::string uri;
-	std::string protocol;
-	std::map<std::string, std::string> headers;
-	std::string body;
-
-	std::string::size_type startPos = 0;
-	std::string::size_type endPos;
-	std::string	line;
-	while ((endPos = row_request.find("\r\n", startPos)) != std::string::npos)
-	{
-		if (endPos == startPos) // empty line
-			break;
-		line = row_request.substr(startPos, endPos - startPos);
-		if (is_valid_line(line, startPos == 0) == false)
-			return (NULL);
-		if (startPos == 0){
-			std::string::size_type	method_end = line.find(" ");
-			std::string::size_type	uri_end = line.find(" ", method_end + 1);
-			method = line.substr(0, method_end);
-			uri = line.substr(method_end + 1, uri_end - method_end - 1);
-			protocol = line.substr(uri_end + 1);
-		}
-		else
-			partitionAndAddToMap(headers, line, ": ");
-		startPos = endPos + 2; // Skip CRLF
-	}
-	std::string content_length_name = "content-length";
-	if (headers.find(content_length_name) != headers.end())
-	{
-		std::string::size_type	content_length = std::stoi(headers[content_length_name]);
-		std::cout << "content_length: " << content_length << std::endl;
-		body = row_request.substr(startPos + 2, content_length);
-	}
-	if (headers.find("Transfer-Encoding") != headers.end() && headers["Transfer-Encoding"] == "chunked")
-	{
-		std::string::size_type	end_of_body = row_request.find("\r\n0\r\n\r\n");
-		body = row_request.substr(startPos, end_of_body - startPos);
-		// TODO: body = decode_chunked(body);
-	}
-	return (new Request(method, uri, protocol, headers, body));
 }
 
 std::string	Server::make_response(Request *request){

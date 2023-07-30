@@ -35,6 +35,7 @@ public:
 	int			seturi();
 
 	int	setaddr(ClSocket *clientSocket);
+	static Request *parse(const std::string &row);
 
 private:
 	// メソッド名
@@ -66,6 +67,11 @@ private:
 	std::string	_server_name;
 	std::string	_server_port;
 
+
+	static	void		setRequestLine(const std::string &line);
+	static	std::string	convertUritoPath(const std::string &uri, const std::string &path);
+	static void			addHeaderToLower(std::map<std::string, std::string>& m, const std::string& inputStr, const std::string& keyword);
+	static void			setRequestLine(const std::string &line, std::string &method, std::string &uri, std::string &protocol);
 	// Not use
 	Request();
 };

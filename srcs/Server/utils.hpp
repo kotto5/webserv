@@ -17,7 +17,6 @@ enum {
 
 void	set_non_blocking(int socket);
 size_t	find_start(const std::string &str, size_t start, const std::string &target);
-void	partitionAndAddToMap(std::map<std::string, std::string>& m, const std::string& inputStr, const std::string& keyword);
 int     _socketpair(int domain, int type, int protocol, int sv[2]);
 int		runCgi(Request *request, int socket);
 int		isValidFd(int fd);
