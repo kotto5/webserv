@@ -86,7 +86,6 @@ TEST_F(LoggerTest, writeAccessLog)
 	{
 		std::cout << "file not open" << std::endl;
 	}
-	sleep(1);
 	std::string line;
 	std::getline(ifs, line);
 
