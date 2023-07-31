@@ -3,8 +3,7 @@
 #include "MimeType.hpp"
 #include <ctime>
 
-// Constructors
-Response::Response(const int status, std::map<std::string, std::string> headers,
+Response::Response(const std::string &status, std::map<std::string, std::string> headers,
 				   const std::string &body)
 	: _status(status), _headers(headers), _body(body)
 {
@@ -16,13 +15,14 @@ Response::Response(const int status, std::map<std::string, std::string> headers,
 	setServer();
 }
 
-Response::Response(const int status)
+Response::Response(const std::string &status)
 	: _status(status)
 {
 	setDate();
 	setContentLength();
 	setServer();
 }
+
 
 Response::Response(const Response &other)
 {
@@ -46,11 +46,11 @@ Response &Response::operator=(const Response &rhs)
 	return *this;
 }
 
-// Getters/setters
-int Response::getStatus() const
+const std::string   &Response::getStatus() const
 {
 	return this->_status;
 }
+
 
 std::string Response::getHeader(const std::string &key) const
 {
@@ -72,7 +72,7 @@ std::string Response::getBody() const
  * @param statusCode ステータスコード
  * @return std::string ステータスメッセージ
  */
-std::string Response::getStatusMessage(int statusCode) const
+const std::string	&Response::getStatusMessage(const std::string &statusCode) const
 {
 	return HttpStatus::HTTP_STATUS.at(statusCode);
 }
@@ -90,7 +90,7 @@ std::string Response::toString() const
 	std::string response;
 
 	// ステータス行を平文に変換
-	response += "HTTP/1.1 " + std::to_string(this->_status) + " " +
+	response += "HTTP/1.1 " + this->_status + " " +
 				getStatusMessage(this->_status) + "\r\n";
 
 	// ヘッダーを平文に変換

@@ -9,7 +9,7 @@
 PostHandler::PostHandler()
 {
 	// 規定値を200に設定
-	this->_status = 200;
+	this->_status = "200";
 }
 
 PostHandler::PostHandler(const PostHandler &other)
@@ -59,13 +59,13 @@ Response PostHandler::handleRequest(const Request &request)
 	if (i == SIZE_MAX)
 	{
         std::cerr << "Error: can not create file in this name more" << std::endl;
-		return (Response(500));
+		return (Response("500"));
 	}
 	ofs.open(filedir + filename, std::ios::out);
     if (!ofs)
     {
         std::cerr << "Error: file not opened." << std::endl;
-		return (Response(500));
+		return (Response("500"));
     }
 	std::string body = request.getBody();
     ofs << body;
@@ -76,5 +76,5 @@ Response PostHandler::handleRequest(const Request &request)
     std::string uridir = request.getUri().substr(0, pos + 1);
 	headers["Location"] = uridir + filename;
 	headers["Content-Type"] = Response::getMimeType(request.getActualUri());
-    return (Response(201, headers, ""));
+    return (Response("201", headers, ""));
 }

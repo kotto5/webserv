@@ -10,7 +10,7 @@
 DeleteHandler::DeleteHandler()
 {
 	// 規定値を200に設定
-	this->_status = 200;
+	this->_status = "200";
 }
 
 DeleteHandler::DeleteHandler(const DeleteHandler &other)
@@ -44,14 +44,14 @@ Response DeleteHandler::handleRequest(const Request &request)
 	if (!isDirectory(filename.c_str()))
 	{
 		std::cerr << "Error: file not exist." << std::endl;
-		return (Response(404));
+		return (Response("404"));
 	}
 	if (remove(filename.c_str()))
 	{
 		std::cerr << "Error: file not deleted." << std::endl;
 		perror("remove");
-		return (Response(500));
+		return (Response("500"));
 	}
 
-    return (Response(200));
+    return (Response("200"));
 }

@@ -9,8 +9,8 @@ class Response
 {
 public:
 	// Constructors
-	Response(const int status, std::map<std::string, std::string> headers, const std::string &body);
-	Response(const int status);
+	Response(const std::string &status, std::map<std::string, std::string> headers, const std::string &body);
+	Response(const std::string &status);
 	Response(const Response &other);
 
 	// Destructor
@@ -24,13 +24,15 @@ public:
 	static std::string getMimeType(const std::string &filename);
 
 	// Getters/setters
-	int getStatus() const;
+	const std::string	&getStatus() const;
 	std::string getHeader(const std::string &key) const;
 	std::string getBody() const;
 
 private:
 	// ステータスコード
-	int _status;
+	std::string _status;
+	std::string _statusMessage;
+
 	// ヘッダー
 	std::map<std::string, std::string> _headers;
 	// ボディ
@@ -40,7 +42,7 @@ private:
 	static std::map<std::string, std::string> extensionToMime;
 
 	// ステータスコードから該当するメッセージを取得する
-	std::string getStatusMessage(int statusCode) const;
+	const std::string	&getStatusMessage(const std::string &statusCode) const;
 
 	// 現在日時をセットする
 	void setDate();

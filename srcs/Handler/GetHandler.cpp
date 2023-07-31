@@ -7,7 +7,7 @@
 GetHandler::GetHandler()
 {
 	// 規定値を200に設定
-	this->_status = 200;
+	this->_status = "200";
 }
 
 GetHandler::GetHandler(const GetHandler &other)
@@ -42,7 +42,7 @@ Response GetHandler::handleRequest(const Request &request)
 	if (!htmlFile.is_open())
 	{
 		// ファイルが開けなかった場合は404を返す
-		this->_status = 404;
+		this->_status = "404";
 	}
 
 	// ファイルの内容を読み込む
