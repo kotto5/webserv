@@ -13,14 +13,17 @@ Response::Response(const std::string &status, std::map<std::string, std::string>
 	setContentLength();
 	// ヘッダーにServerを追加
 	setServer();
+	_row = toString();
 }
 
 Response::Response(const std::string &status)
 	: _status(status)
 {
+	_body = "";
 	setDate();
 	setContentLength();
 	setServer();
+	_row = toString();
 }
 
 
@@ -171,3 +174,12 @@ std::string Response::getMimeType(const std::string &filename)
 
 // Not use
 Response::Response() {}
+
+void	Response::setFirstLine(const std::string &line)
+{
+	std::string::size_type	method_end = line.find(" ");
+	std::string::size_type	uri_end = line.find(" ", method_end + 1);
+	_protocol = line.substr(0, method_end);
+	_status = line.substr(method_end + 1, uri_end - method_end - 1);
+	_statusMessage = line.substr(uri_end + 1);
+}

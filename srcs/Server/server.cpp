@@ -54,11 +54,11 @@ int	Server::handle_sockets(fd_set *read_fds, fd_set *write_fds, fd_set *expect_f
 		socket = *tmp;
 		if (FD_ISSET(socket->getFd(), read_fds))
 		{
-			ret = recv(socket, Requests[socket->getFd()]);
+			ret = recv(socket, Recvs[socket->getFd()]);
 			does_connected_cgi = (cgi_client.count(socket) == 1);
-			if (Requests[socket->getFd()]->isEnd() || (does_connected_cgi && ret == 0))
+			if (Recvs[socket->getFd()]->isEnd() || (does_connected_cgi && ret == 0))
 			{
-				finish_recv(tmp, Requests[socket->getFd()], does_connected_cgi);
+				finish_recv(tmp, Recvs[socket->getFd()], does_connected_cgi);
 			}
 			--activity;
 		}
@@ -71,10 +71,11 @@ int	Server::handle_sockets(fd_set *read_fds, fd_set *write_fds, fd_set *expect_f
 		{
 			ret = send(*tmp, Sends[socket->getFd()]);
 			does_connected_cgi = (cgi_client.count(socket) == 1);
-			if (does_finish_send(Sends[socket->getFd()], ret))
+			// if (does_finish_send(Sends[socket->getFd()]->getRow(), ret))
+			if (Sends[socket->getFd()]->doesSendEnd())
 				finish_send(tmp, does_connected_cgi);
-			else if (ret != -1)
-				Sends[socket->getFd()] = Sends[socket->getFd()].substr(ret);
+			// else if (ret != -1)
+			// 	Sends[socket->getFd()] = Sends[socket->getFd()].substr(ret);
 			--activity;
 		}
 	}
@@ -132,7 +133,7 @@ int	Server::run()
 		Server::set_fd_set(read_fds, recv_sockets, max_fd);
 		Server::set_fd_set(write_fds, send_sockets, max_fd);
 
-		int activity = select(max_fd + 1,&read_fds, &write_fds, NULL, &timeout);
+		int	activity = select(max_fd + 1,&read_fds, &write_fds, NULL, &timeout);
 		if (activity == -1)
 			throw ServerException("select");
 		if (activity == 0 && check_timeout())
@@ -142,7 +143,6 @@ int	Server::run()
 }
 
 Server::Server() {}
-
 Server::~Server() {}
 
 int	Server::accept(Socket *serverSocket)
@@ -152,7 +152,7 @@ int	Server::accept(Socket *serverSocket)
 	if (new_socket == NULL)
 		return (0);
 	setFd(TYPE_RECV, new_socket);
-	Requests[new_socket->getFd()] = new Request();
+	Recvs[new_socket->getFd()] = new Request();
 	std::cout << RED << "New connection, socket fd is " << new_socket->getFd() << ", port is " << ntohs(new_socket->getRemoteaddr().sin_port) << "time " << new_socket->getLastAccess() << DEF << std::endl;
 	return (0);
 }
@@ -170,24 +170,25 @@ int	Server::new_connect_cgi(Request *request, Socket *clientSocket)
 	Socket *socket = new Socket(sockets[S_PARENT]);
 	setFd(TYPE_SEND, socket);
 	setFd(TYPE_CGI, socket, clientSocket);
-	Sends[sockets[S_PARENT]] = request->getBody();
+	Sends[sockets[S_PARENT]] = request;
 	return (0);
 }
 
-ssize_t	Server::recv(Socket *sock, Request *request) {
+ssize_t	Server::recv(Socket *sock, HttpMessage *message) {
 	ssize_t recv_ret;
 
 	sock->updateLastAccess();
 	static char buffer[BUFFER_LEN];
 	memset(buffer, 0, BUFFER_LEN);
 	recv_ret = ::recv(sock->getFd(), buffer, BUFFER_LEN, 0);
-	request->parsing(buffer);
+	message->parsing(buffer);
 	return (recv_ret);
 }
 
-int	Server::finish_recv(std::list<Socket *>::iterator itr, Request *request, bool is_cgi_connection)
+// bool じゃなくて dynamic_cast で判定したほうがいいかも
+int	Server::finish_recv(std::list<Socket *>::iterator itr, HttpMessage *message, bool is_cgi_connection)
 {
-	std::cout << "finish_recv [" << request->getRow() << "]" << std::endl;
+	std::cout << "finish_recv [" << message->getRow() << "]" << std::endl;
 	int	wstatus;
 
 	if (is_cgi_connection)
@@ -196,12 +197,13 @@ int	Server::finish_recv(std::list<Socket *>::iterator itr, Request *request, boo
 		Socket	*sock = *itr;
 		waitpid(-1, &wstatus, 0);
 		int	client_fd = cgi_client[sock]->getFd();
-		Sends[client_fd] = request->getRow();
+		Sends[client_fd] = message;
 		setFd(TYPE_SEND, cgi_client[sock]);
 	}
 	else
 	{
-		ClSocket	*sock = dynamic_cast<ClSocket *>(*itr);
+		Request		*request = (Request *)message;
+		ClSocket	*sock = (ClSocket *)*itr;
 		request->setaddr(sock);
 		request->setinfo();
 		request->print_all();
@@ -209,12 +211,12 @@ int	Server::finish_recv(std::list<Socket *>::iterator itr, Request *request, boo
 			new_connect_cgi(request, sock);
 		else
 		{
-			Sends[sock->getFd()] = make_response(request);
+			Sends[sock->getFd()] = makeResponse(request);
 			setFd(TYPE_SEND, sock);
 		}
-		delete (request);
 	}
-	Requests.erase((*itr)->getFd());
+	delete (message);
+	Recvs.erase((*itr)->getFd());
 	recv_sockets.erase(itr);
 	return (0);
 }
@@ -226,15 +228,16 @@ bool	Server::request_wants_cgi(Request *request)
 	return (false);
 }
 
-ssize_t		Server::send(Socket *sock, std::string &response)
+ssize_t		Server::send(Socket *sock, HttpMessage *message)
 {
 	ssize_t ret;
 	const char *buffer;
 
 	sock->updateLastAccess();
-	buffer = response.c_str();
+	buffer = message->getSendBuffer();
 	std::cout << "[" << buffer << "] is response" << std::endl;
-	ret = ::send(sock->getFd(), (void *)buffer, response.length(), 0);
+	ret = ::send(sock->getFd(), buffer, std::strlen(buffer), 0);
+	message->addSendPos(ret);
 	return (ret);
 }
 
@@ -267,15 +270,15 @@ int	Server::create_server_socket(int port)
 	return (0);
 }
 
-std::string	Server::make_response(Request *request){
+Response	*Server::makeResponse(Request *request){
 	Router	router;
 	IHandler	*handler = router.createHandler(*request);
 	if (handler == NULL)
-		return ("HTTP/1.1 404 Not Found\r\n\r\n");
-	Response response = handler->handleRequest(*request);
-	Logger::instance()->writeAccessLog(*request, response);
+		return (new Response("404"));
+	Response	*response = handler->handleRequest(*request);
+	Logger::instance()->writeAccessLog(*request, *response);
 	delete handler;
-	return (response.toString());
+	return (response);
 }
 
 bool	Server::does_finish_recv(const std::string &request, bool is_cgi_connection, ssize_t recv_ret)

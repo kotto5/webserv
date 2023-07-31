@@ -17,6 +17,8 @@
 #include "Request.hpp"
 #include <list>
 #include "Socket.hpp"
+#include "HttpMessage.hpp"
+#include "Response.hpp"
 
 #define BUFFER_LEN 1024
 #define MAX_CLIENTS 1024
@@ -39,8 +41,8 @@ class Server {
 		std::list<Socket *>				server_sockets;
 		std::list<Socket *>				recv_sockets;
 		std::list<Socket *>				send_sockets;
-		std::map<int, Request *>		Requests;
-		std::map<int, std::string>		Sends;
+		std::map<int, HttpMessage *>	Recvs;
+		std::map<int, HttpMessage *>	Sends;
 		std::map<Socket *, Socket *>	cgi_client;
 		timeval							timeout;
 
@@ -52,9 +54,9 @@ class Server {
 		int					run();
 		int					handle_sockets(fd_set *read_fds, fd_set *write_fds, fd_set *expect_fds, int &activity);
 		int					accept(Socket *serverSocket);
-		ssize_t				recv(Socket *, Request *request);
-		ssize_t				send(Socket *, std::string &response);
-		int					finish_recv(std::list<Socket *>::iterator itr, Request *request, bool is_cgi_connection);
+		ssize_t				recv(Socket *sock, HttpMessage *message);
+		ssize_t				send(Socket *sock, HttpMessage *message);
+		int					finish_recv(std::list<Socket *>::iterator itr, HttpMessage *request, bool is_cgi_connection);
 		int					finish_send(std::list<Socket *>::iterator itr, bool is_cgi_connection);
 		bool				request_wants_cgi(Request *request);
 		int					new_connect_cgi(Request *request, Socket *clientSocket);
@@ -66,7 +68,7 @@ class Server {
 	static bool			does_finish_send(const std::string &request, ssize_t recv_ret);
 	static int			set_fd_set(fd_set &set, std::list<Socket *> sockets, int &maxFd);
 	static Request		*parse_request(const std::string &row_request);
-	static std::string	make_response(Request *request);
+	static Response		*makeResponse(Request *request);
 };
 
 #endif

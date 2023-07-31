@@ -3,26 +3,34 @@
 std::string HttpMessage::_empty = "";
 
 HttpMessage::HttpMessage()
-    : _readPos(0), _isHeaderEnd(false), _isBodyEnd(false)
+    : _isHeaderEnd(false), _isBodyEnd(false), _readPos(0), _sendPos(0), _sendBuffer(NULL)
 {
+	_doesSendEnd = false;
 }
 
-HttpMessage::~HttpMessage() {}
+// HttpMessage(const std::string &protocol, std::map<std::string, std::string> headers, const std::string &body)
+// 	: _protocol(protocol), _headers(headers), _body(body), _readPos(0), _isHeaderEnd(false), _isBodyEnd(false)
+// {}
+
+HttpMessage::~HttpMessage() {
+	if (_sendBuffer != NULL)
+		delete[] _sendBuffer;
+}
 
 int	HttpMessage::parsing(const std::string &row)
 {
-	_readBuffer += row;
+	_row += row;
 	std::cout << "row: [" << row << "]" << std::endl;
 
 	std::string	line;
 	std::string::size_type endPos;
 	if (_isHeaderEnd == false)
 	{
-		while ((endPos = _readBuffer.find("\r\n", _readPos)) != _readPos)
+		while ((endPos = _row.find("\r\n", _readPos)) != _readPos)
 		{
 			if (endPos == std::string::npos) // no new line (incomplete)
 				return (0);
-			line = _readBuffer.substr(_readPos, endPos - _readPos);
+			line = _row.substr(_readPos, endPos - _readPos);
 			if (isValidLine(line, _readPos == 0) == false)
 				return (1);
 			if (_readPos == 0)
@@ -104,7 +112,7 @@ bool	HttpMessage::isEnd() const
 
 const std::string   &HttpMessage::getRow() const
 {
-	return (_readBuffer);
+	return (_row);
 }
 
 const   std::string &HttpMessage::getBody() const {
@@ -122,4 +130,38 @@ const std::string   &HttpMessage::getHeader(const std::string &key) const
 const std::string   &HttpMessage::getProtocol() const
 {
     return (_protocol);
+}
+
+// std::size_t	HttpMessage::getSendPos() const
+// {
+// 	return (_sendPos);
+// }
+
+void	HttpMessage::addSendPos(std::size_t pos)
+{
+	_sendPos += pos;
+	if (_sendPos == _row.length())
+	{
+		_doesSendEnd = true;
+		delete[] _sendBuffer;
+		_sendBuffer = NULL;
+	}
+}
+
+const char	*HttpMessage::getSendBuffer()
+{
+	if (_doesSendEnd == true)
+		return (NULL);
+	if (_sendBuffer == NULL)
+	{
+		// _sendBuffer = _row.c_str();
+		_sendBuffer = new char[_row.length() + 1];
+		std::memcpy((void *)_sendBuffer, (void *)_row.c_str(), _row.length() + 1);
+	}
+	return (_sendBuffer);
+}
+
+bool	HttpMessage::doesSendEnd() const
+{
+	return (_doesSendEnd);
 }

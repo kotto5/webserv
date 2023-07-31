@@ -4,8 +4,8 @@
 #include <iostream>
 #include <map>
 #include <string>
-
-class Response
+#include "HttpMessage.hpp"
+class Response : public HttpMessage
 {
 public:
 	// Constructors
@@ -25,8 +25,8 @@ public:
 
 	// Getters/setters
 	const std::string	&getStatus() const;
-	std::string getHeader(const std::string &key) const;
-	std::string getBody() const;
+	std::string			getHeader(const std::string &key) const;
+	std::string			getBody() const;
 
 private:
 	// ステータスコード
@@ -53,6 +53,7 @@ private:
 	// Serverをセットする
 	void setServer();
 
+	void	setFirstLine(const std::string &line);
 	// Not use
 	Response();
 };

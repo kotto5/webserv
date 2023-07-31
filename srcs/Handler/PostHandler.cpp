@@ -37,7 +37,7 @@ PostHandler &PostHandler::operator=(const PostHandler &rhs)
  * @return Response レスポンス
  */
 
-Response PostHandler::handleRequest(const Request &request)
+Response *PostHandler::handleRequest(const Request &request)
 {
 	std::string::size_type pos = request.getActualUri().find_last_of('/');
     std::string filedir = request.getActualUri().substr(0, pos + 1);
@@ -59,13 +59,13 @@ Response PostHandler::handleRequest(const Request &request)
 	if (i == SIZE_MAX)
 	{
         std::cerr << "Error: can not create file in this name more" << std::endl;
-		return (Response("500"));
+		return (new Response("500"));
 	}
 	ofs.open(filedir + filename, std::ios::out);
     if (!ofs)
     {
         std::cerr << "Error: file not opened." << std::endl;
-		return (Response("500"));
+		return (new Response("500"));
     }
 	std::string body = request.getBody();
     ofs << body;
@@ -76,5 +76,5 @@ Response PostHandler::handleRequest(const Request &request)
     std::string uridir = request.getUri().substr(0, pos + 1);
 	headers["Location"] = uridir + filename;
 	headers["Content-Type"] = Response::getMimeType(request.getActualUri());
-    return (Response("201", headers, ""));
+    return (new Response("201", headers, ""));
 }

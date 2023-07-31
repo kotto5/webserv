@@ -35,7 +35,7 @@ GetHandler &GetHandler::operator=(const GetHandler &rhs)
  * @return Response レスポンス
  */
 
-Response GetHandler::handleRequest(const Request &request)
+Response *GetHandler::handleRequest(const Request &request)
 {
 	// URIからファイルを開く
 	std::ifstream htmlFile(request.getActualUri());
@@ -53,7 +53,7 @@ Response GetHandler::handleRequest(const Request &request)
 	// レスポンスを作成して返す
 	std::map<std::string, std::string> headers;
 	headers["Content-Type"] = Response::getMimeType(request.getActualUri());
-	Response res(this->_status, headers, buffer.str());
+	Response *res = new Response(this->_status, headers, buffer.str());
 
 	return res;
 }
