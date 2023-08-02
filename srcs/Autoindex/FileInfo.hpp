@@ -6,7 +6,7 @@
 class FileInfo
 {
 public:
-	FileInfo(const std::string &name, const std::string& path, time_t lastModified, off_t fileSize);
+	FileInfo(const std::string &name, const std::string& path, time_t lastModified, off_t fileSize, bool isDirectory);
 	FileInfo(const FileInfo &other);
 	~FileInfo();
 	FileInfo &operator=(const FileInfo &other);
@@ -15,6 +15,6 @@ public:
 	std::string filepath;
 	time_t lastModified;
 	off_t fileSize;
+	bool isDirectory;
 };
-
 #endif

@@ -1,7 +1,7 @@
 #include "FileInfo.hpp"
 
-FileInfo::FileInfo(const std::string &name, const std::string& path, time_t lastModified, off_t fileSize)
-	: fileName(name), filepath(path), lastModified(lastModified), fileSize(fileSize)
+FileInfo::FileInfo(const std::string &name, const std::string& path, time_t lastModified, off_t fileSize, bool isDirectory)
+	: fileName(name), filepath(path), lastModified(lastModified), fileSize(fileSize), isDirectory(isDirectory)
 {
 }
 
@@ -22,6 +22,8 @@ FileInfo &FileInfo::operator=(const FileInfo &rhs)
 		filepath = rhs.filepath;
 		lastModified = rhs.lastModified;
 		fileSize = rhs.fileSize;
+		isDirectory = rhs.isDirectory;
 	}
 	return *this;
 }
+

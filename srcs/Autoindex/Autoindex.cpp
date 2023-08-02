@@ -47,16 +47,21 @@ std::string Autoindex::generateAutoindex()
 		<< "</title></head><body><h1>Index of " << _path << "</h1><hr>";
 
 	// ファイル情報をテーブルに追加
-	ss << "<table><colgroup><col style=\"width:250px\"><col style=\"width:250px\">\
-	<col style=\"width:150px\"></colgroup><tr><th>Name</th><th>Last Modified</th><th>Size</th></tr>";
+	ss << "<table><colgroup><col style=\"25px\"><col style=\"width:250px\"><col style=\"width:250px\">\
+	<col style=\"width:50px\"></colgroup><tr><th></th><th>Name</th><th>Last Modified</th><th>Size</th></tr>";
 
+	// テーブルの整形と生成
 	std::vector<FileInfo>::const_iterator it = _fileInfo.begin();
 	for (; it != _fileInfo.end(); it++)
 	{
 		std::string e;
-		e += createElement(createHyperlink(it->fileName, it->filepath), "td");
-		e += createElement(convertTimeToDate(it->lastModified), "td");
-		e += createElement(std::to_string(it->fileSize), "td");
+		if (it->isDirectory)
+			e += createElement("<img src=\"docs/folder.png\">" , "td", "align=\"center\"");
+		else
+			e += createElement("<img src=\"docs/file.png\">" , "td", "align=\"center\"");
+		e += createElement(createElement("\t" + it->fileName, "a", "href=" + it->filepath), "td", "align=\"left\"");
+		e += createElement(convertTimeToDate(it->lastModified), "td", "align=\"center\"");
+		e += createElement(formatSize(it->fileSize), "td", "align=\"right\"");
 		ss << createElement(e, "tr");
 	}
 
@@ -73,11 +78,14 @@ std::string Autoindex::generateAutoindex()
  */
 void	Autoindex::parseDirectory()
 {
+	bool is_directory;
+
 	// ディレクトリストリームを開く　
 	DIR *dir = opendir(_path.c_str());
 	if (!dir)
 	{
-		exit(0);
+		Logger::instance()->writeErrorLog(ErrorCode::AUTO_FILE_NOT_OPEN);
+		return ;
 	}
 	// ディレクトリエントリー
 	struct dirent* ent;
@@ -88,11 +96,15 @@ void	Autoindex::parseDirectory()
 		{
 			// ファイル名を取得
 			std::string name = ent->d_name;
-			//　ファイルパスを取得
+			// ディレクトリの場合は末尾にスラッシュを追加
+			ent->d_type == DT_DIR ? name += "/" : name;
+			// ファイルパスを取得
 			std::string full_path = _path + name;
+			// ディレクトリの判定
+			ent->d_type == DT_DIR ? is_directory = true : is_directory = false;
 			struct stat st;
 			stat(full_path.c_str(), &st);
-			_fileInfo.push_back(FileInfo(name, full_path, (time_t)st.st_mtime, st.st_size));
+			_fileInfo.push_back(FileInfo(name, full_path, (time_t)st.st_mtime, st.st_size, is_directory));
 		}
 	}
 	// ディレクトリストリームを閉じる
@@ -102,25 +114,14 @@ void	Autoindex::parseDirectory()
 /**
  * @brief 任意のタグで囲まれた要素を生成する
  *
- * @param content
- * @param tag
+ * @param content　要素の内容
+ * @param tag　タグ
+ * @param attr 属性値（任意）
  * @return std::string
  */
-std::string Autoindex::createElement(const std::string &content, const std::string &tag)
+std::string Autoindex::createElement(const std::string &content, const std::string &tag, const std::string &attr)
 {
-	return ("<" + tag + ">" + content + "</" + tag + ">");
-}
-
-/**
- * @brief ハイパーリンクを生成する
- *
- * @param content
- * @param url
- * @return std::string
- */
-std::string Autoindex::createHyperlink(const std::string &content, const std::string &url)
-{
-	return ("<a href=\"" + url + "\">" + content + "</a>");
+	return ("<" + tag + " " + attr + " >" + content + "</" + tag + ">");
 }
 
 /**
@@ -137,6 +138,27 @@ std::string Autoindex::convertTimeToDate(time_t time)
 	tm = localtime(&time);
 	strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", tm);
 	return std::string(buf);
+}
+
+/**
+ * @brief ファイルサイズ（バイト）を適切な単位に変換する
+ *
+ * @param byte
+ * @return std::string
+ */
+std::string Autoindex::formatSize(long long byte)
+{
+	std::stringstream ss;
+
+	if (byte < 1024)
+	{
+		ss <<  byte << "B";
+	}
+	else if (byte < 1024 * 1024)
+	{
+		ss << byte / 1024 << "KB";
+	}
+	return ss.str();
 }
 
 // Not use

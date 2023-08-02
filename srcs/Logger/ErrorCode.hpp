@@ -14,7 +14,8 @@ public:
 		CONF_DUPLICATE_DIRECTIVE, // 設定ファイル：重複したディレクティブ
 		CONF_NOT_ALLOWED_DIRECTIVE, // 設定ファイル：許可されていないディレクティブ
 		CONF_UNKOWN_DIRECTIVE, // 設定ファイル：未知のディレクティブ
-		CONF_SYSTEM_ERROR // 設定ファイル
+		CONF_SYSTEM_ERROR, // 設定ファイル
+		AUTO_FILE_NOT_OPEN // Autoindexのディレクトリが開けない
 	}	e_type;
 
 	static const std::map<e_type, std::string> ERROR_CODE;

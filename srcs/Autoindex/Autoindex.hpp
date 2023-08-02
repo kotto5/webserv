@@ -27,9 +27,10 @@ class Autoindex
 		std::vector<FileInfo> _fileInfo;
 		const std::string _path;
 		Autoindex();
-		std::string createElement(const std::string &content, const std::string &tag);
+		std::string createElement(const std::string &content, const std::string &tag, const std::string &attr = "");
 		std::string createHyperlink(const std::string &content, const std::string &url);
 		std::string convertTimeToDate(time_t time);
+		std::string formatSize(long long byte);
 
 
 };
