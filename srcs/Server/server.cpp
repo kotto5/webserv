@@ -231,12 +231,11 @@ bool	Server::request_wants_cgi(Request *request)
 ssize_t		Server::send(Socket *sock, HttpMessage *message)
 {
 	ssize_t ret;
-	const char *buffer;
+	const uint8_t *buffer;
 
 	sock->updateLastAccess();
 	buffer = message->getSendBuffer();
-	std::cout << "[" << buffer << "] is response" << std::endl;
-	ret = ::send(sock->getFd(), buffer, std::strlen(buffer), 0);
+	ret = ::send(sock->getFd(), buffer, message->getContentLengthRemain(), 0);
 	message->addSendPos(ret);
 	return (ret);
 }

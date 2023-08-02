@@ -37,3 +37,6 @@ settings.json
 .DS_Store
 *.log
 /docs/resource/
+
+# play
+plays/

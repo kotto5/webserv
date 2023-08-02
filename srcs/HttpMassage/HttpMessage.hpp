@@ -5,6 +5,7 @@
 #include <map>
 #include <string>
 #include "Socket.hpp"
+#include <vector>
 
 class HttpMessage
 {
@@ -20,8 +21,10 @@ protected:
 
 	std::string::size_type				_readPos;
 	std::size_t							_sendPos;
-	const char							*_sendBuffer;
+	uint8_t								*_sendBuffer;
 	bool								_doesSendEnd;
+
+	std::size_t							_contentLength;
 
 	virtual	void				setFirstLine(const std::string &line) = 0;
 	static void					setHeaderToLower(std::map<std::string, std::string>& m, const std::string& inputStr, const std::string& keyword);
@@ -41,9 +44,12 @@ public:
 	int							parsing(const std::string &row);
 	bool						isEnd() const;
 	void						addSendPos(std::size_t pos);
-	// std::size_t					getSendPos() const;
-	const char					*getSendBuffer();
+	const uint8_t				*getSendBuffer();
 	bool						doesSendEnd() const;
+	std::size_t					getContentLength() const;
+	void						setContentLength();
+	std::size_t					getContentLengthRemain() const ;
+	void						printHeader() const;
 };
 
 #endif

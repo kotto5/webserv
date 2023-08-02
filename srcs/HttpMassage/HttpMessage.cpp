@@ -3,14 +3,9 @@
 std::string HttpMessage::_empty = "";
 
 HttpMessage::HttpMessage()
-    : _isHeaderEnd(false), _isBodyEnd(false), _readPos(0), _sendPos(0), _sendBuffer(NULL)
-{
-	_doesSendEnd = false;
-}
-
-// HttpMessage(const std::string &protocol, std::map<std::string, std::string> headers, const std::string &body)
-// 	: _protocol(protocol), _headers(headers), _body(body), _readPos(0), _isHeaderEnd(false), _isBodyEnd(false)
-// {}
+    : _row(), _protocol(), _headers(), _body(), _isHeaderEnd(false), 
+	_isBodyEnd(false), _readPos(0), _sendPos(0), _sendBuffer(NULL), _doesSendEnd(false)
+{}
 
 HttpMessage::~HttpMessage() {
 	if (_sendBuffer != NULL)
@@ -132,11 +127,6 @@ const std::string   &HttpMessage::getProtocol() const
     return (_protocol);
 }
 
-// std::size_t	HttpMessage::getSendPos() const
-// {
-// 	return (_sendPos);
-// }
-
 void	HttpMessage::addSendPos(std::size_t pos)
 {
 	_sendPos += pos;
@@ -148,15 +138,14 @@ void	HttpMessage::addSendPos(std::size_t pos)
 	}
 }
 
-const char	*HttpMessage::getSendBuffer()
+const uint8_t	*HttpMessage::getSendBuffer()
 {
 	if (_doesSendEnd == true)
 		return (NULL);
 	if (_sendBuffer == NULL)
 	{
-		// _sendBuffer = _row.c_str();
-		_sendBuffer = new char[_row.length() + 1];
-		std::memcpy((void *)_sendBuffer, (void *)_row.c_str(), _row.length() + 1);
+		_sendBuffer = new uint8_t[_row.length()];
+		std::memcpy((void *)_sendBuffer, (void *)_row.c_str(), _row.length());
 	}
 	return (_sendBuffer);
 }
@@ -164,4 +153,23 @@ const char	*HttpMessage::getSendBuffer()
 bool	HttpMessage::doesSendEnd() const
 {
 	return (_doesSendEnd);
+}
+
+void	HttpMessage::setContentLength() {
+	const std::string &contentLengthValue = getHeader("content-length");
+	_contentLength = contentLengthValue.empty() ? 0 : std::stoi(contentLengthValue);
+}
+
+std::size_t	HttpMessage::getContentLength() const {
+	return (_contentLength);
+}
+
+std::size_t	HttpMessage::getContentLengthRemain() const {
+	return (_row.length() - _sendPos);
+}
+
+void	HttpMessage::printHeader() const
+{
+	for (std::map<std::string, std::string>::const_iterator it = _headers.begin(); it != _headers.end(); ++it)
+		std::cout << "\t[" << it->first << "]: [" << it->second << "]" << std::endl;
 }
