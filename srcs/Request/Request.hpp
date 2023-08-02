@@ -11,8 +11,6 @@ class Request : public HttpMessage
 {
 public:
 	// Constructors
-	Request(const std::string &method, const std::string &uriAndQuery, const std::string &protocol,
-			const std::map<std::string, std::string> &headers, const std::string &body);
 	Request(const Request &other);
 	Request();
 
@@ -40,8 +38,6 @@ private:
 	std::string _uriAndQuery;
 	std::string _uri;
 	std::string _query;
-	std::map<std::string, std::string> _headers;
-	std::string _body;
 	std::string _actual_uri;
 	std::string _ip;
 

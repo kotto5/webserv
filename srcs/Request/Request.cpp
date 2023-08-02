@@ -12,15 +12,6 @@
 #include "utils.hpp"
 #include <algorithm>
 
-// Constructors
-Request::Request(const std::string &method, const std::string &uriAndQuery, const std::string &protocol,
-				const std::map<std::string, std::string> &headers, const std::string &body)
-	: HttpMessage(), _method(method), _uriAndQuery(uriAndQuery), _headers(headers), _body(body)
-{
-	_protocol = protocol;
-	setinfo();
-}
-
 void	Request::setinfo()
 {
 	std::string::size_type pos = this->_uriAndQuery.find("?");
@@ -64,7 +55,7 @@ static std::string	getAliasOrRootDirective(LocationContext &Location)
 std::string	Request::convertUritoPath(const std::string &uri)
 {
 	Config	*config = Config::instance();
-	HTTPContext	httpcontext;
+	HTTPContext		httpcontext;
 	ServerContext	servercontext;
 	LocationContext	location;
 

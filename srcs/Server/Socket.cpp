@@ -47,7 +47,7 @@ bool					Socket::isTimeout(std::time_t current_time) { return (current_time - la
 int Socket::getFd() { return fd_; }
 
 // =============================================
-// ============ ClSocket class ===================
+// ============ ClSocket class ===================ma
 // =============================================
 
 ClSocket::ClSocket(int fd, const sockaddr *addr, socklen_t len, sockaddr *remoteaddr, socklen_t remotelen):
