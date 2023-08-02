@@ -59,7 +59,7 @@ std::string Autoindex::generateAutoindex()
 			e += createElement("<img src=\"docs/folder.png\">" , "td", "align=\"center\"");
 		else
 			e += createElement("<img src=\"docs/file.png\">" , "td", "align=\"center\"");
-		e += createElement(createElement("\t" + it->fileName, "a", "href=" + it->filepath), "td", "align=\"left\"");
+		e += createElement(createElement("\t" + it->fileName, "a", "href=\"" + it->filepath + "\""), "td", "align=\"left\"");
 		e += createElement(convertTimeToDate(it->lastModified), "td", "align=\"center\"");
 		e += createElement(formatSize(it->fileSize), "td", "align=\"right\"");
 		ss << createElement(e, "tr");
