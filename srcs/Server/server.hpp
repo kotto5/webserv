@@ -57,7 +57,7 @@ class Server {
 		ssize_t				recv(Socket *sock, HttpMessage *message);
 		ssize_t				send(Socket *sock, HttpMessage *message);
 		int					finish_recv(std::list<Socket *>::iterator itr, HttpMessage *request, bool is_cgi_connection);
-		int					finish_send(std::list<Socket *>::iterator itr, bool is_cgi_connection);
+		int					finish_send(std::list<Socket *>::iterator itr, HttpMessage *response, bool is_cgi_connection);
 		bool				request_wants_cgi(Request *request);
 		int					new_connect_cgi(Request *request, Socket *clientSocket);
 		int					setFd(int type, Socket *sock, Socket *client_sock = NULL);

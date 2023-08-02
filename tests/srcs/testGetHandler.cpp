@@ -28,11 +28,12 @@ TEST_F(GetHandlerTest, getHtmlFile)
 {
 	// テストデータの検証
 	GetHandler handler;
-	Response res = handler.handleRequest(*reqGetHtml);
+	Response *res = handler.handleRequest(*reqGetHtml);
 
-	EXPECT_EQ(res.getStatus(), 200);
-	EXPECT_EQ(res.getBody(), expected);
-	EXPECT_EQ(res.getHeader("Content-Type"), "text/html");
+	EXPECT_EQ(res->getStatus(), "200");
+	EXPECT_EQ(res->getBody(), expected);
+	EXPECT_EQ(res->getHeader("Content-Type"), "text/html");
+	delete res;
 }
 
 // 2. PNGファイルを正しく取得できるか
@@ -40,10 +41,11 @@ TEST_F(GetHandlerTest, getPngFile)
 {
 	// テストデータの検証
 	GetHandler handler;
-	Response res = handler.handleRequest(*reqGetPng);
+	Response *res = handler.handleRequest(*reqGetPng);
 
-	EXPECT_EQ(res.getStatus(), 200);
-	EXPECT_EQ(res.getHeader("Content-Type"), "image/png");
+	EXPECT_EQ(res->getStatus(), "200");
+	EXPECT_EQ(res->getHeader("Content-Type"), "image/png");
+	delete res;
 }
 
 // 2. ファイルが存在しない場合、404が返されるか
@@ -52,8 +54,10 @@ TEST_F(GetHandlerTest, notRequest)
 	// インスタンスの生成
 	GetHandler handler;
 	// テストデータの検証
-	Response res = handler.handleRequest(*reqNotFound);
-	EXPECT_EQ(res.getStatus(), 404);
-	EXPECT_EQ(res.getBody(), "");
+	Response *res = handler.handleRequest(*reqNotFound);
+	EXPECT_EQ(res->getStatus(), "404");
+	EXPECT_EQ(res->getBody(), "");
+	EXPECT_EQ(res->getHeader("Content-Type"), "");
+	delete res;
 };
 };

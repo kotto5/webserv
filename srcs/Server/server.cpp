@@ -57,9 +57,7 @@ int	Server::handle_sockets(fd_set *read_fds, fd_set *write_fds, fd_set *expect_f
 			ret = recv(socket, Recvs[socket->getFd()]);
 			does_connected_cgi = (cgi_client.count(socket) == 1);
 			if (Recvs[socket->getFd()]->isEnd() || (does_connected_cgi && ret == 0))
-			{
 				finish_recv(tmp, Recvs[socket->getFd()], does_connected_cgi);
-			}
 			--activity;
 		}
 	}
@@ -71,11 +69,8 @@ int	Server::handle_sockets(fd_set *read_fds, fd_set *write_fds, fd_set *expect_f
 		{
 			ret = send(*tmp, Sends[socket->getFd()]);
 			does_connected_cgi = (cgi_client.count(socket) == 1);
-			// if (does_finish_send(Sends[socket->getFd()]->getRow(), ret))
 			if (Sends[socket->getFd()]->doesSendEnd())
-				finish_send(tmp, does_connected_cgi);
-			// else if (ret != -1)
-			// 	Sends[socket->getFd()] = Sends[socket->getFd()].substr(ret);
+				finish_send(tmp, Sends[socket->getFd()], does_connected_cgi);
 			--activity;
 		}
 	}
@@ -245,17 +240,19 @@ bool	Server::does_finish_send(const std::string &request, ssize_t recv_ret)
 	return (recv_ret != -1 && request.length() == static_cast<size_t>(recv_ret));
 }
 
-int	Server::finish_send(std::list<Socket *>::iterator itr, bool is_cgi_connection)
+int		Server::finish_send(std::list<Socket *>::iterator itr, HttpMessage *response, bool is_cgi_connection)
 {
-	Sends.erase((*itr)->getFd());
 	if (is_cgi_connection)
 	{
 		setFd(TYPE_RECV, *itr);
+		// Recvs[(*itr)->getFd()] = new Request();
 	}
 	else
 	{
 		delete (*itr);
+		delete (response);
 	}
+	Sends.erase((*itr)->getFd());
 	send_sockets.erase(itr);
 	return (0);
 }

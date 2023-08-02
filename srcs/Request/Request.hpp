@@ -11,6 +11,7 @@ class Request : public HttpMessage
 {
 public:
 	// Constructors
+	Request(const std::string &method, const std::string &uriAndQuery, const std::string &protocol, std::map<std::string, std::string> headers, const std::string &body);
 	Request(const Request &other);
 	Request();
 
@@ -51,15 +52,6 @@ private:
 	std::string	_server_name;
 	std::string	_server_port;
 
-	static	std::string	convertUritoPath(const std::string &uri, const std::string &path);
-	static void			addHeaderToLower(std::map<std::string, std::string>& m, const std::string& inputStr, const std::string& keyword);
-	static void			setRequestLine(const std::string &line, std::string &method, std::string &uri, std::string &protocol);
-	// Not use
-
-	std::string				_readBuffer;
-	std::string::size_type	_readPos;
-	bool					_isHeaderEnd;
-	bool					_isBodyEnd;
 };
 
 #endif

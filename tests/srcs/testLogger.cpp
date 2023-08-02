@@ -76,7 +76,7 @@ TEST_F(LoggerTest, writeAccessLog)
 {
 	// テストデータの挿入
 	const Request req = Request(method, url, protocol, headers, body);
-	const Response res = Response(200, headers, body);
+	const Response res = Response("200", headers, body);
 
 	// アクセスログへの書き込み
 	Logger::instance()->writeAccessLog(req, res);
@@ -102,7 +102,7 @@ TEST_F(LoggerTest, writeErrorLog)
 {
 	// テストデータの挿入
 	const Request req = Request(method, url, protocol, headers, body);
-	const Response res = Response(200, headers, body);
+	const Response res = Response("200", headers, body);
 
 	// エラーログへの書き込み
 	Logger::instance()->writeErrorLog(ErrorCode::REQ_PARSE, "ErrorMessage", &req);
