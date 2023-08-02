@@ -12,6 +12,7 @@ public:
 	Response(const std::string &status, std::map<std::string, std::string> headers, const std::string &body);
 	Response(const std::string &status);
 	Response(const Response &other);
+	Response();
 
 	// Destructor
 	~Response();
@@ -54,8 +55,6 @@ private:
 	void setServer();
 
 	void	setFirstLine(const std::string &line);
-	// Not use
-	Response();
 };
 
 #endif

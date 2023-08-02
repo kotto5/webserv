@@ -3,6 +3,8 @@
 #include "MimeType.hpp"
 #include <ctime>
 
+Response::Response() {}
+
 Response::Response(const std::string &status, std::map<std::string, std::string> headers,
 				   const std::string &body)
 	: _status(status), _headers(headers), _body(body)
@@ -171,9 +173,6 @@ std::string Response::getMimeType(const std::string &filename)
 	// 該当するMIMEが存在しない場合はoctet-streamを返す
 	return "application/octet-stream";
 }
-
-// Not use
-Response::Response() {}
 
 void	Response::setFirstLine(const std::string &line)
 {

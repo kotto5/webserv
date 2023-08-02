@@ -41,8 +41,8 @@ class Server {
 		std::list<Socket *>				server_sockets;
 		std::list<Socket *>				recv_sockets;
 		std::list<Socket *>				send_sockets;
-		std::map<int, HttpMessage *>	Recvs;
-		std::map<int, HttpMessage *>	Sends;
+		std::map<Socket *, HttpMessage *>	Recvs;
+		std::map<Socket *, HttpMessage *>	Sends;
 		std::map<Socket *, Socket *>	cgi_client;
 		timeval							timeout;
 
