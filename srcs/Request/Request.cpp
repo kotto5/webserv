@@ -177,7 +177,127 @@ void	Request::setFirstLine(const std::string &line)
 {
 	std::string::size_type	method_end = line.find(" ");
 	std::string::size_type	uri_end = line.find(" ", method_end + 1);
-	_method = line.substr(0, method_end);
-	_uriAndQuery = line.substr(method_end + 1, uri_end - method_end - 1);
-	_protocol = line.substr(uri_end + 1);
+	method = line.substr(0, method_end);
+	uri = line.substr(method_end + 1, uri_end - method_end - 1);
+	protocol = line.substr(uri_end + 1);
+}
+
+static bool	isValidLine(const std::string &line, const bool isRequestLine)
+{
+	if (isRequestLine)
+	{
+		long sp_count = std::count(line.begin(), line.end(), ' ');
+		if (sp_count != 2)
+			return (false);
+		std::string::size_type	sp1 = line.find(" ");
+		std::string::size_type	sp2 = line.find(" ", sp1 + 1);
+		if (sp1 == sp2 + 1 || sp2 == static_cast<std::string::size_type>(line.end() - line.begin() - 1))
+			return (false);
+	}
+	else
+	{
+		std::string::size_type	colon = line.find(": ");
+		if (colon == std::string::npos || colon == 0 || colon == line.length() - 2)
+			return (false);
+	}
+	return (true);
+}
+
+static bool	setBody(std::string &body, const std::string &row, const std::string::size_type startPos, const std::string::size_type content_length)
+{
+	// std::cout << "content_length: " << content_length << std::endl;
+	body += row.substr(startPos + 2, content_length);
+	return (true);
+}
+
+Request	*Request::parse(const std::string &row)
+{
+	std::string method;
+	std::string uri;
+	std::string protocol;
+	std::map<std::string, std::string> headers;
+	std::string body;
+
+	std::string::size_type startPos = 0;
+	std::string::size_type endPos;
+	std::string	line;
+	while ((endPos = row.find("\r\n", startPos)) != std::string::npos)
+	{
+		if (endPos == startPos) // empty line
+			break;
+		line = row.substr(startPos, endPos - startPos);		
+		if (isValidLine(line, startPos == 0) == false)
+			return (NULL);
+		if (startPos == 0)
+			setRequestLine(line, method, uri, protocol);
+		else
+			addHeaderToLower(headers, line, ": ");
+		startPos = endPos + 2; // Skip CRLF
+	}
+	std::string content_length = headers["content-length"];
+	if (content_length.empty() == false)
+		setBody(body, row, startPos, std::stoi(content_length));
+	if (headers.find("Transfer-Encoding") != headers.end() && headers["Transfer-Encoding"] == "chunked")
+	{
+		std::string::size_type	end_of_body = row.find("\r\n0\r\n\r\n");
+		body = row.substr(startPos, end_of_body - startPos);
+		// TODO: body = decode_chunked(body);
+	}
+	return (new Request(method, uri, protocol, headers, body));
+}
+
+int	Request::parsing(const std::string &row)
+{
+	_readBuffer += row;
+
+	std::string	line;
+	std::string::size_type endPos;
+	if (_isHeaderEnd == false)
+	{
+		while ((endPos = row.find("\r\n", _readPos)) != _readPos)
+		{
+			if (endPos == std::string::npos) // no new line (incomplete)
+				return (0);
+			line = row.substr(_readPos, endPos - _readPos);
+			if (isValidLine(line, _readPos == 0) == false)
+				return (0);
+			if (_readPos == 0)
+				setRequestLine(line, _method, _uri, _protocol);
+			else
+				addHeaderToLower(_headers, line, ": ");
+			_readPos = endPos + 2; // Skip CRLF
+		}
+		_isHeaderEnd = true;
+	}
+	if (_isBodyEnd == false)
+		return (0);
+	_body += row.substr(_readPos);
+	if (_headers["content-length"].empty() == false)
+	{
+		if (_body.find("\r\n\r\n") == std::string::npos)
+			return (0);
+		std::string::size_type	content_length = std::stoi(_headers["content-length"]); 
+		if (_body.length() > content_length)
+			_body.erase(content_length);
+		_isBodyEnd = true;
+	}
+	else if (_headers["transfer-encoding"] == "chunked")
+	{
+		if (_body.find("\r\n0\r\n\r\n") == std::string::npos)
+			return (0);
+		// TODO: body = decode_chunked(body);
+		_isBodyEnd = true;
+	}
+	else
+		_isBodyEnd = true;
+	if (_isBodyEnd == true)
+	{
+		_readBuffer.clear();
+		setinfo();
+	}
+	return (0);
+}
+
+bool	Request::isEnd() const {
+	return (_isHeaderEnd && _isBodyEnd);
 }
