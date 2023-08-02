@@ -3,6 +3,7 @@
 #include "Router.hpp"
 #include "GetHandler.hpp"
 #include "Config.hpp"
+#include "HttpMessage.hpp"
 
 namespace
 {

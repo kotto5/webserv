@@ -144,6 +144,7 @@ const uint8_t	*HttpMessage::getSendBuffer()
 		return (NULL);
 	if (_sendBuffer == NULL)
 	{
+		std::cout << "getSendBuffer: _row is[" << _row << "]" << std::endl;
 		_sendBuffer = new uint8_t[_row.length()];
 		std::memcpy((void *)_sendBuffer, (void *)_row.c_str(), _row.length());
 	}

@@ -1,8 +1,8 @@
 #include "Router.hpp"
-#include "../Handler/GetHandler.hpp"
-#include "../Handler/PostHandler.hpp"
-#include "../Handler/DeleteHandler.hpp"
-#include "../config/Config.hpp"
+#include "Handler/GetHandler.hpp"
+#include "Handler/PostHandler.hpp"
+#include "Handler/DeleteHandler.hpp"
+#include "config/Config.hpp"
 
 
 // Constructors

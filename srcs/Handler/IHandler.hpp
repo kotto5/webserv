@@ -1,8 +1,8 @@
 #ifndef IHANDLER_HPP
 #define IHANDLER_HPP
 
-#include "../Response/Response.hpp"
-#include "../Request/Request.hpp"
+#include "Response.hpp"
+#include "Request.hpp"
 #include <iostream>
 #include <string>
 

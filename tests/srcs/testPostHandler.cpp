@@ -4,6 +4,7 @@
 #include "PostHandler.hpp"
 #include <fstream>
 #include <streambuf>
+#include "HttpMessage.hpp"
 
 namespace
 {
