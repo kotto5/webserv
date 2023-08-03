@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <ctime>
 #include "ServerException.hpp"
+#include "OnlyBody.hpp"
 
 int	Server::setup()
 {
@@ -61,7 +62,6 @@ int	Server::handle_sockets(fd_set *read_fds, fd_set *write_fds, fd_set *expect_f
 		{
 			does_connected_cgi = (cgi_client.count(socket) == 1);
 			ret = recv(socket, Recvs[socket]);
-			// if (Recvs[socket]->isEnd() || (does_connected_cgi && ret == 0))
 			if (Recvs[socket]->isEnd())
 				finish_recv(tmp, Recvs[socket], does_connected_cgi);
 			--activity;
@@ -74,25 +74,9 @@ int	Server::handle_sockets(fd_set *read_fds, fd_set *write_fds, fd_set *expect_f
 		if (FD_ISSET(socket->getFd(), write_fds))
 		{
 			does_connected_cgi = (cgi_client.count(socket) == 1);
-			if (does_connected_cgi)
-			{
-				ret = send(*tmp, (uint8_t *)cgiSends[socket].c_str(), cgiSends[socket].length());
-				if (does_finish_send(cgiSends[socket], ret))
-				{
-					setFd(TYPE_RECV, socket);
-					Recvs[socket] = new Response();
-					eraseFd(socket, TYPE_SEND);
-					Sends.erase(socket);
-				}
-				else
-					cgiSends[socket].erase(ret);
-			}
-			else
-			{
-				ret = send(*tmp, Sends[socket]);
-				if (Sends[socket]->doesSendEnd())
-					finish_send(tmp, Sends[socket], does_connected_cgi);
-			}
+			ret = send(*tmp, Sends[socket]);
+			if (Sends[socket]->doesSendEnd())
+				finish_send(tmp, Sends[socket], does_connected_cgi);
 			--activity;
 		}
 	}
@@ -188,7 +172,8 @@ int	Server::new_connect_cgi(Request *request, Socket *clientSocket)
 	Socket *socket = new Socket(sockets[S_PARENT]);
 	setFd(TYPE_SEND, socket);
 	setFd(TYPE_CGI, socket, clientSocket);
-	cgiSends[socket] = request->getBody();
+	Sends[socket] = new OnlyBody();
+	Sends[socket]->parsing(request->getBody(), true);
 	delete (request);
 	return (0);
 }
@@ -259,20 +244,13 @@ ssize_t		Server::send(Socket *sock, HttpMessage *message)
 	return (ret);
 }
 
-ssize_t		Server::send(Socket *sock, const uint8_t *buffer, const std::size_t n)
-{
-	sock->updateLastAccess();
-	return (::send(sock->getFd(), buffer, n, 0));
-}
-
-
 int		Server::finish_send(std::list<Socket *>::iterator itr, HttpMessage *response, bool is_cgi_connection)
 {
 	if (is_cgi_connection)
 	{
 		Recvs[*itr] = new Response();
 		setFd(TYPE_RECV, *itr);
-		// delete (Sends[*itr]);
+		delete (Sends[*itr]);
 	}
 	else
 	{
@@ -280,7 +258,7 @@ int		Server::finish_send(std::list<Socket *>::iterator itr, HttpMessage *respons
 		delete (response);
 	}
 	Sends.erase(*itr);
-	send_sockets.erase(itr);
+	eraseFd(*itr, TYPE_SEND);
 	return (0);
 }
 

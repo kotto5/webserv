@@ -43,7 +43,6 @@ class Server {
 		std::list<Socket *>				send_sockets;
 		std::map<Socket *, HttpMessage *>	Recvs;
 		std::map<Socket *, HttpMessage *>	Sends;
-		std::map<Socket *, std::string>		cgiSends;
 		std::map<Socket *, Socket *>	cgi_client;
 		timeval							timeout;
 
@@ -57,7 +56,6 @@ class Server {
 		int					accept(Socket *serverSocket);
 		ssize_t				recv(Socket *sock, HttpMessage *message);
 		ssize_t				send(Socket *sock, HttpMessage *message);
-		ssize_t				send(Socket *sock, const uint8_t *buffer, const std::size_t n);
 		int					finish_recv(std::list<Socket *>::iterator itr, HttpMessage *request, bool is_cgi_connection);
 		int					finish_send(std::list<Socket *>::iterator itr, HttpMessage *response, bool is_cgi_connection);
 		bool				request_wants_cgi(Request *request);
