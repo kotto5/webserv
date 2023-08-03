@@ -56,21 +56,6 @@ const std::string   &Response::getStatus() const
 	return this->_status;
 }
 
-
-std::string Response::getHeader(const std::string &key) const
-{
-	if(this->_headers.find(key) != this->_headers.end())
-	{
-		return this->_headers.at(key);
-	}
-	return "";
-}
-
-std::string Response::getBody() const
-{
-	return this->_body;
-}
-
 /**
  * @brief ステータスコードに対応するメッセージを返す
  *
@@ -127,7 +112,7 @@ void Response::setDate()
 	// HTTPの形式に変換
 	std::strftime(buf, sizeof(buf), "%a, %d %b %Y %H:%M:%S %Z", tm_gm);
 	std::string dateNow(buf);
-	this->_headers["Date"] = dateNow;
+	this->_headers["date"] = dateNow;
 }
 
 /**
@@ -138,7 +123,7 @@ void Response::setDate()
  */
 void Response::setContentLength()
 {
-	this->_headers["Content-Length"] = std::to_string(this->_body.length());
+	this->_headers["content-length"] = std::to_string(this->_body.length());
 }
 
 void Response::setServer()
