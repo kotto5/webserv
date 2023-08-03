@@ -5,6 +5,7 @@
 #include <filesystem>
 #include "utils.hpp"
 #include <cstdio>
+#include "Logger.hpp"
 
 // Constructors
 DeleteHandler::DeleteHandler()
@@ -41,7 +42,7 @@ Response	*DeleteHandler::handleRequest(const Request &request)
 {
     std::string filename = request.getActualUri();
 
-	if (!isDirectory(filename.c_str()))
+	if (!pathExist(filename.c_str()))
 	{
 		std::cerr << "Error: file not exist." << std::endl;
 		return (new Response("404"));
