@@ -50,6 +50,7 @@ public:
 	void						setContentLength();
 	std::size_t					getContentLengthRemain() const ;
 	void						printHeader() const;
+	bool						isBadRequest() const;
 };
 
 #endif

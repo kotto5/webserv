@@ -34,7 +34,6 @@ int	Server::handle_sockets(fd_set *read_fds, fd_set *write_fds, int activity)
 {
 	std::list<Socket *>::iterator	itr;
 	std::list<Socket *>::iterator	tmp;
-	ssize_t							ret;
 	bool							does_connected_cgi;
 	Socket							*sock;
 
@@ -56,8 +55,7 @@ int	Server::handle_sockets(fd_set *read_fds, fd_set *write_fds, int activity)
 		if (FD_ISSET(sock->getFd(), read_fds))
 		{
 			does_connected_cgi = (cgi_client.count(sock) == 1);
-			ret = recv(sock, Recvs[sock]);
-			if (Recvs[sock]->isEnd())
+			if (recv(sock, Recvs[sock]) == 1 || Recvs[sock]->isEnd())
 			{
 				finish_recv(sock, Recvs[sock], does_connected_cgi);
 				recv_sockets.erase(tmp);
@@ -72,7 +70,7 @@ int	Server::handle_sockets(fd_set *read_fds, fd_set *write_fds, int activity)
 		if (FD_ISSET(sock->getFd(), write_fds))
 		{
 			does_connected_cgi = (cgi_client.count(sock) == 1);
-			ret = send(sock, Sends[sock]);
+			send(sock, Sends[sock]);
 			if (Sends[sock]->doesSendEnd())
 			{
 				finish_send(sock, Sends[sock], does_connected_cgi);
@@ -178,15 +176,14 @@ int	Server::new_connect_cgi(Request *request, Socket *clientSock)
 	return (0);
 }
 
-ssize_t	Server::recv(Socket *sock, HttpMessage *message) {
+int	Server::recv(Socket *sock, HttpMessage *message) {
 	ssize_t recv_ret;
 
 	sock->updateLastAccess();
 	static char buffer[BUFFER_LEN];
 	memset(buffer, 0, BUFFER_LEN);
 	recv_ret = ::recv(sock->getFd(), buffer, BUFFER_LEN, 0);
-	message->parsing(buffer, recv_ret == 0);
-	return (recv_ret);
+	return (message->parsing(buffer, recv_ret == 0));
 }
 
 // bool じゃなくて dynamic_cast で判定したほうがいいかも
@@ -206,16 +203,19 @@ int	Server::finish_recv(Socket *sock, HttpMessage *message, bool is_cgi_connecti
 	else
 	{
 		Request		*request = (Request *)message;
-		ClSocket	*clsock = (ClSocket *)sock;
-		request->setaddr(clsock);
+		ClSocket	*clSock = (ClSocket *)sock;
+		request->setaddr(clSock);
 		request->setinfo();
 		request->print_all();
 		if (request_wants_cgi(request))
-			new_connect_cgi(request, clsock);
+			new_connect_cgi(request, clSock);
 		else
 		{
-			Sends[clsock] = makeResponse(request);
-			setFd(TYPE_SEND, clsock);
+			if (request->isBadRequest())
+				Sends[clSock] = new Response("400");
+			else
+				Sends[clSock] = makeResponse(request);
+			setFd(TYPE_SEND, clSock);
 			delete (request);
 		}
 	}
