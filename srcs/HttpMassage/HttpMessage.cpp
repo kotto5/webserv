@@ -12,7 +12,7 @@ HttpMessage::~HttpMessage() {
 		delete[] _sendBuffer;
 }
 
-int	HttpMessage::parsing(const std::string &row)
+int	HttpMessage::parsing(const std::string &row, const bool inputClosed)
 {
 	_row += row;
 	std::cout << "row: [" << row << "]" << std::endl;
@@ -39,6 +39,11 @@ int	HttpMessage::parsing(const std::string &row)
 	if (_isBodyEnd == true)
 		return (0);
 	setBody(row);
+	if (inputClosed)
+	{
+		_isBodyEnd = true;
+		_isHeaderEnd = true;
+	}
 	// if (_isBodyEnd == true)
 	// 	setinfo();
 	return (0);
