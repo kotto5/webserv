@@ -41,9 +41,9 @@ class Server {
 		std::list<Socket *>				server_sockets;
 		std::list<Socket *>				recv_sockets;
 		std::list<Socket *>				send_sockets;
+		std::map<Socket *, Socket *>	cgi_client;
 		std::map<Socket *, HttpMessage *>	Recvs;
 		std::map<Socket *, HttpMessage *>	Sends;
-		std::map<Socket *, Socket *>	cgi_client;
 		timeval							timeout;
 
 	public:
@@ -61,7 +61,7 @@ class Server {
 		bool				request_wants_cgi(Request *request);
 		int					new_connect_cgi(Request *request, Socket *clientSocket);
 		int					setFd(int type, Socket *sock, Socket *client_sock = NULL);
-		int					eraseFd(Socket *socket, int type);
+		int					eraseFd(int type, Socket *socket);
 		bool				check_timeout();
 
 	static bool			does_finish_recv(const std::string &request, bool is_cgi_connection, ssize_t recv_ret);

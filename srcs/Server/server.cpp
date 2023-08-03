@@ -101,7 +101,7 @@ bool	Server::check_timeout()
 		if (socket->isTimeout(current_time))
 		{
 			std::cout << "timeout" << std::endl;
-			eraseFd(socket, TYPE_RECV);
+			eraseFd(TYPE_RECV, socket);
 			delete (socket);
 			timeoutOccurred = true;
 		}
@@ -113,7 +113,7 @@ bool	Server::check_timeout()
 		if (socket->isTimeout(current_time))
 		{
 			std::cout << "timeout" << std::endl;
-			eraseFd(socket, TYPE_SEND);
+			eraseFd(TYPE_SEND, socket);
 			delete (socket);
 			timeoutOccurred = true;
 		}
@@ -258,7 +258,7 @@ int		Server::finish_send(std::list<Socket *>::iterator itr, HttpMessage *respons
 		delete (response);
 	}
 	Sends.erase(*itr);
-	eraseFd(*itr, TYPE_SEND);
+	eraseFd(TYPE_SEND, *itr);
 	return (0);
 }
 
@@ -312,7 +312,7 @@ int	Server::setFd(int type, Socket *sock, Socket *client_sock)
 	return (0);
 }
 
-int	Server::eraseFd(Socket *sock, int type)
+int	Server::eraseFd(int type, Socket *sock)
 {
 	if (type == TYPE_RECV)
 		recv_sockets.remove(sock);
