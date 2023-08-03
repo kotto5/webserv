@@ -21,15 +21,11 @@ protected:
 
 	virtual void SetUp()
 	{
-		// ログファイルを一旦削除
-		remove(accessLogfilePath.c_str());
-		remove(errorLogfilePath.c_str());
-
-		// Loggerインスタンスを生成
-		Logger::initialize(
-			accessLogfilePath,
-			errorLogfilePath
-		);
+		// ログファイルを一旦クリア
+		std::ofstream accessStream(accessLogfilePath, std::ofstream::out | std::ofstream::trunc);
+		accessStream.close();
+		std::ofstream errorStream(errorLogfilePath, std::ofstream::out | std::ofstream::trunc);
+		errorStream.close();
 
 		// テストデータの挿入
 		headers.insert(std::make_pair("content-length", "100"));
@@ -38,8 +34,6 @@ protected:
 
 	virtual void TearDown()
 	{
-		// Loggerインスタンスを破棄
-		Logger::release();
 	}
 };
 
