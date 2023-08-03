@@ -194,12 +194,20 @@ bool    isDirectory(const char *path)
 {
 	struct stat st;
 
-	return (stat(path, &st) == 0 && S_ISREG(st.st_mode));
+	return (stat(path, &st) == 0 && S_ISDIR(st.st_mode));
 }
 
 bool    pathExist(const char *path)
 {
-	struct stat st;
+	return (access(path, F_OK) == 0);
+}
 
-	return (stat(path, &st) == 0);
+bool	isReadable(const char *path)
+{
+	return (access(path, R_OK) == 0);
+}
+
+bool	isWritable(const char *path)
+{
+	return (access(path, W_OK) == 0);
 }
