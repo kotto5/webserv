@@ -3,8 +3,9 @@
 #include "MimeType.hpp"
 #include <ctime>
 
-// Constructors
-Response::Response(const int status, std::map<std::string, std::string> headers,
+Response::Response() {}
+
+Response::Response(const std::string &status, std::map<std::string, std::string> headers,
 				   const std::string &body)
 	: _status(status), _headers(headers), _body(body)
 {
@@ -14,15 +15,19 @@ Response::Response(const int status, std::map<std::string, std::string> headers,
 	setContentLength();
 	// ヘッダーにServerを追加
 	setServer();
+	_row = toString();
 }
 
-Response::Response(const int status)
+Response::Response(const std::string &status)
 	: _status(status)
 {
+	_body = "";
 	setDate();
 	setContentLength();
 	setServer();
+	_row = toString();
 }
+
 
 Response::Response(const Response &other)
 {
@@ -46,11 +51,11 @@ Response &Response::operator=(const Response &rhs)
 	return *this;
 }
 
-// Getters/setters
-int Response::getStatus() const
+const std::string   &Response::getStatus() const
 {
 	return this->_status;
 }
+
 
 std::string Response::getHeader(const std::string &key) const
 {
@@ -72,7 +77,7 @@ std::string Response::getBody() const
  * @param statusCode ステータスコード
  * @return std::string ステータスメッセージ
  */
-std::string Response::getStatusMessage(int statusCode) const
+const std::string	&Response::getStatusMessage(const std::string &statusCode) const
 {
 	return HttpStatus::HTTP_STATUS.at(statusCode);
 }
@@ -90,7 +95,7 @@ std::string Response::toString() const
 	std::string response;
 
 	// ステータス行を平文に変換
-	response += "HTTP/1.1 " + std::to_string(this->_status) + " " +
+	response += "HTTP/1.1 " + this->_status + " " +
 				getStatusMessage(this->_status) + "\r\n";
 
 	// ヘッダーを平文に変換
@@ -169,5 +174,11 @@ std::string Response::getMimeType(const std::string &filename)
 	return "application/octet-stream";
 }
 
-// Not use
-Response::Response() {}
+void	Response::setFirstLine(const std::string &line)
+{
+	std::string::size_type	method_end = line.find(" ");
+	std::string::size_type	uri_end = line.find(" ", method_end + 1);
+	_protocol = line.substr(0, method_end);
+	_status = line.substr(method_end + 1, uri_end - method_end - 1);
+	_statusMessage = line.substr(uri_end + 1);
+}

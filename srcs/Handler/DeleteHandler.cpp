@@ -11,7 +11,7 @@
 DeleteHandler::DeleteHandler()
 {
 	// 規定値を200に設定
-	this->_status = 200;
+	this->_status = "200";
 }
 
 DeleteHandler::DeleteHandler(const DeleteHandler &other)
@@ -38,24 +38,21 @@ DeleteHandler &DeleteHandler::operator=(const DeleteHandler &rhs)
  * @param request リクエスト
  * @return Response レスポンス
  */
-Response DeleteHandler::handleRequest(const Request &request)
+Response	*DeleteHandler::handleRequest(const Request &request)
 {
     std::string filename = request.getActualUri();
 
 	if (!pathExist(filename.c_str()))
 	{
-		Logger::instance()->writeErrorLog(ErrorCode::DELETE_FILE_NOT_EXIST, "", &request);
-		return (Response(404));
+		std::cerr << "Error: file not exist." << std::endl;
+		return (new Response("404"));
 	}
 	if (remove(filename.c_str()))
 	{
-		if (errno == EACCES)
-		{
-			Logger::instance()->writeErrorLog(ErrorCode::DELETE_FILE_NO_PERMISSION, "", &request);
-			return (Response(403));
-		}
-		Logger::instance()->writeErrorLog(ErrorCode::SYSTEM_CALL, "", &request);
-		return (Response(500));
+		std::cerr << "Error: file not deleted." << std::endl;
+		perror("remove");
+		return (new Response("500"));
 	}
-    return (Response(204));
+
+    return (new Response("200"));
 }

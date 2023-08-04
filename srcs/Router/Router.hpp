@@ -1,8 +1,8 @@
 #ifndef ROUTER_HPP
 #define ROUTER_HPP
 
-#include "../Request/Request.hpp"
-#include "../Handler/IHandler.hpp"
+#include "Request.hpp"
+#include "Handler/IHandler.hpp"
 #include <iostream>
 #include <string>
 

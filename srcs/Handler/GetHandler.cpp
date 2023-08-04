@@ -7,7 +7,7 @@
 GetHandler::GetHandler()
 {
 	// 規定値を200に設定
-	this->_status = 200;
+	this->_status = "200";
 }
 
 GetHandler::GetHandler(const GetHandler &other)
@@ -35,14 +35,14 @@ GetHandler &GetHandler::operator=(const GetHandler &rhs)
  * @return Response レスポンス
  */
 
-Response GetHandler::handleRequest(const Request &request)
+Response *GetHandler::handleRequest(const Request &request)
 {
 	// URIからファイルを開く
 	std::ifstream htmlFile(request.getActualUri());
 	if (!htmlFile.is_open())
 	{
 		// ファイルが開けなかった場合は404を返す
-		this->_status = 404;
+		this->_status = "404";
 	}
 
 	// ファイルの内容を読み込む
@@ -53,7 +53,7 @@ Response GetHandler::handleRequest(const Request &request)
 	// レスポンスを作成して返す
 	std::map<std::string, std::string> headers;
 	headers["Content-Type"] = Response::getMimeType(request.getActualUri());
-	Response res(this->_status, headers, buffer.str());
+	Response *res = new Response(this->_status, headers, buffer.str());
 
 	return res;
 }
