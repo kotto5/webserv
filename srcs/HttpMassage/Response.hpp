@@ -26,18 +26,11 @@ public:
 
 	// Getters/setters
 	const std::string	&getStatus() const;
-	std::string			getHeader(const std::string &key) const;
-	std::string			getBody() const;
 
 private:
 	// ステータスコード
 	std::string _status;
 	std::string _statusMessage;
-
-	// ヘッダー
-	std::map<std::string, std::string> _headers;
-	// ボディ
-	std::string _body;
 
 	// 拡張子とMIMEタイプの対応表
 	static std::map<std::string, std::string> extensionToMime;

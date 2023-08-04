@@ -14,6 +14,12 @@ std::map<ErrorCode::e_type, std::string> createErrorCode()
 	errorCode[ErrorCode::REQ_PARSE] = "Request parse failed.";
 	/** サーバーエラー */
 	errorCode[ErrorCode::RES_PARSE] = "Response parse failed.";
+	/** POSTエラー */
+	errorCode[ErrorCode::POST_INDEX_FULL] = "Error: can not create file in this name more";
+	errorCode[ErrorCode::POST_FILE_OPEN] = "Error: can not open file";
+	errorCode[ErrorCode::POST_NOT_EXISTS] = "Error: directory does not exist";
+	errorCode[ErrorCode::POST_FILE_ACCESS] = "Error: can not access file";
+	// DELETEエラー
 	errorCode[ErrorCode::DELETE_FILE_NOT_EXIST] = "Delete file not exist.";
 	errorCode[ErrorCode::DELETE_FILE_NO_PERMISSION] = "Delete file has no permission.";
 	/** 設定エラー */
@@ -21,6 +27,7 @@ std::map<ErrorCode::e_type, std::string> createErrorCode()
 	errorCode[ErrorCode::CONF_NOT_ALLOWED_DIRECTIVE] = "Config parse failed (not allowed directive).";
 	errorCode[ErrorCode::CONF_UNKOWN_DIRECTIVE] = "Config parse failed (unknown directive).";
 	errorCode[ErrorCode::CONF_SYSTEM_ERROR] = "Config parse failed (system error).";
+	errorCode[ErrorCode::AUTO_FILE_NOT_OPEN] = "Autoindex file open failed.";
 	return errorCode;
 }
 
