@@ -27,6 +27,7 @@ std::map<ErrorCode::e_type, std::string> createErrorCode()
 	errorCode[ErrorCode::CONF_NOT_ALLOWED_DIRECTIVE] = "Config parse failed (not allowed directive).";
 	errorCode[ErrorCode::CONF_UNKOWN_DIRECTIVE] = "Config parse failed (unknown directive).";
 	errorCode[ErrorCode::CONF_SYSTEM_ERROR] = "Config parse failed (system error).";
+	errorCode[ErrorCode::AUTO_FILE_NOT_OPEN] = "Autoindex file open failed.";
 	return errorCode;
 }
 
