@@ -59,13 +59,26 @@ Response *PostHandler::handleRequest(const Request &request)
 	}
 	if (i == SIZE_MAX)
 	{
-        std::cerr << "Error: can not create file in this name more" << std::endl;
+		// ファイル数が上限に達した
+		Logger::instance()->writeErrorLog(ErrorCode::POST_INDEX_FULL, "", &request);
 		return (new Response("500"));
 	}
-	ofs.open(filedir + filename, std::ios::out);
-    if (!ofs)
-    {
-        std::cerr << "Error: file not opened." << std::endl;
+	if (!pathExist(filedir.c_str()))
+	{
+		// ディレクトリが存在しない
+		Logger::instance()->writeErrorLog(ErrorCode::POST_NOT_EXISTS, "", &request);
+		return (new Response("404"));
+	}
+	std::ofstream ofs(filedir + filename, std::ios::out);
+	if (!ofs)
+	{
+		if (errno == EACCES)
+		{
+			// ファイルにアクセスできない
+			Logger::instance()->writeErrorLog(ErrorCode::POST_FILE_ACCESS, "j", &request);
+			return (new Response("403"));
+		}
+		Logger::instance()->writeErrorLog(ErrorCode::POST_FILE_OPEN, "", &request);
 		return (new Response("500"));
     }
 	std::string body = request.getBody();
