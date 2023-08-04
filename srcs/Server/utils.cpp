@@ -211,3 +211,76 @@ bool	isWritable(const char *path)
 {
 	return (access(path, W_OK) == 0);
 }
+
+// % decoding function
+std::string percentDecode(std::string str)
+{
+    std::string ret;
+    std::string::iterator itr = str.begin();
+    std::string::iterator end = str.end();
+    while (itr != end)
+    {
+        if (*itr == '%')
+        {
+            itr++;
+            if (itr == end)
+                break;
+            char c = *itr;
+            itr++;
+            if (itr == end)
+                break;
+            char d = *itr;
+            itr++;
+            if ('0' <= c && c <= '9')
+                c -= '0';
+            else if ('a' <= c && c <= 'f')
+                c -= 'a' - 10;
+            else if ('A' <= c && c <= 'F')
+                c -= 'A' - 10;
+            else
+                break;
+            if ('0' <= d && d <= '9')
+                d -= '0';
+            else if ('a' <= d && d <= 'f')
+                d -= 'a' - 10;
+            else if ('A' <= d && d <= 'F')
+                d -= 'A' - 10;
+            else
+                break;
+            ret += (c << 4) + d;
+        }
+        else
+        {
+            ret += *itr;
+            itr++;
+        }
+    }
+    return ret;
+}
+
+// encoding function
+std::string percentEncode(std::string str)
+{
+    std::string ret;
+    std::string::iterator itr = str.begin();
+    std::string::iterator end = str.end();
+    while (itr != end)
+    {
+        if ('0' <= *itr && *itr <= '9')
+            ret += *itr;
+        else if ('a' <= *itr && *itr <= 'z')
+            ret += *itr;
+        else if ('A' <= *itr && *itr <= 'Z')
+            ret += *itr;
+        else if (*itr == '-' || *itr == '_' || *itr == '.' || *itr == '~')
+            ret += *itr;
+        else
+        {
+            ret += '%';
+            ret += "0123456789ABCDEF"[(*itr >> 4) & 0x0f];
+            ret += "0123456789ABCDEF"[(*itr) & 0x0f];
+        }
+        itr++;
+    }
+    return ret;
+}
