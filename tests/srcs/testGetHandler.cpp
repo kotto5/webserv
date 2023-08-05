@@ -33,7 +33,7 @@ TEST_F(GetHandlerTest, getHtmlFile)
 
 	EXPECT_EQ(res->getStatus(), "200");
 	EXPECT_EQ(res->getBody(), expected);
-	EXPECT_EQ(res->getHeader("Content-Type"), "text/html");
+	EXPECT_EQ(res->getHeader("Content-Type"), "text/html; charset=utf-8");
 	delete res;
 }
 
