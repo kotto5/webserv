@@ -182,3 +182,8 @@ void	Request::setFirstLine(const std::string &line)
 	_uriAndQuery = percentDecode(line.substr(method_end + 1, uri_end - method_end - 1));
 	_protocol = line.substr(uri_end + 1);
 }
+
+bool	Request::isBadRequest() const
+{
+	return (!isEnd());
+}

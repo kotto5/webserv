@@ -24,6 +24,7 @@ class ConfigParser
         HTTP,
         ACCESS_LOG,
         ERROR_LOG,
+        BODY_LIMIT,
         SERVER,
         LISTEN,
         SERVER_NAME,

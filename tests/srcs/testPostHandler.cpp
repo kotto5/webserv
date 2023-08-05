@@ -61,8 +61,8 @@ TEST_F(PostHandlerTest, createTextFile)
 TEST_F(PostHandlerTest, createPngFile)
 {
 	PostHandler handler;
-	std::string body = readFile("./docs/images/logo.png");
-	Request req(method, "/resources/unit_test/sample_post.png", protocol, headers, body);
+	std::string body = readFile("./docs/test.png");
+	Request req(method, "/resources/unit_test/sample.png", protocol, headers, body);
 	Response *res = handler.handleRequest(req);
 
 	std::string file_data = readFile("./docs/storage/unit_test/sample_post.png");
@@ -71,7 +71,7 @@ TEST_F(PostHandlerTest, createPngFile)
 	EXPECT_EQ(res->getStatus(), "201");
 	EXPECT_EQ(file_data, body);
 	EXPECT_EQ(res->getBody(), "");
-	EXPECT_EQ(res->getHeader("Location"), "/resources/unit_test/sample_post.png");
+	EXPECT_EQ(res->getHeader("Location"), "/resources/unit_test/sample.png");
 	EXPECT_EQ(res->getHeader("Content-Type"), "image/png");
 }
 
