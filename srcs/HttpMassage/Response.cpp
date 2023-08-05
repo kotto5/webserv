@@ -7,8 +7,10 @@ Response::Response() {}
 
 Response::Response(const std::string &status, std::map<std::string, std::string> headers,
 				   const std::string &body)
-	: _status(status), _headers(headers), _body(body)
+	: _status(status)
 {
+	_headers = headers;
+	_body = body;
 	// ヘッダーに日付を追加
 	setDate();
 	// ヘッダーにContent-Lengthを追加

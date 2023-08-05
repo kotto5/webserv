@@ -22,6 +22,7 @@ protected:
 	std::string::size_type				_readPos;
 	std::size_t							_sendPos;
 	uint8_t								*_sendBuffer;
+	std::size_t							_sendBufferSize;
 	bool								_doesSendEnd;
 
 	std::size_t							_contentLength;

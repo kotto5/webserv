@@ -135,7 +135,7 @@ const std::string   &HttpMessage::getProtocol() const
 void	HttpMessage::addSendPos(std::size_t pos)
 {
 	_sendPos += pos;
-	if (_sendPos == _row.length())
+	if (_sendPos == _sendBufferSize)
 	{
 		_doesSendEnd = true;
 		delete[] _sendBuffer;
@@ -150,7 +150,8 @@ const uint8_t	*HttpMessage::getSendBuffer()
 	if (_sendBuffer == NULL)
 	{
 		std::cout << "getSendBuffer: _row is[" << _row << "]" << std::endl;
-		_sendBuffer = new uint8_t[_row.length()];
+		_sendBufferSize = _row.length();
+		_sendBuffer = new uint8_t[_sendBufferSize];
 		std::memcpy((void *)_sendBuffer, (void *)_row.c_str(), _row.length());
 	}
 	return (_sendBuffer);
@@ -171,7 +172,7 @@ std::size_t	HttpMessage::getContentLength() const {
 }
 
 std::size_t	HttpMessage::getContentLengthRemain() const {
-	return (_row.length() - _sendPos);
+	return (_sendBufferSize - _sendPos);
 }
 
 void	HttpMessage::printHeader() const
