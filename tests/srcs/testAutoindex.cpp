@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include "Autoindex.hpp"
 #include "Config.hpp"
+#include "Request.hpp"
 #include <iostream>
 #include <fstream>
 
@@ -9,10 +10,15 @@ namespace
 class AutoindexTest : public ::testing::Test
 {
 protected:
-	const std::string path = "docs/";
+	std::string method = "GET";
+	std::string url = "/pages";
+	std::string protocol = "HTTP/1.1";
+	std::map<std::string, std::string> headers;
+
 	// テストデータの作成
 	virtual void SetUp()
 	{
+		headers.insert(std::make_pair("content-type", "text/html"));
 	}
 	// テストデータの破棄
 	virtual void TearDown()
@@ -32,7 +38,9 @@ TEST_F(AutoindexTest, getAutoindex)
 
 TEST_F(AutoindexTest, generateAutoindex)
 {
-	Autoindex autoindex(path);
+	Request req(method, url, protocol, headers, "");
+
+	Autoindex autoindex(req);
 	std::string html = autoindex.generateAutoindex();
 
 	std::ofstream ofs("autoindex_sample.html");

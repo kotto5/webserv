@@ -105,9 +105,13 @@ void	Autoindex::parseDirectory()
 				name += "/";
 				is_directory = true;
 			}
-			full_path = _uri + "/" + name;
+			if(_uri[_uri.size() - 1] == '/')
+				full_path = _uri + name;
+			else
+				full_path = _uri + "/" + name;
+			std::string actual_path = _actualPath + "/" + name;
 			struct stat st;
-			stat(full_path.c_str(), &st);
+			stat(actual_path.c_str(), &st);
 			_fileInfo.push_back(FileInfo(name, full_path, (time_t)st.st_mtime, st.st_size, is_directory));
 		}
 	}
@@ -171,14 +175,14 @@ std::string Autoindex::formatSize(long long byte)
  * @param file
  * @return std::string
  */
-std::string Autoindex::getIcon(const FileInfo file)
+std::string Autoindex::getIcon(const FileInfo &file)
 {
 	if (file.fileName == "../")
-		return "<img src=\"images/back.png\">";
+		return "<img src=\"/images/back.png\">";
 	else if (file.isDirectory)
-		return "<img src=\"images/folder.png\">";
+		return "<img src=\"/images/folder.png\">";
 	else
-		return "<img src=\"images/file.png\">";
+		return "<img src=\"/images/file.png\">";
 }
 
 // Not use

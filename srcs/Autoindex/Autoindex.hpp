@@ -32,7 +32,7 @@ class Autoindex
 		std::string createElement(const std::string &content, const std::string &tag, const std::string &attr = "");
 		std::string convertTimeToDate(time_t time);
 		std::string formatSize(long long byte);
-		std::string getIcon(FileInfo file);
+		std::string getIcon(const FileInfo &file);
 };
 
 #endif
