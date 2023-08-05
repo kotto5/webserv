@@ -102,15 +102,15 @@ void	HttpMessage::setBody(const std::string &row)
 		_isBodyEnd = true;
 }
 
-std::string	&HttpMessage::makeHeaderKeyLower(std::string &key)
+std::string	HttpMessage::makeHeaderKeyLower(std::string key)
 {
 	std::transform(key.begin(), key.end(), key.begin(), ::tolower);
+	return (key);
 }
 
 void	HttpMessage::setHeader(std::map<std::string, std::string>& m, std::string first, std::string second)
 {
-	makeHeaderKeyLower(first);
-	m[first] = second;
+	m[makeHeaderKeyLower(first)] = second;
 }
 
 void	HttpMessage::setHeaderFromLine(std::map<std::string, std::string>& m, const std::string& inputStr, const std::string& keyword) {
@@ -139,8 +139,7 @@ const   std::string &HttpMessage::getBody() const {
 
 const std::string   &HttpMessage::getHeader(std::string key) const
 {
-	makeHeaderKeyLower(key);
-	std::map<std::string, std::string>::const_iterator it = this->_headers.find(key);
+	std::map<std::string, std::string>::const_iterator it = this->_headers.find(makeHeaderKeyLower(key));
 	if (it != this->_headers.end())
 		return it->second;
 	return _empty;
