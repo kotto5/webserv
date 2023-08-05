@@ -13,14 +13,14 @@ protected:
 	Request *reqGetHtml;
 	Request *reqGetPng;
 	Request *reqNotFound;
-	const std::string expected = "<title>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</title>";
+	const std::string expected = "<title>Lorem ipsum dolor sit amet, consectetur adipiscing elit...</title>";
 
 	// テストデータの作成
 	virtual void SetUp()
 	{
-		reqGetHtml = new Request("GET", "/test.html", "HTTP/1.1", std::map<std::string, std::string>(), "");
-		reqGetPng = new Request("GET", "/test.png", "HTTP/1.1", std::map<std::string, std::string>(), "");
-		reqNotFound = new Request("GET", "/none.html", "HTTP/1.1", std::map<std::string, std::string>(), "");
+		reqGetHtml = new Request("GET", "/pages/test.html", "HTTP/1.1", std::map<std::string, std::string>(), "");
+		reqGetPng = new Request("GET", "/images/logo.png", "HTTP/1.1", std::map<std::string, std::string>(), "");
+		reqNotFound = new Request("GET", "/pages/none.html", "HTTP/1.1", std::map<std::string, std::string>(), "");
 	}
 };
 

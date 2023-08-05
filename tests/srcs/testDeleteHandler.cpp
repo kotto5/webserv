@@ -11,7 +11,7 @@ class DeleteHandlerTest : public ::testing::Test
 {
 protected:
 	const std::string method = "DELETE";
-	const std::string uri = "/resource/unit_test/sample.txt";
+	const std::string uri = "/resources/unit_test/sample.txt";
 	const std::string protocol = "HTTP/1.1";
 	std::map<std::string, std::string> headers;
 	const std::string body = "";
@@ -33,11 +33,11 @@ protected:
 TEST_F(DeleteHandlerTest, deleteTextFile)
 {
 	// テストファイルを作成
-	std::ofstream ofs("docs/resource/unit_test/sample_delete.txt");
+	std::ofstream ofs("docs/storage/unit_test/sample_delete.txt");
 	ofs << "This message is for unit_test.";
 
 	DeleteHandler handler;
-	Request req(method, "/resource/unit_test/sample_delete.txt", protocol, headers, body);
+	Request req(method, "/resources/unit_test/sample_delete.txt", protocol, headers, body);
 	Response *res = handler.handleRequest(req);
 
 	//　レスポンスが正しいか
@@ -45,7 +45,7 @@ TEST_F(DeleteHandlerTest, deleteTextFile)
 	EXPECT_EQ(res->getBody(), "");
 
 	// テストファイルが削除されているか
-    std::ifstream file("docs/resource/unit_test/sample_delete.txt");
+    std::ifstream file("docs/storage/unit_test/sample_delete.txt");
 	EXPECT_FALSE(file.is_open());
 }
 
@@ -57,7 +57,7 @@ TEST_F(DeleteHandlerTest, deleteTextFile)
 TEST_F(DeleteHandlerTest, deleteFileWithInvalidPath)
 {
 	DeleteHandler handler;
-	Request req(method, "/resource/unit_test/invalid_path/sample.txt", protocol, headers, body);
+	Request req(method, "/resources/unit_test/invalid_path/sample.txt", protocol, headers, body);
 	Response *res = handler.handleRequest(req);
 
 	// テストデータの検証
@@ -69,14 +69,14 @@ TEST_F(DeleteHandlerTest, deleteFileWithInvalidPath)
 TEST_F(DeleteHandlerTest, deleteFileFailed)
 {
 	// テストファイルを作成
-	std::ofstream ofs("docs/resource/unit_test/sample_permission.txt");
+	std::ofstream ofs("docs/storage/unit_test/sample_permission.txt");
 	ofs << "This message is for unit_test.";
 
 	// テストファイルのパーミッションを変更
-	chmod("docs/resource/unit_test/", 0000);
+	chmod("docs/storage/unit_test/", 0000);
 
 	DeleteHandler handler;
-	Request req(method, "/resource/unit_test/sample_permission.txt", protocol, headers, body);
+	Request req(method, "/resources/unit_test/sample_permission.txt", protocol, headers, body);
 	Response *res = handler.handleRequest(req);
 
 	// テストデータの検証
@@ -84,6 +84,6 @@ TEST_F(DeleteHandlerTest, deleteFileFailed)
 	EXPECT_EQ(res->getBody(), "");
 
 	// テストファイルのパーミッションを戻す
-	chmod("docs/resource/unit_test/", 0777);
+	chmod("docs/storage/unit_test/", 0777);
 }
 }

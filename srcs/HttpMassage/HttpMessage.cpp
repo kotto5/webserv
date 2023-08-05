@@ -5,14 +5,12 @@
 std::string HttpMessage::_empty = "";
 
 HttpMessage::HttpMessage()
-    : _row(), _protocol(), _headers(), _body(), _isHeaderEnd(false), 
+    : _row(), _protocol(), _headers(), _body(), _isHeaderEnd(false),
 	_isBodyEnd(false), _readPos(0), _sendPos(0), _sendBuffer(NULL), _doesSendEnd(false)
 {
-	_tooBigError = false;
 }
 
 HttpMessage::~HttpMessage() {
-	if (_sendBuffer != NULL)
 		delete[] _sendBuffer;
 }
 

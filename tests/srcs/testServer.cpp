@@ -52,7 +52,7 @@ TEST_F(ServerTest, chunkedRequest)
 TEST_F(ServerTest, cgiRequest)
 {
 
-	std::string content = "\"GET /docs/index.php HTTP/1.1\r\nHost: localhost\r\n\r\n\"";
+	std::string content = "\"GET /cgi/ HTTP/1.1\r\nHost: localhost\r\n\r\n\"";
 	std::system((command + " " + content).c_str());
 
 	// ファイルからHTTPステータスコードを読み込む
