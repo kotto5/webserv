@@ -54,7 +54,7 @@ class Server {
 		int					run();
 		int					handle_sockets(fd_set *read_fds, fd_set *write_fds, int activity);
 		int					accept(Socket *serverSocket);
-		ssize_t				recv(Socket *sock, HttpMessage *message);
+		int					recv(Socket *sock, HttpMessage *message);
 		ssize_t				send(Socket *sock, HttpMessage *message);
 		int					finish_recv(Socket *sock, HttpMessage *message, bool is_cgi_connection);
 		int					finish_send(Socket *sock, HttpMessage *message, bool is_cgi_connection);

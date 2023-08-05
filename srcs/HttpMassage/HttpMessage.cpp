@@ -179,3 +179,8 @@ void	HttpMessage::printHeader() const
 	for (std::map<std::string, std::string>::const_iterator it = _headers.begin(); it != _headers.end(); ++it)
 		std::cout << "\t[" << it->first << "]: [" << it->second << "]" << std::endl;
 }
+
+bool	HttpMessage::isBadRequest() const
+{
+	return (!isEnd());
+}
