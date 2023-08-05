@@ -42,7 +42,7 @@ Response *GetHandler::handleRequest(const Request &request)
 	if (!htmlFile.is_open())
 	{
 		// ファイルが開けなかった場合は404を返す
-		this->_status = "404";
+		return (new Response("404"));
 	}
 
 	// ファイルの内容を読み込む
@@ -53,7 +53,5 @@ Response *GetHandler::handleRequest(const Request &request)
 	// レスポンスを作成して返す
 	std::map<std::string, std::string> headers;
 	headers["Content-Type"] = Response::getMimeType(request.getActualUri());
-	Response *res = new Response(this->_status, headers, buffer.str());
-
-	return res;
+	return (new Response(this->_status, headers, buffer.str()));
 }
