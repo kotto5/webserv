@@ -253,7 +253,7 @@ Request	*Request::parse(const std::string &row)
 	{
 		if (endPos == startPos) // empty line
 			break;
-		line = row.substr(startPos, endPos - startPos);		
+		line = row.substr(startPos, endPos - startPos);
 		if (isValidLine(line, startPos == 0) == false)
 			return (NULL);
 		if (startPos == 0)

@@ -44,6 +44,8 @@ void ConfigParser::setDirectiveType(const std::string& directive)
 		_directive_type = ALIAS;
 	else if (directive == "index")
 		_directive_type = INDEX;
+	else if (directive == "autoindex")
+		_directive_type = AUTOINDEX;
 	else if (directive == "error_page")
 		_directive_type = ERROR_PAGE;
 	else
@@ -65,7 +67,7 @@ bool ConfigParser::isInServerContext()
 bool ConfigParser::isInLocationContext()
 {
 	return  _directive_type == ALIAS || _directive_type == INDEX
-			|| _directive_type == ERROR_PAGE;
+		|| _directive_type == ERROR_PAGE || _directive_type == AUTOINDEX;
 }
 
 bool ConfigParser::isAllowedDirective()

@@ -30,6 +30,7 @@ class ConfigParser
         LOCATION,
         ALIAS,
         INDEX,
+		AUTOINDEX,
         ERROR_PAGE,
         UNKNOWN
     };
