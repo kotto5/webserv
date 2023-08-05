@@ -17,6 +17,7 @@ protected:
 
 	bool								_isHeaderEnd;
 	bool								_isBodyEnd;
+	bool								_tooBigError;
 	static	std::string					_empty;
 
 	std::string::size_type				_readPos;
@@ -28,9 +29,10 @@ protected:
 	std::size_t							_contentLength;
 
 	virtual	void				setFirstLine(const std::string &line) = 0;
-	static void					setHeaderToLower(std::map<std::string, std::string>& m, const std::string& inputStr, const std::string& keyword);
+	static void					setHeaderFromLine(std::map<std::string, std::string>& m, const std::string& inputStr, const std::string& keyword);
 	void						setBody(const std::string &row);
 	bool						isValidLine(const std::string &line, const bool isFirstLine) const;
+	std::string					&makeHeaderKeyLower(std::string &key)
 
 public:
 	HttpMessage();
@@ -38,11 +40,11 @@ public:
 	virtual ~HttpMessage();
 
 	const std::string   &getRow() const;
-	const std::string	&getHeader(const std::string &key) const;
+	const std::string   &getHeader(std::string key) const;
 	const std::string	&getBody() const;
 	const std::string	&getProtocol() const;
 
-	int							parsing(const std::string &row, const bool inputClosed);
+	int							parsing(const std::string &row, const bool inputClosed, const std::size_t limitClientMsgSize);
 	bool						isEnd() const;
 	void						addSendPos(std::size_t pos);
 	const uint8_t				*getSendBuffer();
@@ -52,6 +54,8 @@ public:
 	std::size_t					getContentLengthRemain() const ;
 	void						printHeader() const;
 	bool						isBadRequest() const;
+	bool						isTooBigError() const;
+	static void					setHeader(std::map<std::string, std::string>& m, std::string first, std::string second);
 };
 
 #endif

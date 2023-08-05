@@ -5,6 +5,7 @@
 #include <filesystem>
 #include "utils.hpp"
 #include "Logger.hpp"
+#include "Response.hpp"
 
 // Constructors
 PostHandler::PostHandler()
@@ -89,7 +90,7 @@ Response *PostHandler::handleRequest(const Request &request)
 	std::map<std::string, std::string> headers;
 	pos = request.getUri().find_last_of('/');
     std::string uridir = request.getUri().substr(0, pos + 1);
-	headers["Location"] = uridir + filename;
-	headers["Content-Type"] = Response::getMimeType(request.getActualUri());
+	HttpMessage::setHeader(headers, "Location", uridir + filename);
+	HttpMessage::setHeader(headers, "content-type", Response::getMimeType(request.getActualUri()));
     return (new Response("201", headers, ""));
 }

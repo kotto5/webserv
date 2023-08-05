@@ -2,6 +2,8 @@
 #include <fstream>
 #include <sstream>
 #include <unistd.h>
+#include "Response.hpp"
+#include "HttpMessage.hpp"
 
 // Constructors
 GetHandler::GetHandler()
@@ -52,6 +54,6 @@ Response *GetHandler::handleRequest(const Request &request)
 
 	// レスポンスを作成して返す
 	std::map<std::string, std::string> headers;
-	headers["Content-Type"] = Response::getMimeType(request.getActualUri());
+	HttpMessage::setHeader(headers, "content-type", Response::getMimeType(request.getActualUri()));
 	return (new Response(this->_status, headers, buffer.str()));
 }

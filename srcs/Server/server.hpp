@@ -45,6 +45,7 @@ class Server {
 		std::map<Socket *, HttpMessage *>	Recvs;
 		std::map<Socket *, HttpMessage *>	Sends;
 		timeval							timeout;
+		std::size_t						_limitClientMsgSize;
 
 	public:
 		Server();

@@ -1,20 +1,29 @@
 #include "HttpMessage.hpp"
+#include "HTTPContext.hpp"
+#include "Config.hpp"
 
 std::string HttpMessage::_empty = "";
 
 HttpMessage::HttpMessage()
     : _row(), _protocol(), _headers(), _body(), _isHeaderEnd(false), 
 	_isBodyEnd(false), _readPos(0), _sendPos(0), _sendBuffer(NULL), _doesSendEnd(false)
-{}
+{
+	_tooBigError = false;
+}
 
 HttpMessage::~HttpMessage() {
 	if (_sendBuffer != NULL)
 		delete[] _sendBuffer;
 }
 
-int	HttpMessage::parsing(const std::string &row, const bool inputClosed)
+int	HttpMessage::parsing(const std::string &row, const bool inputClosed, const std::size_t maxSize)
 {
 	_row += row;
+	if (maxSize != 0 && _row.length() > maxSize)
+	{
+		_tooBigError = true;
+		return (1);
+	}
 	std::cout << "row: [" << row << "]" << std::endl;
 
 	std::string	line;
@@ -31,7 +40,7 @@ int	HttpMessage::parsing(const std::string &row, const bool inputClosed)
 			if (_readPos == 0)
 				setFirstLine(line);
 			else
-				setHeaderToLower(_headers, line, ": ");
+				HttpMessage::setHeaderFromLine(_headers, line, ": ");
 			_readPos = endPos + 2; // Skip CRLF
 		}
 		_isHeaderEnd = true;
@@ -72,7 +81,7 @@ bool HttpMessage::isValidLine(const std::string &line, const bool isFirstLine) c
 
 void	HttpMessage::setBody(const std::string &row)
 {
-	if (_headers["content-length"].empty() == false)
+	if (getHeader("content-length").empty() == false)
 	{
 		std::string::size_type	content_length = std::stoi(_headers["content-length"]);
 		_body = row.substr(_readPos, content_length);
@@ -81,7 +90,7 @@ void	HttpMessage::setBody(const std::string &row)
 		else
 			_readPos += _body.length();
 	}
-	else if (_headers["transfer-encoding"] == "chunked")
+	else if (getHeader("transfer-encoding") == "chunked")
 	{
 		if (_body.find("\r\n0\r\n\r\n") == std::string::npos)
 			return ;
@@ -93,16 +102,25 @@ void	HttpMessage::setBody(const std::string &row)
 		_isBodyEnd = true;
 }
 
-void	HttpMessage::setHeaderToLower(std::map<std::string, std::string>& m, const std::string& inputStr, const std::string& keyword) {
+std::string	&HttpMessage::makeHeaderKeyLower(std::string &key)
+{
+	std::transform(key.begin(), key.end(), key.begin(), ::tolower);
+}
+
+void	HttpMessage::setHeader(std::map<std::string, std::string>& m, std::string first, std::string second)
+{
+	makeHeaderKeyLower(first);
+	m[first] = second;
+}
+
+void	HttpMessage::setHeaderFromLine(std::map<std::string, std::string>& m, const std::string& inputStr, const std::string& keyword) {
 	size_t pos = inputStr.find(keyword);
+	if (pos == std::string::npos)
+		return ;
 
-	if (pos != std::string::npos) {
-		std::string part1 = inputStr.substr(0, pos);
-		std::string part2 = inputStr.substr(pos + keyword.length());
-
-		transform(part1.begin(), part1.end(), part1.begin(), ::tolower);
-		m.insert(std::map<std::string, std::string>::value_type(part1, part2));
-	}
+	std::string first = inputStr.substr(0, pos);
+	std::string second = inputStr.substr(pos + keyword.length());
+	setHeader(m, first, second);
 }
 
 bool	HttpMessage::isEnd() const
@@ -119,8 +137,9 @@ const   std::string &HttpMessage::getBody() const {
     return (_body);
 }
 
-const std::string   &HttpMessage::getHeader(const std::string &key) const
+const std::string   &HttpMessage::getHeader(std::string key) const
 {
+	makeHeaderKeyLower(key);
 	std::map<std::string, std::string>::const_iterator it = this->_headers.find(key);
 	if (it != this->_headers.end())
 		return it->second;
@@ -184,4 +203,9 @@ void	HttpMessage::printHeader() const
 bool	HttpMessage::isBadRequest() const
 {
 	return (!isEnd());
+}
+
+bool	HttpMessage::isTooBigError() const
+{
+	return (_tooBigError);
 }
