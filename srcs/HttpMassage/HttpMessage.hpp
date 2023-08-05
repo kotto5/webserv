@@ -32,7 +32,7 @@ protected:
 	static void					setHeaderFromLine(std::map<std::string, std::string>& m, const std::string& inputStr, const std::string& keyword);
 	void						setBody(const std::string &row);
 	bool						isValidLine(const std::string &line, const bool isFirstLine) const;
-	std::string					&makeHeaderKeyLower(std::string &key)
+	static std::string			makeHeaderKeyLower(std::string key);
 
 public:
 	HttpMessage();
