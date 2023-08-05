@@ -29,9 +29,10 @@ protected:
 	std::size_t							_contentLength;
 
 	virtual	void				setFirstLine(const std::string &line) = 0;
-	static void					setHeaderToLower(std::map<std::string, std::string>& m, const std::string& inputStr, const std::string& keyword);
+	static void					setHeaderFromLine(std::map<std::string, std::string>& m, const std::string& inputStr, const std::string& keyword);
 	void						setBody(const std::string &row);
 	bool						isValidLine(const std::string &line, const bool isFirstLine) const;
+	std::string					&makeHeaderKeyLower(std::string &key)
 
 public:
 	HttpMessage();
@@ -39,7 +40,7 @@ public:
 	virtual ~HttpMessage();
 
 	const std::string   &getRow() const;
-	const std::string	&getHeader(const std::string &key) const;
+	const std::string   &getHeader(std::string key) const;
 	const std::string	&getBody() const;
 	const std::string	&getProtocol() const;
 
@@ -54,6 +55,7 @@ public:
 	void						printHeader() const;
 	bool						isBadRequest() const;
 	bool						isTooBigError() const;
+	static void					setHeader(std::map<std::string, std::string>& m, std::string first, std::string second);
 };
 
 #endif

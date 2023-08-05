@@ -40,7 +40,7 @@ int	HttpMessage::parsing(const std::string &row, const bool inputClosed, const s
 			if (_readPos == 0)
 				setFirstLine(line);
 			else
-				setHeaderToLower(_headers, line, ": ");
+				HttpMessage::setHeaderFromLine(_headers, line, ": ");
 			_readPos = endPos + 2; // Skip CRLF
 		}
 		_isHeaderEnd = true;
@@ -81,7 +81,7 @@ bool HttpMessage::isValidLine(const std::string &line, const bool isFirstLine) c
 
 void	HttpMessage::setBody(const std::string &row)
 {
-	if (_headers["content-length"].empty() == false)
+	if (getHeader("content-length").empty() == false)
 	{
 		std::string::size_type	content_length = std::stoi(_headers["content-length"]);
 		_body = row.substr(_readPos, content_length);
@@ -90,7 +90,7 @@ void	HttpMessage::setBody(const std::string &row)
 		else
 			_readPos += _body.length();
 	}
-	else if (_headers["transfer-encoding"] == "chunked")
+	else if (getHeader("transfer-encoding") == "chunked")
 	{
 		if (_body.find("\r\n0\r\n\r\n") == std::string::npos)
 			return ;
@@ -102,16 +102,25 @@ void	HttpMessage::setBody(const std::string &row)
 		_isBodyEnd = true;
 }
 
-void	HttpMessage::setHeaderToLower(std::map<std::string, std::string>& m, const std::string& inputStr, const std::string& keyword) {
+std::string	&HttpMessage::makeHeaderKeyLower(std::string &key)
+{
+	std::transform(key.begin(), key.end(), key.begin(), ::tolower);
+}
+
+void	HttpMessage::setHeader(std::map<std::string, std::string>& m, std::string first, std::string second)
+{
+	makeHeaderKeyLower(first);
+	m[first] = second;
+}
+
+void	HttpMessage::setHeaderFromLine(std::map<std::string, std::string>& m, const std::string& inputStr, const std::string& keyword) {
 	size_t pos = inputStr.find(keyword);
+	if (pos == std::string::npos)
+		return ;
 
-	if (pos != std::string::npos) {
-		std::string part1 = inputStr.substr(0, pos);
-		std::string part2 = inputStr.substr(pos + keyword.length());
-
-		transform(part1.begin(), part1.end(), part1.begin(), ::tolower);
-		m.insert(std::map<std::string, std::string>::value_type(part1, part2));
-	}
+	std::string first = inputStr.substr(0, pos);
+	std::string second = inputStr.substr(pos + keyword.length());
+	setHeader(m, first, second);
 }
 
 bool	HttpMessage::isEnd() const
@@ -128,8 +137,9 @@ const   std::string &HttpMessage::getBody() const {
     return (_body);
 }
 
-const std::string   &HttpMessage::getHeader(const std::string &key) const
+const std::string   &HttpMessage::getHeader(std::string key) const
 {
+	makeHeaderKeyLower(key);
 	std::map<std::string, std::string>::const_iterator it = this->_headers.find(key);
 	if (it != this->_headers.end())
 		return it->second;
