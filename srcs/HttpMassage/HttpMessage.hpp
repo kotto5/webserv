@@ -17,6 +17,7 @@ protected:
 
 	bool								_isHeaderEnd;
 	bool								_isBodyEnd;
+	bool								_tooBigError;
 	static	std::string					_empty;
 
 	std::string::size_type				_readPos;
@@ -42,7 +43,7 @@ public:
 	const std::string	&getBody() const;
 	const std::string	&getProtocol() const;
 
-	int							parsing(const std::string &row, const bool inputClosed);
+	int							parsing(const std::string &row, const bool inputClosed, const std::size_t limitClientMsgSize);
 	bool						isEnd() const;
 	void						addSendPos(std::size_t pos);
 	const uint8_t				*getSendBuffer();
