@@ -31,6 +31,7 @@ public:
 	int			seturi();
 	int			setaddr(ClSocket *clientSocket);
 	void		setinfo();
+	bool						isBadRequest() const;
 
 private:
 	virtual	void			setFirstLine(const std::string &line);
