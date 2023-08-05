@@ -91,6 +91,5 @@ Response *PostHandler::handleRequest(const Request &request)
     std::string uridir = request.getUri().substr(0, pos + 1);
 	headers["Location"] = uridir + filename;
 	headers["Content-Type"] = Response::getMimeType(request.getActualUri());
-
     return (new Response("201", headers, ""));
 }

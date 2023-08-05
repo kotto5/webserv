@@ -23,5 +23,7 @@ int		isValidFd(int fd);
 bool    isFile(const char *path);
 bool    pathExist(const char *path);
 bool    isDirectory(const char *path);
+std::string percentEncode(std::string str);
+std::string percentDecode(std::string str);
 
 #endif

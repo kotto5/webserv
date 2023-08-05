@@ -1,6 +1,8 @@
 #include "MimeType.hpp"
 #include <map>
 
+const std::string &MimeType::charset = "charset=utf-8";
+
 /**
  * @brief 拡張子とMIMEタイプの対応表を作成する
  *
@@ -11,7 +13,7 @@ std::map<std::string, std::string> createMimeType()
 {
 	std::map<std::string, std::string> mimeType;
 
-	mimeType[".html"] = "text/html";
+	mimeType[".html"] = "text/html; " + MimeType::charset;
 	mimeType[".css"] = "text/css";
 	mimeType[".js"] = "application/javascript";
 	mimeType[".jpg"] = "image/jpeg";
