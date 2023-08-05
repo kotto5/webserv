@@ -11,7 +11,7 @@
 DeleteHandler::DeleteHandler()
 {
 	// 規定値を200に設定
-	this->_status = "200";
+	this->_status = "204";
 }
 
 DeleteHandler::DeleteHandler(const DeleteHandler &other)
@@ -54,5 +54,5 @@ Response	*DeleteHandler::handleRequest(const Request &request)
 		return (new Response("500"));
 	}
 
-    return (new Response("200"));
+    return (new Response("204"));
 }
