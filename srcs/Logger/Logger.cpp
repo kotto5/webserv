@@ -67,7 +67,7 @@ void Logger::writeAccessLog(const Request& request, const Response& response)
 	// メッセージをログファイルに出力
 	_ofsAccessLog << std::string(timestamp) << " " << request.getMethod() << " "
 		<< request.getUri() << " " << request.getProtocol() << " "
-		<< std::to_string(response.getStatus()) << std::endl;
+		<< response.getStatus() << std::endl;
 
 	/** 標準出力する場合は以下をコメントアウト */
 	// std::cout << std::string(timestamp) << " " << request.getMethod() << " "

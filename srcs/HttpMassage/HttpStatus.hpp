@@ -7,7 +7,7 @@
 class HttpStatus
 {
 public:
-	static const std::map<int, std::string> HTTP_STATUS;
+	static const std::map<std::string, std::string> HTTP_STATUS;
 };
 
 #endif
