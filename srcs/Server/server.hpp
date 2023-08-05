@@ -52,16 +52,15 @@ class Server {
 		int					setup();
 		int					create_server_socket(int port);
 		int					run();
-		int					handle_sockets(fd_set *read_fds, fd_set *write_fds, fd_set *expect_fds, int &activity);
+		int					handle_sockets(fd_set *read_fds, fd_set *write_fds, int activity);
 		int					accept(Socket *serverSocket);
 		ssize_t				recv(Socket *sock, HttpMessage *message);
 		ssize_t				send(Socket *sock, HttpMessage *message);
-		int					finish_recv(std::list<Socket *>::iterator itr, HttpMessage *request, bool is_cgi_connection);
-		int					finish_send(std::list<Socket *>::iterator itr, HttpMessage *response, bool is_cgi_connection);
+		int					finish_recv(Socket *sock, HttpMessage *message, bool is_cgi_connection);
+		int					finish_send(Socket *sock, HttpMessage *message, bool is_cgi_connection);
 		bool				request_wants_cgi(Request *request);
 		int					new_connect_cgi(Request *request, Socket *clientSocket);
 		int					setFd(int type, Socket *sock, Socket *client_sock = NULL);
-		int					eraseFd(int type, Socket *socket);
 		bool				check_timeout();
 
 	static bool			does_finish_recv(const std::string &request, bool is_cgi_connection, ssize_t recv_ret);

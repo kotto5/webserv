@@ -30,26 +30,21 @@ int	Server::setup()
 	return (0);
 }
 
-bool	Server::does_finish_send(const std::string &request, ssize_t recv_ret)
-{
-	return (recv_ret != -1 && request.length() == static_cast<size_t>(recv_ret));
-}
-
-int	Server::handle_sockets(fd_set *read_fds, fd_set *write_fds, fd_set *expect_fds, int &activity)
+int	Server::handle_sockets(fd_set *read_fds, fd_set *write_fds, int activity)
 {
 	std::list<Socket *>::iterator	itr;
 	std::list<Socket *>::iterator	tmp;
 	ssize_t							ret;
 	bool							does_connected_cgi;
-	Socket							*socket;
+	Socket							*sock;
 
 	for (itr = server_sockets.begin(); activity && itr != server_sockets.end();)
 	{
 		tmp = itr++;
-		socket = *tmp;
-		if (FD_ISSET(((socket)->getFd()), read_fds))
+		sock = *tmp;
+		if (FD_ISSET(((sock)->getFd()), read_fds))
 		{
-			if (accept(socket) == -1)
+			if (accept(sock) == -1)
 				;
 			--activity;
 		}
@@ -57,31 +52,35 @@ int	Server::handle_sockets(fd_set *read_fds, fd_set *write_fds, fd_set *expect_f
 	for (itr = recv_sockets.begin(); activity && itr != recv_sockets.end();)
 	{
 		tmp = itr++;
-		socket = *tmp;
-		if (FD_ISSET(socket->getFd(), read_fds))
+		sock = *tmp;
+		if (FD_ISSET(sock->getFd(), read_fds))
 		{
-			does_connected_cgi = (cgi_client.count(socket) == 1);
-			ret = recv(socket, Recvs[socket]);
-			if (Recvs[socket]->isEnd())
-				finish_recv(tmp, Recvs[socket], does_connected_cgi);
+			does_connected_cgi = (cgi_client.count(sock) == 1);
+			ret = recv(sock, Recvs[sock]);
+			if (Recvs[sock]->isEnd())
+			{
+				finish_recv(sock, Recvs[sock], does_connected_cgi);
+				recv_sockets.erase(tmp);
+			}
 			--activity;
 		}
 	}
 	for (itr = send_sockets.begin(); activity && itr != send_sockets.end();)
 	{
 		tmp = itr++;
-		socket = *tmp;
-		if (FD_ISSET(socket->getFd(), write_fds))
+		sock = *tmp;
+		if (FD_ISSET(sock->getFd(), write_fds))
 		{
-			does_connected_cgi = (cgi_client.count(socket) == 1);
-			ret = send(*tmp, Sends[socket]);
-			if (Sends[socket]->doesSendEnd())
-				finish_send(tmp, Sends[socket], does_connected_cgi);
+			does_connected_cgi = (cgi_client.count(sock) == 1);
+			ret = send(sock, Sends[sock]);
+			if (Sends[sock]->doesSendEnd())
+			{
+				finish_send(sock, Sends[sock], does_connected_cgi);
+				send_sockets.erase(tmp);
+			}
 			--activity;
 		}
 	}
-	if (expect_fds)
-		throw ServerException("unexpected fds");
 	return (0);
 }
 
@@ -89,7 +88,7 @@ bool	Server::check_timeout()
 {
 	std::list<Socket *>::iterator	itr;
 	std::list<Socket *>::iterator	tmp;
-	Socket							*socket;
+	Socket							*sock;
 	bool							timeoutOccurred;
 	std::time_t						current_time = std::time(NULL);
 
@@ -97,24 +96,26 @@ bool	Server::check_timeout()
 	for (itr = recv_sockets.begin(); itr != recv_sockets.end();)
 	{
 		tmp = itr++;
-		socket = *tmp;
-		if (socket->isTimeout(current_time))
+		sock = *tmp;
+		if (sock->isTimeout(current_time))
 		{
 			std::cout << "timeout" << std::endl;
-			eraseFd(TYPE_RECV, socket);
-			delete (socket);
+			recv_sockets.erase(tmp);
+			delete (Recvs[sock]);
+			delete (sock);
 			timeoutOccurred = true;
 		}
 	}
 	for (itr = send_sockets.begin(); itr != send_sockets.end();)
 	{
 		tmp = itr++;
-		socket = *tmp;
-		if (socket->isTimeout(current_time))
+		sock = *tmp;
+		if (sock->isTimeout(current_time))
 		{
 			std::cout << "timeout" << std::endl;
-			eraseFd(TYPE_SEND, socket);
-			delete (socket);
+			send_sockets.erase(tmp);
+			delete (Sends[sock]);
+			delete (sock);
 			timeoutOccurred = true;
 		}
 	}
@@ -134,46 +135,45 @@ int	Server::run()
 		Server::set_fd_set(read_fds, recv_sockets, max_fd);
 		Server::set_fd_set(write_fds, send_sockets, max_fd);
 
-		// int	activity = select(max_fd + 1,&read_fds, &write_fds, NULL, &timeout);
-		int	activity = select(max_fd + 1,&read_fds, &write_fds, NULL, NULL);
+		int	activity = select(max_fd + 1,&read_fds, &write_fds, NULL, &timeout);
 		if (activity == -1)
 			throw ServerException("select");
-		// if (activity == 0 && check_timeout())
-		// 	continue ;
-		handle_sockets(&read_fds, &write_fds, NULL, activity);
+		if (activity == 0 && check_timeout())
+			continue ;
+		handle_sockets(&read_fds, &write_fds, activity);
 	}
 }
 
 Server::Server() {}
 Server::~Server() {}
 
-int	Server::accept(Socket *serverSocket)
+int	Server::accept(Socket *serverSock)
 {
-	SvSocket *sv_socket = dynamic_cast<SvSocket *>(serverSocket);
-	ClSocket *new_socket = sv_socket->dequeueSocket();
-	if (new_socket == NULL)
+	SvSocket *svSock = dynamic_cast<SvSocket *>(serverSock);
+	ClSocket *newSock = svSock->dequeueSocket();
+	if (newSock == NULL)
 		return (0);
-	setFd(TYPE_RECV, new_socket);
-	Recvs[new_socket] = new Request();
-	std::cout << RED << "New connection, socket fd is " << new_socket->getFd() << ", port is " << ntohs(new_socket->getRemoteaddr().sin_port) << "time " << new_socket->getLastAccess() << DEF << std::endl;
+	setFd(TYPE_RECV, newSock);
+	Recvs[newSock] = new Request();
+	std::cout << RED << "New connection, socket fd is " << newSock->getFd() << ", port is " << ntohs(newSock->getRemoteaddr().sin_port) << "time " << newSock->getLastAccess() << DEF << std::endl;
 	return (0);
 }
 
-int	Server::new_connect_cgi(Request *request, Socket *clientSocket)
+int	Server::new_connect_cgi(Request *request, Socket *clientSock)
 {
-	int	sockets[2];
-	if (_socketpair(AF_INET, SOCK_STREAM, 0, sockets) == -1)
+	int	socks[2];
+	if (_socketpair(AF_INET, SOCK_STREAM, 0, socks) == -1)
 		throw ServerException("socketpair");
-	if (runCgi(request, sockets[S_CHILD]))
+	if (runCgi(request, socks[S_CHILD]))
 		throw ServerException("runCgi");
-	close(sockets[S_CHILD]);
+	close(socks[S_CHILD]);
 	set_non_blocking(S_PARENT);
 
-	Socket *socket = new Socket(sockets[S_PARENT]);
-	setFd(TYPE_SEND, socket);
-	setFd(TYPE_CGI, socket, clientSocket);
-	Sends[socket] = new OnlyBody();
-	Sends[socket]->parsing(request->getBody(), true);
+	Socket *sock = new Socket(socks[S_PARENT]);
+	setFd(TYPE_SEND, sock);
+	setFd(TYPE_CGI, sock, clientSock);
+	Sends[sock] = new OnlyBody();
+	Sends[sock]->parsing(request->getBody(), true);
 	delete (request);
 	return (0);
 }
@@ -190,7 +190,7 @@ ssize_t	Server::recv(Socket *sock, HttpMessage *message) {
 }
 
 // bool じゃなくて dynamic_cast で判定したほうがいいかも
-int	Server::finish_recv(std::list<Socket *>::iterator itr, HttpMessage *message, bool is_cgi_connection)
+int	Server::finish_recv(Socket *sock, HttpMessage *message, bool is_cgi_connection)
 {
 	std::cout << "finish_recv [" << message->getRow() << "]" << std::endl;
 	int	wstatus;
@@ -198,7 +198,6 @@ int	Server::finish_recv(std::list<Socket *>::iterator itr, HttpMessage *message,
 	if (is_cgi_connection)
 	{
 		// fork pid も cgi socket とかに入れたろうかな
-		Socket	*sock = *itr;
 		waitpid(-1, &wstatus, 0);
 		Socket	*clSocket = cgi_client[sock];
 		Sends[clSocket] = message;
@@ -207,21 +206,20 @@ int	Server::finish_recv(std::list<Socket *>::iterator itr, HttpMessage *message,
 	else
 	{
 		Request		*request = (Request *)message;
-		ClSocket	*sock = (ClSocket *)*itr;
-		request->setaddr(sock);
+		ClSocket	*clsock = (ClSocket *)sock;
+		request->setaddr(clsock);
 		request->setinfo();
 		request->print_all();
 		if (request_wants_cgi(request))
-			new_connect_cgi(request, sock);
+			new_connect_cgi(request, clsock);
 		else
 		{
-			Sends[sock] = makeResponse(request);
-			setFd(TYPE_SEND, sock);
+			Sends[clsock] = makeResponse(request);
+			setFd(TYPE_SEND, clsock);
 			delete (request);
 		}
 	}
-	Recvs.erase((*itr));
-	recv_sockets.erase(itr);
+	Recvs.erase((sock));
 	return (0);
 }
 
@@ -244,30 +242,28 @@ ssize_t		Server::send(Socket *sock, HttpMessage *message)
 	return (ret);
 }
 
-int		Server::finish_send(std::list<Socket *>::iterator itr, HttpMessage *response, bool is_cgi_connection)
+int		Server::finish_send(Socket *sock, HttpMessage *message, bool is_cgi_connection)
 {
 	if (is_cgi_connection)
 	{
-		Recvs[*itr] = new Response();
-		setFd(TYPE_RECV, *itr);
-		delete (Sends[*itr]);
+		Recvs[sock] = new Response();
+		setFd(TYPE_RECV, sock);
 	}
 	else
 	{
-		delete (*itr);
-		delete (response);
+		delete (sock);
 	}
-	Sends.erase(*itr);
-	eraseFd(TYPE_SEND, *itr);
+	delete (message);
+	Sends.erase(sock);
 	return (0);
 }
 
 int	Server::create_server_socket(int port)
 {
-	Socket *socket = new SvSocket(port);
-	if (socket == NULL)
+	Socket *sock = new SvSocket(port);
+	if (sock == NULL)
 		return (1);
-	server_sockets.push_back(socket);
+	server_sockets.push_back(sock);
 	return (0);
 }
 
@@ -307,21 +303,6 @@ int	Server::setFd(int type, Socket *sock, Socket *client_sock)
 		server_sockets.push_back(sock);
 	else if (type == TYPE_CGI)
 		cgi_client[sock] = client_sock;
-	else
-		return (1);
-	return (0);
-}
-
-int	Server::eraseFd(int type, Socket *sock)
-{
-	if (type == TYPE_RECV)
-		recv_sockets.remove(sock);
-	else if (type == TYPE_SEND)
-		send_sockets.remove(sock);
-	else if (type == TYPE_SERVER)
-		server_sockets.remove(sock);
-	else if (type == TYPE_CGI)
-		cgi_client.erase(sock);
 	else
 		return (1);
 	return (0);
