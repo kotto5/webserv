@@ -179,6 +179,6 @@ void	Request::setFirstLine(const std::string &line)
 	std::string::size_type	method_end = line.find(" ");
 	std::string::size_type	uri_end = line.find(" ", method_end + 1);
 	_method = line.substr(0, method_end);
-	_uriAndQuery = line.substr(method_end + 1, uri_end - method_end - 1);
+	_uriAndQuery = percentDecode(line.substr(method_end + 1, uri_end - method_end - 1));
 	_protocol = line.substr(uri_end + 1);
 }
