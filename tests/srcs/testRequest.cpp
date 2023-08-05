@@ -67,8 +67,8 @@ TEST_F(RequestTest, alias)
 	// テストデータの検証
 	EXPECT_EQ(rq1.getActualUri(), "./docs/index.html");
 	EXPECT_EQ(rq2.getActualUri(), "./docs/index.html");
-	EXPECT_EQ(rq3.getActualUri(), "./data/s3/resources/index.html");
-	EXPECT_EQ(rq4.getActualUri(), "./data/s3/resources/index.html");
+	EXPECT_EQ(rq3.getActualUri(), "./docs/storage/index.html");
+	EXPECT_EQ(rq4.getActualUri(), "./docs/storage/index.html");
 }
 
 }

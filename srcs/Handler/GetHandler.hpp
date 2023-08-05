@@ -21,6 +21,9 @@ public:
 
 	// Member functions
 	virtual Response	*handleRequest(const Request &request);
+
+private:
+	bool enableAutoindex(const Request &request);
 };
 
 #endif

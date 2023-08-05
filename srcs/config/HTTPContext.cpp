@@ -39,6 +39,11 @@ void HTTPContext::setErrorLogFile(const std::string& errorLogFile)
 	_errorLogFile = errorLogFile;
 }
 
+void	HTTPContext::setClientMaxBodySize(const std::string& clientMaxBodySize)
+{
+	_clientMaxBodySize = std::stoul(clientMaxBodySize);
+}
+
 void HTTPContext::addServerBlock(const ServerContext& server)
 {
     std::string listen = server.getListen();
@@ -92,6 +97,11 @@ const std::string& HTTPContext::getErrorLogFile() const
 const std::map<std::string, std::vector<ServerContext> >& HTTPContext::getServers() const
 {
 	return _servers;
+}
+
+const std::size_t	&HTTPContext::getClientMaxBodySize() const
+{
+	return _clientMaxBodySize;
 }
 
 /**

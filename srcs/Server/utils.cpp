@@ -164,7 +164,7 @@ int	runCgi(Request *request, int socket)
 		dup2(socket, 0);
 		dup2(socket, 1);
 		close(socket);
-		std::string path = "docs/index.php";
+		std::string path = "docs/cgi/index.php";
 		// std::string query = request.getQuery();
 		// std::string path_query = path + "?" + query;
 		std::string path_query = path;

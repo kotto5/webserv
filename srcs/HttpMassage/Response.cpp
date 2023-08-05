@@ -114,7 +114,7 @@ void Response::setDate()
 	// HTTPの形式に変換
 	std::strftime(buf, sizeof(buf), "%a, %d %b %Y %H:%M:%S %Z", tm_gm);
 	std::string dateNow(buf);
-	this->_headers["date"] = dateNow;
+	setHeader(_headers, "date", dateNow);
 }
 
 /**
@@ -125,12 +125,12 @@ void Response::setDate()
  */
 void Response::setContentLength()
 {
-	this->_headers["content-length"] = std::to_string(this->_body.length());
+	setHeader(this->_headers, "content-length", std::to_string(this->_body.length()));
 }
 
 void Response::setServer()
 {
-	this->_headers["Server"] = "Webserv 0.1";
+	setHeader(_headers, "server", "Webserv 0.1");
 }
 
 /**
