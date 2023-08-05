@@ -52,6 +52,7 @@ public:
 	std::size_t					getContentLengthRemain() const ;
 	void						printHeader() const;
 	bool						isBadRequest() const;
+	bool						isTooBigError() const;
 };
 
 #endif

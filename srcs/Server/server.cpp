@@ -27,6 +27,7 @@ int	Server::setup()
 	}
 	memset(&timeout, 0, sizeof(timeout));
 	timeout.tv_sec = 5;
+	_limitClientMsgSize = Config::instance()->getHTTPBlock().getClientMaxBodySize();
 	return (0);
 }
 
@@ -171,7 +172,7 @@ int	Server::new_connect_cgi(Request *request, Socket *clientSock)
 	setFd(TYPE_SEND, sock);
 	setFd(TYPE_CGI, sock, clientSock);
 	Sends[sock] = new OnlyBody();
-	Sends[sock]->parsing(request->getBody(), true);
+	Sends[sock]->parsing(request->getBody(), true, 0);
 	delete (request);
 	return (0);
 }
@@ -183,7 +184,7 @@ int	Server::recv(Socket *sock, HttpMessage *message) {
 	static char buffer[BUFFER_LEN];
 	memset(buffer, 0, BUFFER_LEN);
 	recv_ret = ::recv(sock->getFd(), buffer, BUFFER_LEN, 0);
-	return (message->parsing(buffer, recv_ret == 0));
+	return (message->parsing(buffer, recv_ret == 0, _limitClientMsgSize));
 }
 
 // bool じゃなくて dynamic_cast で判定したほうがいいかも
@@ -211,10 +212,7 @@ int	Server::finish_recv(Socket *sock, HttpMessage *message, bool is_cgi_connecti
 			new_connect_cgi(request, clSock);
 		else
 		{
-			if (request->isBadRequest())
-				Sends[clSock] = new Response("400");
-			else
-				Sends[clSock] = makeResponse(request);
+			Sends[clSock] = makeResponse(request);
 			setFd(TYPE_SEND, clSock);
 			delete (request);
 		}
@@ -268,6 +266,11 @@ int	Server::create_server_socket(int port)
 }
 
 Response	*Server::makeResponse(Request *request){
+	if (request->isTooBigError())
+		return (new Response("401"));
+	else if (request->isBadRequest())
+		return (new Response("400"));
+
 	Router	router;
 	IHandler	*handler = router.createHandler(*request);
 	if (handler == NULL)

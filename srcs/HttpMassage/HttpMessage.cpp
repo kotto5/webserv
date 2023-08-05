@@ -1,20 +1,29 @@
 #include "HttpMessage.hpp"
+#include "HTTPContext.hpp"
+#include "Config.hpp"
 
 std::string HttpMessage::_empty = "";
 
 HttpMessage::HttpMessage()
     : _row(), _protocol(), _headers(), _body(), _isHeaderEnd(false), 
 	_isBodyEnd(false), _readPos(0), _sendPos(0), _sendBuffer(NULL), _doesSendEnd(false)
-{}
+{
+	_tooBigError = false;
+}
 
 HttpMessage::~HttpMessage() {
 	if (_sendBuffer != NULL)
 		delete[] _sendBuffer;
 }
 
-int	HttpMessage::parsing(const std::string &row, const bool inputClosed)
+int	HttpMessage::parsing(const std::string &row, const bool inputClosed, std::size_t maxSize)
 {
 	_row += row;
+	if (maxSize != 0 && _row.length() > maxSize)
+	{
+		_tooBigError = true;
+		return (1);
+	}
 	std::cout << "row: [" << row << "]" << std::endl;
 
 	std::string	line;
@@ -184,4 +193,9 @@ void	HttpMessage::printHeader() const
 bool	HttpMessage::isBadRequest() const
 {
 	return (!isEnd());
+}
+
+bool	HttpMessage::isTooBigError() const
+{
+	return (_tooBigError);
 }
