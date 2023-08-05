@@ -2,7 +2,7 @@
 #define GETHANDLER_HPP
 
 #include "IHandler.hpp"
-#include "../Response/Response.hpp"
+#include "Response.hpp"
 #include <iostream>
 #include <string>
 
@@ -20,9 +20,8 @@ public:
 	GetHandler &operator=(const GetHandler &rhs);
 
 	// Member functions
-	virtual Response	handleRequest(const Request &request);
+	virtual Response	*handleRequest(const Request &request);
 
-private:
 	bool enableAutoindex(const Request &request);
 };
 

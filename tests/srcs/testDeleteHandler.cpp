@@ -38,11 +38,11 @@ TEST_F(DeleteHandlerTest, deleteTextFile)
 
 	DeleteHandler handler;
 	Request req(method, "/resources/unit_test/sample_delete.txt", protocol, headers, body);
-	Response res = handler.handleRequest(req);
+	Response *res = handler.handleRequest(req);
 
 	//　レスポンスが正しいか
-	EXPECT_EQ(res.getStatus(), 204);
-	EXPECT_EQ(res.getBody(), "");
+	EXPECT_EQ(res->getStatus(), "204");
+	EXPECT_EQ(res->getBody(), "");
 
 	// テストファイルが削除されているか
     std::ifstream file("docs/storage/unit_test/sample_delete.txt");
@@ -58,11 +58,11 @@ TEST_F(DeleteHandlerTest, deleteFileWithInvalidPath)
 {
 	DeleteHandler handler;
 	Request req(method, "/resources/unit_test/invalid_path/sample.txt", protocol, headers, body);
-	Response res = handler.handleRequest(req);
+	Response *res = handler.handleRequest(req);
 
 	// テストデータの検証
-	EXPECT_EQ(res.getStatus(), 404);
-	EXPECT_EQ(res.getBody(), "");
+	EXPECT_EQ(res->getStatus(), "404");
+	EXPECT_EQ(res->getBody(), "");
 }
 
 // 2. ファイルの削除に失敗した場合にエラーになるか
@@ -77,11 +77,11 @@ TEST_F(DeleteHandlerTest, deleteFileFailed)
 
 	DeleteHandler handler;
 	Request req(method, "/resources/unit_test/sample_permission.txt", protocol, headers, body);
-	Response res = handler.handleRequest(req);
+	Response *res = handler.handleRequest(req);
 
 	// テストデータの検証
-	EXPECT_EQ(res.getStatus(), 404);
-	EXPECT_EQ(res.getBody(), "");
+	EXPECT_EQ(res->getStatus(), "404");
+	EXPECT_EQ(res->getBody(), "");
 
 	// テストファイルのパーミッションを戻す
 	chmod("docs/storage/unit_test/", 0777);

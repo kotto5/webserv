@@ -2,7 +2,7 @@
 #define POSTHANDLER_HPP
 
 #include "IHandler.hpp"
-#include "../Response/Response.hpp"
+#include "Response.hpp"
 #include <iostream>
 #include <string>
 
@@ -20,7 +20,7 @@ public:
 	PostHandler &operator=(const PostHandler &rhs);
 
 	// Member functions
-	virtual Response	handleRequest(const Request &request);
+	virtual Response	*handleRequest(const Request &request);
 };
 
 #endif

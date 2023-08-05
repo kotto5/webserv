@@ -17,6 +17,8 @@
 #include "Request.hpp"
 #include <list>
 #include "Socket.hpp"
+#include "HttpMessage.hpp"
+#include "Response.hpp"
 
 #define BUFFER_LEN 1024
 #define MAX_CLIENTS 1024
@@ -39,9 +41,9 @@ class Server {
 		std::list<Socket *>				server_sockets;
 		std::list<Socket *>				recv_sockets;
 		std::list<Socket *>				send_sockets;
-		std::map<int, std::string>		Recvs;
-		std::map<int, std::string>		Sends;
 		std::map<Socket *, Socket *>	cgi_client;
+		std::map<Socket *, HttpMessage *>	Recvs;
+		std::map<Socket *, HttpMessage *>	Sends;
 		timeval							timeout;
 
 	public:
@@ -50,23 +52,22 @@ class Server {
 		int					setup();
 		int					create_server_socket(int port);
 		int					run();
-		int					handle_sockets(fd_set *read_fds, fd_set *write_fds, fd_set *expect_fds, int &activity);
+		int					handle_sockets(fd_set *read_fds, fd_set *write_fds, int activity);
 		int					accept(Socket *serverSocket);
-		ssize_t				recv(Socket *, std::string &recieving);
-		ssize_t				send(Socket *, std::string &response);
-		int					finish_recv(std::list<Socket *>::iterator itr, std::string &recieving, bool is_cgi_connection);
-		int					finish_send(std::list<Socket *>::iterator itr, bool is_cgi_connection);
+		int					recv(Socket *sock, HttpMessage *message);
+		ssize_t				send(Socket *sock, HttpMessage *message);
+		int					finish_recv(Socket *sock, HttpMessage *message, bool is_cgi_connection);
+		int					finish_send(Socket *sock, HttpMessage *message, bool is_cgi_connection);
 		bool				request_wants_cgi(Request *request);
 		int					new_connect_cgi(Request *request, Socket *clientSocket);
 		int					setFd(int type, Socket *sock, Socket *client_sock = NULL);
-		int					eraseFd(Socket *socket, int type);
 		bool				check_timeout();
 
 	static bool			does_finish_recv(const std::string &request, bool is_cgi_connection, ssize_t recv_ret);
 	static bool			does_finish_send(const std::string &request, ssize_t recv_ret);
 	static int			set_fd_set(fd_set &set, std::list<Socket *> sockets, int &maxFd);
 	static Request		*parse_request(const std::string &row_request);
-	static std::string	make_response(Request *request);
+	static Response		*makeResponse(Request *request);
 };
 
 #endif

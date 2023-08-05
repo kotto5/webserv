@@ -10,13 +10,20 @@
 #include <arpa/inet.h>
 #include <cstring>
 #include "utils.hpp"
+#include <algorithm>
 
-// Constructors
-Request::Request(const std::string &method, const std::string &uriAndQuery, const std::string &protocol,
-				const std::map<std::string, std::string> &headers, const std::string &body)
-	: _method(method), _uriAndQuery(uriAndQuery), _protocol(protocol), _headers(headers), _body(body)
+Request::Request(const std::string &method, const std::string &uriAndQuery, const std::string &protocol, std::map<std::string, std::string> headers, const std::string &body)
 {
-	// クエリを取得
+	this->_method = method;
+	this->_uriAndQuery = uriAndQuery;
+	this->_protocol = protocol;
+	this->_headers = headers;
+	this->_body = body;
+	this->setinfo();
+}
+
+void	Request::setinfo()
+{
 	std::string::size_type pos = this->_uriAndQuery.find("?");
 	this->_uri = pos == std::string::npos ? this->_uriAndQuery : this->_uriAndQuery.substr(0, pos);
 	this->_query = pos == std::string::npos ? "" : this->_uriAndQuery.substr(pos + 1);
@@ -34,6 +41,8 @@ Request::Request(const std::string &method, const std::string &uriAndQuery, cons
 	this->_path_info = this->_uri.find(_cgi_script_name) == std::string::npos ?
 	"" : this->_uri.substr(this->_uri.find(_cgi_script_name) + _cgi_script_name.length());
 }
+
+Request::Request(){}
 
 static std::string	getAliasOrRootDirective(LocationContext &Location)
 {
@@ -56,7 +65,7 @@ static std::string	getAliasOrRootDirective(LocationContext &Location)
 std::string	Request::convertUritoPath(const std::string &uri)
 {
 	Config	*config = Config::instance();
-	HTTPContext	httpcontext;
+	HTTPContext		httpcontext;
 	ServerContext	servercontext;
 	LocationContext	location;
 
@@ -110,36 +119,15 @@ Request &Request::operator=(const Request &rhs)
 }
 
 // Getters/Setters
-std::string Request::getMethod() const
-{
+const std::string	&Request::getMethod() const {
 	return this->_method;
 }
 
-std::string Request::getUri() const
-{
+const std::string	&Request::getUri() const {
 	return this->_uri;
 }
 
-std::string Request::getProtocol() const
-{
-	return this->_protocol;
-}
-
-std::string Request::getHeader(const std::string &key) const
-{
-	std::map<std::string, std::string>::const_iterator it = this->_headers.find(key);
-	if (it != this->_headers.end())
-		return it->second;
-	return "";
-}
-
-std::string Request::getBody() const
-{
-	return this->_body;
-}
-
-std::string Request::getActualUri() const
-{
+const std::string	&Request::getActualUri() const {
 	return this->_actual_uri;
 }
 
@@ -164,9 +152,6 @@ int	Request::setaddr(ClSocket *clientSocket)
 	return (0);
 }
 
-// Not use
-Request::Request() : _method(), _uri(), _headers(), _body() {}
-
 void	Request::print_all(void) const
 {
 	std::cout << "method: [" << _method << "]" << std::endl;
@@ -189,87 +174,11 @@ void	Request::print_all(void) const
 	std::cout << "server_port: [" << _server_port << "]" << std::endl;
 }
 
-void	Request::addHeaderToLower(std::map<std::string, std::string>& m, const std::string& inputStr, const std::string& keyword) {
-	size_t pos = inputStr.find(keyword);
-
-	if (pos != std::string::npos) {
-		std::string part1 = inputStr.substr(0, pos);
-		std::string part2 = inputStr.substr(pos + keyword.length());
-
-		transform(part1.begin(), part1.end(), part1.begin(), ::tolower);
-		m.insert(std::map<std::string, std::string>::value_type(part1, part2));
-	}
-}
-
-void	Request::setRequestLine(const std::string &line, std::string &method, std::string &uri, std::string &protocol)
+void	Request::setFirstLine(const std::string &line)
 {
 	std::string::size_type	method_end = line.find(" ");
 	std::string::size_type	uri_end = line.find(" ", method_end + 1);
-	method = line.substr(0, method_end);
-	uri = line.substr(method_end + 1, uri_end - method_end - 1);
-	protocol = line.substr(uri_end + 1);
-}
-
-static bool	isValidLine(const std::string &line, const bool isRequestLine)
-{
-	if (isRequestLine)
-	{
-		long sp_count = std::count(line.begin(), line.end(), ' ');
-		if (sp_count != 2)
-			return (false);
-		std::string::size_type	sp1 = line.find(" ");
-		std::string::size_type	sp2 = line.find(" ", sp1 + 1);
-		if (sp1 == sp2 + 1 || sp2 == static_cast<std::string::size_type>(line.end() - line.begin() - 1))
-			return (false);
-	}
-	else
-	{
-		std::string::size_type	colon = line.find(": ");
-		if (colon == std::string::npos || colon == 0 || colon == line.length() - 2)
-			return (false);
-	}
-	return (true);
-}
-
-bool	setBody(std::string &body, const std::string &row, const std::string::size_type startPos, const std::string::size_type content_length)
-{
-	// std::cout << "content_length: " << content_length << std::endl;
-	body = row.substr(startPos + 2, content_length);
-	return (true);
-}
-
-Request	*Request::parse(const std::string &row)
-{
-	std::string method;
-	std::string uri;
-	std::string protocol;
-	std::map<std::string, std::string> headers;
-	std::string body;
-
-	std::string::size_type startPos = 0;
-	std::string::size_type endPos;
-	std::string	line;
-	while ((endPos = row.find("\r\n", startPos)) != std::string::npos)
-	{
-		if (endPos == startPos) // empty line
-			break;
-		line = row.substr(startPos, endPos - startPos);
-		if (isValidLine(line, startPos == 0) == false)
-			return (NULL);
-		if (startPos == 0)
-			setRequestLine(line, method, uri, protocol);
-		else
-			addHeaderToLower(headers, line, ": ");
-		startPos = endPos + 2; // Skip CRLF
-	}
-	std::string content_length = headers["content-length"];
-	if (content_length.empty() == false)
-		setBody(body, row, startPos, std::stoi(content_length));
-	if (headers.find("Transfer-Encoding") != headers.end() && headers["Transfer-Encoding"] == "chunked")
-	{
-		std::string::size_type	end_of_body = row.find("\r\n0\r\n\r\n");
-		body = row.substr(startPos, end_of_body - startPos);
-		// TODO: body = decode_chunked(body);
-	}
-	return (new Request(method, uri, protocol, headers, body));
+	_method = line.substr(0, method_end);
+	_uriAndQuery = percentDecode(line.substr(method_end + 1, uri_end - method_end - 1));
+	_protocol = line.substr(uri_end + 1);
 }

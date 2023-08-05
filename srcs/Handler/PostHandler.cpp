@@ -10,7 +10,7 @@
 PostHandler::PostHandler()
 {
 	// 規定値を200に設定
-	this->_status = 200;
+	this->_status = "200";
 }
 
 PostHandler::PostHandler(const PostHandler &other)
@@ -38,7 +38,7 @@ PostHandler &PostHandler::operator=(const PostHandler &rhs)
  * @return Response レスポンス
  */
 
-Response PostHandler::handleRequest(const Request &request)
+Response *PostHandler::handleRequest(const Request &request)
 {
 	std::string::size_type pos = request.getActualUri().find_last_of('/');
     std::string filedir = request.getActualUri().substr(0, pos + 1);
@@ -61,13 +61,13 @@ Response PostHandler::handleRequest(const Request &request)
 	{
 		// ファイル数が上限に達した
 		Logger::instance()->writeErrorLog(ErrorCode::POST_INDEX_FULL, "", &request);
-		return (Response(500));
+		return (new Response("500"));
 	}
 	if (!pathExist(filedir.c_str()))
 	{
 		// ディレクトリが存在しない
 		Logger::instance()->writeErrorLog(ErrorCode::POST_NOT_EXISTS, "", &request);
-		return (Response(404));
+		return (new Response("404"));
 	}
 	std::ofstream ofs(filedir + filename, std::ios::out);
 	if (!ofs)
@@ -76,10 +76,10 @@ Response PostHandler::handleRequest(const Request &request)
 		{
 			// ファイルにアクセスできない
 			Logger::instance()->writeErrorLog(ErrorCode::POST_FILE_ACCESS, "j", &request);
-			return (Response(403));
+			return (new Response("403"));
 		}
 		Logger::instance()->writeErrorLog(ErrorCode::POST_FILE_OPEN, "", &request);
-		return (Response(500));
+		return (new Response("500"));
     }
 	std::string body = request.getBody();
     ofs << body;
@@ -91,6 +91,5 @@ Response PostHandler::handleRequest(const Request &request)
     std::string uridir = request.getUri().substr(0, pos + 1);
 	headers["Location"] = uridir + filename;
 	headers["Content-Type"] = Response::getMimeType(request.getActualUri());
-
-    return (Response(201, headers, ""));
+    return (new Response("201", headers, ""));
 }
