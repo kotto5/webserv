@@ -8,6 +8,7 @@ class MimeType
 {
 public:
 	static const std::map<std::string, std::string> MIME_TYPE;
+	static const std::string &charset;
 };
 
 #endif
