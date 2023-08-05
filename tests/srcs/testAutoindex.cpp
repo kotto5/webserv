@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include "Autoindex.hpp"
+#include "Config.hpp"
 #include <iostream>
 #include <fstream>
 
@@ -19,6 +20,16 @@ protected:
 	}
 };
 
+// 1. Autoindexの設定値を取得できるか
+TEST_F(AutoindexTest, getAutoindex)
+{
+	bool result = Config::instance()->getHTTPBlock()
+		.getServerContext("80", "webserve1")
+		.getLocationContext("/")
+		.getDirective("autoindex") == "on";
+	EXPECT_TRUE(result);
+}
+
 TEST_F(AutoindexTest, generateAutoindex)
 {
 	Autoindex autoindex(path);
@@ -36,4 +47,3 @@ TEST_F(AutoindexTest, generateAutoindex)
 	EXPECT_TRUE(html.find("</body>") != std::string::npos);
 }
 }
-

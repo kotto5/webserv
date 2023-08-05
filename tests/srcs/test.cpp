@@ -15,7 +15,7 @@ public:
 
 		// テスト用ディレクトリを作成
 		std::string command = "./tests/scripts/clean.sh";
-		std::string path = "docs/resource/unit_test";
+		std::string path = "docs/storage/unit_test";
 		std::system((command + " " + path).c_str());
 	}
 	virtual void TearDown() {}
