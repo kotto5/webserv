@@ -37,7 +37,6 @@ typedef	std::pair<std::string, std::string>	massages;
 
 class Server {
 	private:
-		int								strtoi(std::string str);
 		std::list<Socket *>				server_sockets;
 		std::list<Socket *>				recv_sockets;
 		std::list<Socket *>				send_sockets;
@@ -58,7 +57,7 @@ class Server {
 		int					recv(Socket *sock, HttpMessage *message);
 		ssize_t				send(Socket *sock, HttpMessage *message);
 		int					finish_recv(Socket *sock, HttpMessage *message, bool is_cgi_connection);
-		int					finish_send(Socket *sock, HttpMessage *message, bool is_cgi_connection);
+		int					finish_send(Socket *sock, HttpMessage *message);
 		bool				request_wants_cgi(Request *request);
 		int					new_connect_cgi(Request *request, Socket *clientSocket);
 		int					setFd(int type, Socket *sock, Socket *client_sock = NULL);

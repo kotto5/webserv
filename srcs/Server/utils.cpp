@@ -100,7 +100,7 @@ int _socketpair(int domain, int type, int protocol, int sv[2]) {
 
 #include <filesystem>
 
-int	runCgi(Request *request, int socket)
+int	runCgi(Request *request, int sockRecv, int sockSend)
 {
     std::string script = request->getUri();
 
@@ -161,10 +161,11 @@ int	runCgi(Request *request, int socket)
 	else if (pid == 0)
 	{
         (void)request;
-		dup2(socket, 0);
-		dup2(socket, 1);
-		close(socket);
-		std::string path = "docs/cgi/index.php";
+		dup2(sockRecv, 0);
+		dup2(sockSend, 1);
+		close(sockRecv);
+		close(sockSend);
+		std::string path = request->getActualUri();
 		// std::string query = request.getQuery();
 		// std::string path_query = path + "?" + query;
 		std::string path_query = path;
@@ -172,6 +173,7 @@ int	runCgi(Request *request, int socket)
 		// char *argv[] = {php_path, const_cast<char *>(path_query.c_str()), const_cast<char* const*>(cenvs.data())};
 		char *argv[] = {php_path, const_cast<char *>(path_query.c_str())};
 		execve(php_path, argv, (char* const*)(cenvs.data()));
+        exit(1);
 		throw ServerException("execve failed");
 	}
     return (0);
@@ -283,4 +285,15 @@ std::string percentEncode(std::string str)
         itr++;
     }
     return ret;
+}
+
+int strtoi(std::string str)
+{
+	int ret = 0;
+	for (std::string::iterator itr = str.begin(); itr != str.end(); itr++)
+	{
+		ret *= 10;
+		ret += *itr - '0';
+	}
+	return (ret);
 }

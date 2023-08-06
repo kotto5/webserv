@@ -26,12 +26,14 @@ std::time_t	Socket::timeLimit = 5;
 
 Socket::Socket(int fd): fd_(fd), last_access_(std::time(NULL))
 {
+	std::cout << "Socket::Socket(int fd =" << fd << ")" << std::endl;
     locallen_ = sizeof(localaddr_);
     getsockname(fd_, (sockaddr *)&localaddr_, &locallen_);
 }
 
 Socket::Socket(int fd, const sockaddr *addr, socklen_t len): fd_(fd), last_access_(std::time(NULL)),
     localaddr_(*(sockaddr_in *)addr), locallen_(len){
+	std::cout << "Socket::Socket(fd =" << fd << ")" << std::endl;
 }
 
 Socket::~Socket() {
@@ -51,7 +53,8 @@ int Socket::getFd() { return fd_; }
 // =============================================
 
 ClSocket::ClSocket(int fd, const sockaddr *addr, socklen_t len, sockaddr *remoteaddr, socklen_t remotelen):
-    Socket(fd, addr, len), remoteaddr_(*(sockaddr_in *)remoteaddr), remotelen_(remotelen) {}
+    Socket(fd, addr, len), remoteaddr_(*(sockaddr_in *
+	)remoteaddr), remotelen_(remotelen) {}
 
 ClSocket::ClSocket(int fd, sockaddr *remoteaddr, socklen_t remotelen): Socket(fd)
 {
