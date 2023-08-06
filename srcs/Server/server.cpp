@@ -22,7 +22,7 @@ int	Server::setup()
 
 	for (itr = ports.begin(); itr != ports.end(); itr++)
 	{
-		if (create_server_socket(Server::strtoi(*itr)))
+		if (create_server_socket(strtoi(*itr)))
 			return (1);
 	}
 	memset(&timeout, 0, sizeof(timeout));
@@ -70,11 +70,10 @@ int	Server::handle_sockets(fd_set *read_fds, fd_set *write_fds, int activity)
 		sock = *tmp;
 		if (FD_ISSET(sock->getFd(), write_fds))
 		{
-			does_connected_cgi = (cgi_client.count(sock) == 1);
 			send(sock, Sends[sock]);
 			if (Sends[sock]->doesSendEnd())
 			{
-				finish_send(sock, Sends[sock], does_connected_cgi);
+				finish_send(sock, Sends[sock]);
 				send_sockets.erase(tmp);
 			}
 			--activity;
@@ -134,7 +133,7 @@ int	Server::run()
 		Server::set_fd_set(read_fds, recv_sockets, max_fd);
 		Server::set_fd_set(write_fds, send_sockets, max_fd);
 
-		int	activity = select(max_fd + 1,&read_fds, &write_fds, NULL, &timeout);
+		int	activity = select(max_fd + 1, &read_fds, &write_fds, NULL, &timeout);
 		if (activity == -1)
 			throw ServerException("select");
 		if (activity == 0 && check_timeout())
@@ -160,20 +159,35 @@ int	Server::accept(Socket *serverSock)
 
 int	Server::new_connect_cgi(Request *request, Socket *clientSock)
 {
-	int	socks[2];
-	if (_socketpair(AF_INET, SOCK_STREAM, 0, socks) == -1)
+	int	socks[2][2];
+	if (_socketpair(AF_INET, SOCK_STREAM, 0, socks[0]) == -1)
 		throw ServerException("socketpair");
-	if (runCgi(request, socks[S_CHILD]))
+	if (_socketpair(AF_INET, SOCK_STREAM, 0, socks[1]) == -1)
+		throw ServerException("socketpair");
+	if (runCgi(request, socks[0][S_CHILD], socks[1][S_CHILD]))
 		throw ServerException("runCgi");
-	close(socks[S_CHILD]);
-	set_non_blocking(S_PARENT);
+	close(socks[0][S_CHILD]);
+	close(socks[1][S_CHILD]);
+	set_non_blocking(socks[0][S_PARENT]);
+	set_non_blocking(socks[1][S_PARENT]);
 
-	Socket *sock = new Socket(socks[S_PARENT]);
-	setFd(TYPE_SEND, sock);
-	setFd(TYPE_CGI, sock, clientSock);
-	Sends[sock] = new OnlyBody();
-	Sends[sock]->parsing(request->getBody(), true, 0);
-	delete (request);
+	if (request->getBody().size() != 0)
+	{
+		Socket *sockSend = new Socket(socks[0][S_PARENT]);
+		setFd(TYPE_SEND, sockSend);
+		// setFd(TYPE_CGI, sockSend);
+		Sends[sockSend] = new OnlyBody();
+		Sends[sockSend]->parsing(request->getBody(), true, 0);
+	}
+	else
+		close(socks[0][S_PARENT]);
+
+	{
+		Socket *sockRecv = new Socket(socks[1][S_PARENT]);
+		setFd(TYPE_RECV, sockRecv);
+		setFd(TYPE_CGI, sockRecv, clientSock);
+		Recvs[sockRecv] = new Response();
+	}
 	return (0);
 }
 
@@ -191,15 +205,20 @@ int	Server::recv(Socket *sock, HttpMessage *message) {
 int	Server::finish_recv(Socket *sock, HttpMessage *message, bool is_cgi_connection)
 {
 	std::cout << "finish_recv [" << message->getRow() << "]" << std::endl;
-	int	wstatus;
 
 	if (is_cgi_connection)
 	{
 		// fork pid も cgi socket とかに入れたろうかな
+		int	wstatus;
 		waitpid(-1, &wstatus, 0);
 		Socket	*clSocket = cgi_client[sock];
-		Sends[clSocket] = message;
+		cgi_client.erase(sock);
+		if (WEXITSTATUS(wstatus) == 1)
+			Sends[clSocket] = new Response("500");
+		else
+			Sends[clSocket] = new Response(*(Response *)message);
 		setFd(TYPE_SEND, clSocket);
+		delete (sock);
 	}
 	else
 	{
@@ -214,10 +233,10 @@ int	Server::finish_recv(Socket *sock, HttpMessage *message, bool is_cgi_connecti
 		{
 			Sends[clSock] = makeResponse(request);
 			setFd(TYPE_SEND, clSock);
-			delete (request);
 		}
 	}
-	Recvs.erase((sock));
+	Recvs.erase(sock);
+	delete (message);
 	return (0);
 }
 
@@ -240,19 +259,11 @@ ssize_t		Server::send(Socket *sock, HttpMessage *message)
 	return (ret);
 }
 
-int		Server::finish_send(Socket *sock, HttpMessage *message, bool is_cgi_connection)
+int		Server::finish_send(Socket *sock, HttpMessage *message)
 {
-	if (is_cgi_connection)
-	{
-		Recvs[sock] = new Response();
-		setFd(TYPE_RECV, sock);
-	}
-	else
-	{
-		delete (sock);
-	}
-	delete (message);
 	Sends.erase(sock);
+	delete (message);
+	delete (sock);
 	return (0);
 }
 
@@ -309,15 +320,4 @@ int	Server::setFd(int type, Socket *sock, Socket *client_sock)
 	else
 		return (1);
 	return (0);
-}
-
-int Server::strtoi(std::string str)
-{
-	int ret = 0;
-	for (std::string::iterator itr = str.begin(); itr != str.end(); itr++)
-	{
-		ret *= 10;
-		ret += *itr - '0';
-	}
-	return (ret);
 }
