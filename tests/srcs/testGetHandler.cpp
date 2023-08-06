@@ -4,6 +4,7 @@
 #include "GetHandler.hpp"
 #include "Config.hpp"
 #include "HttpMessage.hpp"
+#include "RequestException.hpp"
 
 namespace
 {
@@ -54,11 +55,20 @@ TEST_F(GetHandlerTest, notRequest)
 {
 	// インスタンスの生成
 	GetHandler handler;
+
 	// テストデータの検証
-	Response *res = handler.handleRequest(*reqNotFound);
-	EXPECT_EQ(res->getStatus(), "404");
-	EXPECT_EQ(res->getBody(), "");
-	EXPECT_EQ(res->getHeader("Content-Type"), "");
-	delete res;
+	try
+	{
+		handler.handleRequest(*reqNotFound);
+		FAIL() << "Expected RequestException";
+	}
+	catch(const RequestException& e)
+	{
+		EXPECT_EQ(e.getStatus(), "404");
+	}
+	catch(...)
+	{
+		FAIL() << "Expected specific exception type";
+	}
 };
 };

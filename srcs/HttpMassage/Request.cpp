@@ -34,8 +34,8 @@ void	Request::setinfo()
 	// ヘッダーのContent-Typeを取得
 	this->_content_type = this->getHeader("Content-Type");
 
-	// aliasとrootを考慮したuriを取得
-	this->_actual_uri = convertUritoPath(this->_uri);
+	// aliasとrootを考慮したuriを取得（TODO: ポート番号を動的に設定する必要あり）
+	this->_actual_uri = convertUriToPath(this->_uri, "80", "host");
 	// CGIに用いるscript_nameとpath_infoを取得
 	// this->_cgi_script_name = this->get
 	this->_path_info = this->_uri.find(_cgi_script_name) == std::string::npos ?
@@ -62,11 +62,8 @@ static std::string	getAliasOrRootDirective(LocationContext &Location)
  * @param uri
  * @return std::string
  */
-std::string	Request::convertUritoPath(const std::string &uri)
+std::string	Request::convertUriToPath(const std::string &uri, const std::string &port, const std::string &server_name)
 {
-	Config	*config = Config::instance();
-	HTTPContext		httpcontext;
-	ServerContext	servercontext;
 	LocationContext	location;
 
 	std::string	ret = uri;
@@ -75,9 +72,9 @@ std::string	Request::convertUritoPath(const std::string &uri)
 
 	try
 	{
-		httpcontext = config->getHTTPBlock();
-		servercontext = httpcontext.getServerContext("80", this->getHeader("host"));
-		location = servercontext.getLocationContext(ret);
+		location = Config::instance()->getHTTPBlock()
+			.getServerContext(port, server_name)
+			.getLocationContext(ret);
 	}
 	catch (const std::runtime_error &e)
 	{

@@ -6,12 +6,13 @@
 #include "utils.hpp"
 #include "Logger.hpp"
 #include "Response.hpp"
+#include "RequestException.hpp"
 
 // Constructors
 PostHandler::PostHandler()
 {
-	// 規定値を200に設定
-	this->_status = "200";
+	// 規定値を201に設定
+	this->_status = "201";
 }
 
 PostHandler::PostHandler(const PostHandler &other)
@@ -62,13 +63,13 @@ Response *PostHandler::handleRequest(const Request &request)
 	{
 		// ファイル数が上限に達した
 		Logger::instance()->writeErrorLog(ErrorCode::POST_INDEX_FULL, "", &request);
-		return (new Response("500"));
+		throw RequestException("500");
 	}
 	if (!pathExist(filedir.c_str()))
 	{
 		// ディレクトリが存在しない
 		Logger::instance()->writeErrorLog(ErrorCode::POST_NOT_EXISTS, "", &request);
-		return (new Response("404"));
+		throw RequestException("404");
 	}
 	std::ofstream ofs(filedir + filename, std::ios::out);
 	if (!ofs)
@@ -77,10 +78,10 @@ Response *PostHandler::handleRequest(const Request &request)
 		{
 			// ファイルにアクセスできない
 			Logger::instance()->writeErrorLog(ErrorCode::POST_FILE_ACCESS, "j", &request);
-			return (new Response("403"));
+			throw RequestException("403");
 		}
 		Logger::instance()->writeErrorLog(ErrorCode::POST_FILE_OPEN, "", &request);
-		return (new Response("500"));
+		throw RequestException("500");
     }
 	std::string body = request.getBody();
     ofs << body;
@@ -92,5 +93,5 @@ Response *PostHandler::handleRequest(const Request &request)
     std::string uridir = request.getUri().substr(0, pos + 1);
 	HttpMessage::setHeader(headers, "Location", uridir + filename);
 	HttpMessage::setHeader(headers, "content-type", Response::getMimeType(request.getActualUri()));
-    return (new Response("201", headers, ""));
+    return (new Response(_status, headers, ""));
 }

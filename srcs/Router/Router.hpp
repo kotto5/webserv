@@ -6,7 +6,6 @@
 #include "GetHandler.hpp"
 #include "PostHandler.hpp"
 #include "DeleteHandler.hpp"
-#include "ErrorHandler.hpp"
 
 #include <iostream>
 #include <string>
@@ -26,15 +25,17 @@ public:
 
 	// Member functions
 	Response *routeHandler(const Request &request);
+	Response *handleError(const Request &request, const std::string &status);
 
 private:
+	std::string generateDefaultErrorPage(const std::string &status);
+
 	//　登録されたハンドラーのリスト
 	std::map<std::string, IHandler *> _handlers;
 
 	GetHandler _getHandler;
 	PostHandler _postHandler;
 	DeleteHandler _deleteHandler;
-	ErrorHandler _errorHandler;
 };
 
 #endif

@@ -26,7 +26,7 @@ public:
 	const std::string	&getUri() const;
 	const std::string	&getActualUri() const;
 
-	std::string	convertUritoPath(const std::string &uri);
+	static std::string	convertUriToPath(const std::string &uri, const std::string &port, const std::string &server_name);
 	void		print_all() const;
 	int			seturi();
 	int			setaddr(ClSocket *clientSocket);

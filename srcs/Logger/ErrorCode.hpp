@@ -11,6 +11,7 @@ public:
 		SYSTEM_CALL, // システムコールの失敗
 		REQ_PARSE, // リクエストの解析に失敗
 		RES_PARSE, // レスポンスの解析に失敗
+		GET_FILE_NOT_EXIST, // ファイルが存在しない
 		POST_INDEX_FULL, // ファイル数が上限に達した
 		POST_FILE_OPEN, // ファイルのオープンに失敗
 		POST_NOT_EXISTS, // ディレクトリが存在しない

@@ -6,12 +6,14 @@
 
 class RequestException : public ServerException
 {
-	public:
-		RequestException(const std::string &status);
-		~RequestException() throw();
+public:
+	RequestException(const std::string &status);
+	~RequestException() throw();
+	const std::string &getStatus() const;
 
-	private:
-		RequestException();
+private:
+	std::string _status;
+	RequestException();
 };
 
 #endif

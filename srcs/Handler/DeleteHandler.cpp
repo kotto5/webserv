@@ -6,11 +6,12 @@
 #include "utils.hpp"
 #include <cstdio>
 #include "Logger.hpp"
+#include "RequestException.hpp"
 
 // Constructors
 DeleteHandler::DeleteHandler()
 {
-	// 規定値を200に設定
+	// 規定値を204に設定
 	this->_status = "204";
 }
 
@@ -44,15 +45,14 @@ Response	*DeleteHandler::handleRequest(const Request &request)
 
 	if (!pathExist(filename.c_str()))
 	{
-		std::cerr << "Error: file not exist." << std::endl;
-		return (new Response("404"));
+		Logger::instance()->writeErrorLog(ErrorCode::DELETE_FILE_NOT_EXIST, "File not found");
+		throw RequestException("404");
 	}
 	if (remove(filename.c_str()))
 	{
-		std::cerr << "Error: file not deleted." << std::endl;
-		perror("remove");
-		return (new Response("500"));
+		Logger::instance()->writeErrorLog(ErrorCode::DELETE_FILE_NO_PERMISSION, "Permission denied");
+		throw RequestException("500");
 	}
 
-    return (new Response("204"));
+    return (new Response(_status));
 }

@@ -5,6 +5,7 @@
 #include <fstream>
 #include <streambuf>
 #include "HttpMessage.hpp"
+#include "RequestException.hpp"
 
 namespace
 {
@@ -122,11 +123,22 @@ TEST_F(PostHandlerTest, createFileWithInvalidPath)
 {
 	PostHandler handler;
 	Request req(method, "/resources/unit_test/invalid_path/sample.txt", protocol, headers, body);
-	Response *res = handler.handleRequest(req);
 
 	// テストデータの検証
-	EXPECT_EQ(res->getStatus(), "404");
-	EXPECT_EQ(res->getBody(), "");
+	try
+	{
+		handler.handleRequest(req);
+		FAIL() << "Expected RequestException";
+	}
+	catch (const RequestException &e)
+	{
+		EXPECT_EQ(e.getStatus(), "404");
+	}
+	catch (...)
+	{
+		FAIL() << "Expected specific exception type";
+	}
+
 }
 
 TEST_F(PostHandlerTest, createFileFailed)
@@ -136,11 +148,21 @@ TEST_F(PostHandlerTest, createFileFailed)
 
 	PostHandler handler;
 	Request req(method, "/resources/unit_test/sample.txt", protocol, headers, body);
-	Response *res = handler.handleRequest(req);
 
 	// テストデータの検証
-	EXPECT_EQ(res->getStatus(), "403");
-	EXPECT_EQ(res->getBody(), "");
+	try
+	{
+		handler.handleRequest(req);
+		FAIL() << "Expected RequestException";
+	}
+	catch (const RequestException &e)
+	{
+		EXPECT_EQ(e.getStatus(), "403");
+	}
+	catch (...)
+	{
+		FAIL() << "Expected specific exception type";
+	}
 
 	// テストファイルのパーミッションを戻す
 	chmod("docs/storage/unit_test/", 0777);

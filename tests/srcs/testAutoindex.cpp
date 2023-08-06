@@ -43,10 +43,6 @@ TEST_F(AutoindexTest, generateAutoindex)
 	Autoindex autoindex(req);
 	std::string html = autoindex.generateAutoindex();
 
-	std::ofstream ofs("autoindex_sample.html");
-	ofs << html;
-	ofs.close();
-
 	EXPECT_TRUE(html.find("<html>") != std::string::npos);
 	EXPECT_TRUE(html.find("</html>") != std::string::npos);
 	EXPECT_TRUE(html.find("<head>") != std::string::npos);

@@ -1,5 +1,6 @@
 #include "GetHandler.hpp"
 #include "Request.hpp"
+#include "Response.hpp"
 #include "Router.hpp"
 #include <gtest/gtest.h>
 
@@ -25,17 +26,17 @@ TEST_F(RouterTest, createGetRequest)
 	// インスタンスの生成
 	Router router;
 	// テストデータの検証
-	IHandler *handler = router.createHandler(*reqGet);
-	EXPECT_TRUE(handler != NULL);
+	Response *response = router.routeHandler(*reqGet);
+	EXPECT_EQ(response->getStatus(), "200");
 }
 
-// 2. 該当するハンドラーがない場合、NULLが返されるか
+// 2. 該当するハンドラーがない場合、405が返されるか
 TEST_F(RouterTest, notRequest)
 {
 	// インスタンスの生成
 	Router router;
 	// テストデータの検証
-	IHandler *handler = router.createHandler(*reqNotFound);
-	EXPECT_TRUE(handler == NULL);
+	Response *response = router.routeHandler(*reqNotFound);
+	EXPECT_EQ(response->getStatus(), "405");
 }
 };

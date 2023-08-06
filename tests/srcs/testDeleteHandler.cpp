@@ -2,6 +2,7 @@
 #include "Request.hpp"
 #include "Config.hpp"
 #include "DeleteHandler.hpp"
+#include "RequestException.hpp"
 #include <fstream>
 #include <streambuf>
 
@@ -58,11 +59,22 @@ TEST_F(DeleteHandlerTest, deleteFileWithInvalidPath)
 {
 	DeleteHandler handler;
 	Request req(method, "/resources/unit_test/invalid_path/sample.txt", protocol, headers, body);
-	Response *res = handler.handleRequest(req);
 
 	// テストデータの検証
-	EXPECT_EQ(res->getStatus(), "404");
-	EXPECT_EQ(res->getBody(), "");
+	Response *res;
+	try
+	{
+		res = handler.handleRequest(req);
+		FAIL() << "Expected RequestException";
+	}
+	catch (const RequestException &e)
+	{
+		EXPECT_EQ(e.getStatus(), "404");
+	}
+	catch (...)
+	{
+		FAIL() << "Expected specific exception type";
+	}
 }
 
 // 2. ファイルの削除に失敗した場合にエラーになるか
@@ -77,11 +89,21 @@ TEST_F(DeleteHandlerTest, deleteFileFailed)
 
 	DeleteHandler handler;
 	Request req(method, "/resources/unit_test/sample_permission.txt", protocol, headers, body);
-	Response *res = handler.handleRequest(req);
 
 	// テストデータの検証
-	EXPECT_EQ(res->getStatus(), "404");
-	EXPECT_EQ(res->getBody(), "");
+	try
+	{
+		handler.handleRequest(req);
+		FAIL() << "Expected RequestException";
+	}
+	catch (const RequestException &e)
+	{
+		EXPECT_EQ(e.getStatus(), "404");
+	}
+	catch (...)
+	{
+		FAIL() << "Expected specific exception type";
+	}
 
 	// テストファイルのパーミッションを戻す
 	chmod("docs/storage/unit_test/", 0777);
