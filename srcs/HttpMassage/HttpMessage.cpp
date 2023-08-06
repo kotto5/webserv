@@ -18,13 +18,16 @@ HttpMessage::~HttpMessage() {
 
 int	HttpMessage::parsing(const std::string &row, const bool inputClosed, const std::size_t maxSize)
 {
+	std::cout << "b!" << std::endl;
 	_row += row;
 	if (maxSize != 0 && _row.length() > maxSize)
 	{
 		_tooBigError = true;
 		return (1);
 	}
-	std::cout << "row: [" << row << "]" << std::endl;
+	// std::cout << "row: [" << row << "]" << std::endl;
+	std::cout << "row length: [" << _row.length() << "]" << std::endl;
+	std::cout << "c!" << std::endl;
 
 	std::string	line;
 	std::string::size_type endPos;
@@ -46,15 +49,26 @@ int	HttpMessage::parsing(const std::string &row, const bool inputClosed, const s
 			_readPos = endPos + 2; // Skip CRLF
 		}
 		_isHeaderEnd = true;
+		if (getHeader("content-length").empty() == false)
+			_contentLength = std::stoi(_headers["content-length"]);
+		else
+			_contentLength = 0;
 	}
-	if (_isBodyEnd == true)
+	else if (_isBodyEnd == false)
+	{
+		setBody(row);
 		return (0);
-	setBody(row);
+	}
+	else
+		return (0);
+	std::cout << "d!" << std::endl;
+	setBody(_row.substr(_readPos));
 	if (inputClosed)
 	{
 		_isBodyEnd = true;
 		_isHeaderEnd = true;
 	}
+	std::cout << "e!" << std::endl;
 	// if (_isBodyEnd == true)
 	// 	setinfo();
 	return (0);
@@ -81,16 +95,27 @@ bool HttpMessage::isValidLine(const std::string &line, const bool isFirstLine) c
 	return (true);
 }
 
-void	HttpMessage::setBody(const std::string &row)
+void	HttpMessage::setBody(const std::string &addBody)
 {
-	if (getHeader("content-length").empty() == false)
+	std::cout << "d-1!" << std::endl;
+	if (_contentLength != 0)
 	{
-		std::string::size_type	content_length = std::stoi(_headers["content-length"]);
-		_body = row.substr(_readPos, content_length);
-		if (_body.length() == content_length || _body.find("\r\n\r\n") != std::string::npos)
+		if (_body.empty())
+			_body.reserve(_contentLength);
+		std::cout << "d-2!" << std::endl;
+		std::cout << "d-2-1!" << std::endl;
+		std::cout << _readPos << ":" << _contentLength << ":" << addBody.length() << std::endl;
+		_body += addBody;
+		std::cout << "d-3!" << std::endl;
+		// if (_body.length() >= _contentLength || _body.find("\r\n\r\n") != std::string::npos)
+		if (_body.length() >= _contentLength)
+		{
+			_body = _body.substr(0, _contentLength);
 			_isBodyEnd = true;
+		}
 		else
-			_readPos += _body.length();
+			_readPos += addBody.length();
+		std::cout << "d-4!" << std::endl;
 	}
 	else if (getHeader("transfer-encoding") == "chunked")
 	{

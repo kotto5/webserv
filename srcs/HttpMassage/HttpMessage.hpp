@@ -26,7 +26,7 @@ protected:
 	std::size_t							_sendBufferSize;
 	bool								_doesSendEnd;
 
-	std::size_t							_contentLength;
+	std::string::size_type				_contentLength;
 
 	virtual	void				setFirstLine(const std::string &line) = 0;
 	static void					setHeaderFromLine(std::map<std::string, std::string>& m, const std::string& inputStr, const std::string& keyword);
