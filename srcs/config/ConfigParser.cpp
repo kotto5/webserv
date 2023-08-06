@@ -64,7 +64,7 @@ bool ConfigParser::isInHTTPContext()
 bool ConfigParser::isInServerContext()
 {
 	return _directive_type == LISTEN || _directive_type == SERVER_NAME
-			|| _directive_type == LOCATION;
+			|| _directive_type == LOCATION || _directive_type == ERROR_PAGE;
 }
 
 bool ConfigParser::isInLocationContext()
@@ -222,12 +222,15 @@ const ServerContext ConfigParser::getServerContext()
 		}
 		else
 		{
-			server_context.addDirectives(_one_line[0], _one_line[1], _filepath, _line_number + 1);
+			// server_context.addDirectives(_one_line[0], _one_line[1], _filepath, _line_number + 1);
 			if (_directive_type == LISTEN)
 				server_context.setListen(_one_line[1]);
 			else if (_directive_type == SERVER_NAME)
 				server_context.setServerName(_one_line[1]);
+			else if (_directive_type == ERROR_PAGE)
+				server_context.setErrorPages(_one_line);
 		}
+		std::cout << server_context.getErrorPage("404") << std::endl;
 	}
 	return server_context;
 }
