@@ -3,7 +3,9 @@
 #include "MimeType.hpp"
 #include <ctime>
 
-Response::Response() {}
+Response::Response() {
+	_row = "";
+}
 
 Response::Response(const std::string &status, std::map<std::string, std::string> headers,
 				   const std::string &body)
@@ -34,8 +36,10 @@ Response::Response(const std::string &status)
 Response::Response(const Response &other)
 {
 	this->_status = other._status;
+	this->_protocol = other._protocol;
 	this->_headers = other._headers;
-	this->_status = other._status;
+	this->_body = other._body;
+	_row = other._row;
 }
 
 // Destructor
