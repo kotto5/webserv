@@ -37,7 +37,6 @@ typedef	std::pair<std::string, std::string>	massages;
 
 class Server {
 	private:
-		int								strtoi(std::string str);
 		std::list<Socket *>				server_sockets;
 		std::list<Socket *>				recv_sockets;
 		std::list<Socket *>				send_sockets;
