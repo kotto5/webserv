@@ -230,7 +230,6 @@ const ServerContext ConfigParser::getServerContext()
 			else if (_directive_type == ERROR_PAGE)
 				server_context.setErrorPages(_one_line);
 		}
-		std::cout << server_context.getErrorPage("404") << std::endl;
 	}
 	return server_context;
 }

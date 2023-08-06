@@ -1,16 +1,24 @@
 #include "Router.hpp"
-#include "Handler/GetHandler.hpp"
-#include "Handler/PostHandler.hpp"
-#include "Handler/DeleteHandler.hpp"
-#include "config/Config.hpp"
+#include "Config.hpp"
+#include "GetHandler.hpp"
+#include "PostHandler.hpp"
+#include "DeleteHandler.hpp"
+#include "ErrorHandler.hpp"
+
+#include "RequestException.hpp"
 
 
 // Constructors
-Router::Router() : _handler(NULL) {}
+Router::Router()
+{
+	_handlers["GET"] = &_getHandler;
+	_handlers["POST"] = &_postHandler;
+	_handlers["DELETE"] = &_deleteHandler;
+}
 
 Router::Router(const Router &other)
 {
-	this->_handler = other._handler;
+	this->_handlers = other._handlers;
 }
 
 // Destructor
@@ -21,28 +29,32 @@ Router &Router::operator=(const Router &rhs)
 {
 	if (this != &rhs)
 	{
-		this->_handler = rhs._handler;
+		this->_handlers = rhs._handlers;
 	}
 	return *this;
 }
 
-IHandler *Router::createHandler(const Request &request)
+/**
+ * @brief メソッド・URIに基づき適切なハンドラーを呼び出す
+ *
+ * @param request
+ * @return Response*
+ */
+Response *Router::routeHandler(const Request &request)
 {
+	Response *response = NULL;
+
 	// メソッドに対応するhandlerを取得
 	std::string method = request.getMethod();
+	IHandler *handler = _handlers.at(method);
 
-	// GETメソッドの場合
-	if (method == "GET")
+	try
 	{
-		_handler = new GetHandler();
+		response = handler->handleRequest(request);
 	}
-	else if (method == "POST")
+	catch (const RequestException &status)
 	{
-		_handler = new PostHandler();
+		response = _errorHandler.handleRequest(request);
 	}
-	else if (method == "DELETE")
-	{
-		_handler = new DeleteHandler();
-	}
-	return _handler;
+	return response;
 }

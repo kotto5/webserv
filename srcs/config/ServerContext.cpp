@@ -58,7 +58,6 @@ void ServerContext::setErrorPages(const std::vector<std::string> &error_pages)
 	std::string path = error_pages[error_pages.size() - 2];
 	for (std::vector<std::string>::size_type i = 1; i + 1 < error_pages.size(); i++)
 	{
-		std::cout << "error_pages[" << i << "] = " << error_pages[i] << std::endl;
 		// ステータスコード, パスの順に格納
 		_error_pages.insert(std::make_pair(error_pages[i], path));
 	}
