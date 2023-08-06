@@ -8,9 +8,11 @@ HttpMessage::HttpMessage()
     : _row(), _protocol(), _headers(), _body(), _isHeaderEnd(false),
 	_isBodyEnd(false), _readPos(0), _sendPos(0), _sendBuffer(NULL), _doesSendEnd(false)
 {
+	_tooBigError = false;
 }
 
 HttpMessage::~HttpMessage() {
+	if (_sendBuffer != NULL)
 		delete[] _sendBuffer;
 }
 
@@ -28,6 +30,8 @@ int	HttpMessage::parsing(const std::string &row, const bool inputClosed, const s
 	std::string::size_type endPos;
 	if (_isHeaderEnd == false)
 	{
+		if (inputClosed) // execve error 
+			_isHeaderEnd = true;
 		while ((endPos = _row.find("\r\n", _readPos)) != _readPos)
 		{
 			if (endPos == std::string::npos) // no new line (incomplete)
