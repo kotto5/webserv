@@ -26,7 +26,7 @@ int	Server::setup()
 			return (1);
 	}
 	memset(&timeout, 0, sizeof(timeout));
-	timeout.tv_sec = 5;
+	timeout.tv_sec = 10;
 	_limitClientMsgSize = Config::instance()->getHTTPBlock().getClientMaxBodySize();
 	return (0);
 }
@@ -38,6 +38,7 @@ int	Server::handle_sockets(fd_set *read_fds, fd_set *write_fds, int activity)
 	bool							does_connected_cgi;
 	Socket							*sock;
 
+	std::cout << "1!" << std::endl;
 	for (itr = server_sockets.begin(); activity && itr != server_sockets.end();)
 	{
 		tmp = itr++;
@@ -49,6 +50,7 @@ int	Server::handle_sockets(fd_set *read_fds, fd_set *write_fds, int activity)
 			--activity;
 		}
 	}
+	std::cout << "2!" << std::endl;
 	for (itr = recv_sockets.begin(); activity && itr != recv_sockets.end();)
 	{
 		tmp = itr++;
@@ -56,14 +58,18 @@ int	Server::handle_sockets(fd_set *read_fds, fd_set *write_fds, int activity)
 		if (FD_ISSET(sock->getFd(), read_fds))
 		{
 			does_connected_cgi = (cgi_client.count(sock) == 1);
+			std::cout << "2-1!" << std::endl;
 			if (recv(sock, Recvs[sock]) == 1 || Recvs[sock]->isEnd())
 			{
+				std::cout << "2-1-1!" << std::endl;
 				finish_recv(sock, Recvs[sock], does_connected_cgi);
 				recv_sockets.erase(tmp);
 			}
+			std::cout << "2-2!" << std::endl;
 			--activity;
 		}
 	}
+	std::cout << "3!" << std::endl;
 	for (itr = send_sockets.begin(); activity && itr != send_sockets.end();)
 	{
 		tmp = itr++;
@@ -175,7 +181,6 @@ int	Server::new_connect_cgi(Request *request, Socket *clientSock)
 	{
 		Socket *sockSend = new Socket(socks[0][S_PARENT]);
 		setFd(TYPE_SEND, sockSend);
-		// setFd(TYPE_CGI, sockSend);
 		Sends[sockSend] = new OnlyBody();
 		Sends[sockSend]->parsing(request->getBody(), true, 0);
 	}
@@ -198,6 +203,7 @@ int	Server::recv(Socket *sock, HttpMessage *message) {
 	static char buffer[BUFFER_LEN];
 	memset(buffer, 0, BUFFER_LEN);
 	recv_ret = ::recv(sock->getFd(), buffer, BUFFER_LEN, 0);
+	std::cout << "a!" << std::endl;
 	return (message->parsing(buffer, recv_ret == 0, _limitClientMsgSize));
 }
 

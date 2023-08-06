@@ -20,7 +20,7 @@
 #include "HttpMessage.hpp"
 #include "Response.hpp"
 
-#define BUFFER_LEN 1024
+#define BUFFER_LEN 10000
 #define MAX_CLIENTS 1024
 
 #define RED "\x1b[41m"

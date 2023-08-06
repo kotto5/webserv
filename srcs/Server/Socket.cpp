@@ -22,7 +22,7 @@
 // ============ Socket class ===================
 // =============================================
 
-std::time_t	Socket::timeLimit = 5;
+std::time_t	Socket::timeLimit = 60;
 
 Socket::Socket(int fd): fd_(fd), last_access_(std::time(NULL))
 {
