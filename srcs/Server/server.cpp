@@ -153,7 +153,7 @@ int	Server::accept(Socket *serverSock)
 		return (0);
 	setFd(TYPE_RECV, newSock);
 	Recvs[newSock] = new Request();
-	std::cout << RED << "New connection, socket fd is " << newSock->getFd() << ", port is " << ntohs(newSock->getRemoteaddr().sin_port) << "time " << newSock->getLastAccess() << DEF << std::endl;
+	std::cout << RED << "New connection, socket fd is " << newSock->getFd() << ", port is " << ntohs(newSock->getRemoteAddr().sin_port) << "time " << newSock->getLastAccess() << DEF << std::endl;
 	return (0);
 }
 

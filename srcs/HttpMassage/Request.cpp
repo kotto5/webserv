@@ -22,6 +22,10 @@ Request::Request(const std::string &method, const std::string &uriAndQuery, cons
 	this->setinfo();
 }
 
+/**
+ * @brief リクエストのメタ情報をセットする
+ *
+ */
 void	Request::setinfo()
 {
 	std::string::size_type pos = this->_uriAndQuery.find("?");
@@ -38,8 +42,9 @@ void	Request::setinfo()
 	this->_actual_uri = convertUriToPath(this->_uri, "80", "host");
 	// CGIに用いるscript_nameとpath_infoを取得
 	// this->_cgi_script_name = this->get
-	this->_path_info = this->_uri.find(_cgi_script_name) == std::string::npos ?
-	"" : this->_uri.substr(this->_uri.find(_cgi_script_name) + _cgi_script_name.length());
+	this->_path_info = this->_uri.find(_cgi_script_name) == std::string::npos
+		? ""
+		: this->_uri.substr(this->_uri.find(_cgi_script_name) + _cgi_script_name.length());
 }
 
 Request::Request(){}
@@ -133,15 +138,15 @@ int	Request::setaddr(ClSocket *clientSocket)
 	struct sockaddr_in	addr;
 	socklen_t			addr_size = sizeof(struct sockaddr_in);
 
-	addr = clientSocket->getLocaladdr();
-	addr_size = clientSocket->getLocallen();
+	addr = clientSocket->getLocalAddr();
+	addr_size = clientSocket->getLocalLen();
 	int	port = ntohs(addr.sin_port);
 
 	_server_name = inet_ntoa(addr.sin_addr);
 	_server_port = std::to_string(port);
 
-	addr = clientSocket->getRemoteaddr();
-	addr_size = clientSocket->getRemotelen();
+	addr = clientSocket->getRemoteAddr();
+	addr_size = clientSocket->getRemoteLen();
 
 	_remote_addr = inet_ntoa(addr.sin_addr);
 	_remote_host = _remote_addr;

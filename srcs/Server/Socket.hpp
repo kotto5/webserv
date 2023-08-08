@@ -11,9 +11,9 @@ class Socket
 {
 protected:
 	int			fd_;
-	std::time_t	last_access_;
-	sockaddr_in	localaddr_;
-	socklen_t	locallen_;
+	std::time_t	lastAccess_;
+	sockaddr_in	localAddr_;
+	socklen_t	localLen_;
 
 public:
 	Socket(int fd);
@@ -22,8 +22,8 @@ public:
 
 	int getFd();
 	bool				isTimeout(std::time_t current_time = std::time(NULL));
-	const sockaddr_in	&getLocaladdr();
-	socklen_t			getLocallen();
+	const sockaddr_in	&getLocalAddr();
+	socklen_t			getLocalLen();
 	const std::time_t	&getLastAccess();
 	void				updateLastAccess();
 
@@ -35,15 +35,15 @@ public:
 class ClSocket : public Socket
 {
 private:
-	sockaddr_in	remoteaddr_;
-	socklen_t	remotelen_;
+	sockaddr_in	remoteAddr_;
+	socklen_t	remoteLen_;
 
 public:
-	ClSocket(int fd, sockaddr *remoteaddr, socklen_t remotelen);
-	ClSocket(int fd, const sockaddr *addr, socklen_t len, sockaddr *remoteaddr, socklen_t remotelen);
+	ClSocket(int fd, sockaddr *remote_addr, socklen_t remote_len);
+	ClSocket(int fd, const sockaddr *addr, socklen_t len, sockaddr *remote_addr, socklen_t remote_len);
 	~ClSocket();
-	const sockaddr_in &getRemoteaddr() { return remoteaddr_; }
-	socklen_t getRemotelen() { return remotelen_; }
+	const sockaddr_in &getRemoteAddr() { return remoteAddr_; }
+	socklen_t getRemoteLen() { return remoteLen_; }
 };
 
 // =============================================
