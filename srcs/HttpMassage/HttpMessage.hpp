@@ -28,9 +28,6 @@ protected:
 
 	std::size_t							_contentLength;
 
-	virtual	void				setFirstLine(const std::string &line) = 0;
-	static void					setHeaderFromLine(std::map<std::string, std::string>& m, const std::string& inputStr, const std::string& keyword);
-	void						setBody(const std::string &row);
 	bool						isValidLine(const std::string &line, const bool isFirstLine) const;
 	static std::string			makeHeaderKeyLower(std::string key);
 
@@ -39,23 +36,27 @@ public:
 	// HttpMessage(const std::string &protocol, std::map<std::string, std::string> headers, const std::string &body);
 	virtual ~HttpMessage();
 
-	const std::string   &getRow() const;
-	const std::string   &getHeader(std::string key) const;
-	const std::string	&getBody() const;
-	const std::string	&getProtocol() const;
 
 	int							parsing(const std::string &row, const bool inputClosed, const std::size_t limitClientMsgSize);
 	bool						isEnd() const;
 	void						addSendPos(std::size_t pos);
-	const uint8_t				*getSendBuffer();
 	bool						doesSendEnd() const;
-	std::size_t					getContentLength() const;
-	void						setContentLength();
-	std::size_t					getContentLengthRemain() const ;
 	void						printHeader() const;
 	bool						isBadRequest() const;
 	bool						isTooBigError() const;
+
+	const std::string  			&getRow() const;
+	const std::string			&getProtocol() const;
+	const std::string  			&getHeader(std::string key) const;
+	const std::string			&getBody() const;
+	const uint8_t				*getSendBuffer();
+	std::size_t					getContentLength() const;
+	std::size_t					getContentLengthRemain() const ;
+	virtual	void				setFirstLine(const std::string &line) = 0;
 	static void					setHeader(std::map<std::string, std::string>& m, std::string first, std::string second);
+	static void					setHeaderFromLine(std::map<std::string, std::string>& m, const std::string& inputStr, const std::string& keyword);
+	void						setContentLength();
+	void						setBody(const std::string &row);
 };
 
 #endif

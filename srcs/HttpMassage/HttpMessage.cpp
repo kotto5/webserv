@@ -30,7 +30,7 @@ int	HttpMessage::parsing(const std::string &row, const bool inputClosed, const s
 	std::string::size_type endPos;
 	if (_isHeaderEnd == false)
 	{
-		if (inputClosed) // execve error 
+		if (inputClosed) // execve error
 			_isHeaderEnd = true;
 		while ((endPos = _row.find("\r\n", _readPos)) != _readPos)
 		{
@@ -56,7 +56,7 @@ int	HttpMessage::parsing(const std::string &row, const bool inputClosed, const s
 		_isHeaderEnd = true;
 	}
 	// if (_isBodyEnd == true)
-	// 	setinfo();
+	// 	setInfo();
 	return (0);
 }
 
@@ -81,75 +81,15 @@ bool HttpMessage::isValidLine(const std::string &line, const bool isFirstLine) c
 	return (true);
 }
 
-void	HttpMessage::setBody(const std::string &row)
-{
-	if (getHeader("content-length").empty() == false)
-	{
-		std::string::size_type	content_length = std::stoi(_headers["content-length"]);
-		_body = row.substr(_readPos, content_length);
-		if (_body.length() == content_length || _body.find("\r\n\r\n") != std::string::npos)
-			_isBodyEnd = true;
-		else
-			_readPos += _body.length();
-	}
-	else if (getHeader("transfer-encoding") == "chunked")
-	{
-		if (_body.find("\r\n0\r\n\r\n") == std::string::npos)
-			return ;
-		// TODO: body = decode_chunked(body);
-		_readPos += _body.length();
-		_isBodyEnd = true;
-	}
-	else
-		_isBodyEnd = true;
-}
-
 std::string	HttpMessage::makeHeaderKeyLower(std::string key)
 {
 	std::transform(key.begin(), key.end(), key.begin(), ::tolower);
 	return (key);
 }
 
-void	HttpMessage::setHeader(std::map<std::string, std::string>& m, std::string first, std::string second)
-{
-	m[makeHeaderKeyLower(first)] = second;
-}
-
-void	HttpMessage::setHeaderFromLine(std::map<std::string, std::string>& m, const std::string& inputStr, const std::string& keyword) {
-	size_t pos = inputStr.find(keyword);
-	if (pos == std::string::npos)
-		return ;
-
-	std::string first = inputStr.substr(0, pos);
-	std::string second = inputStr.substr(pos + keyword.length());
-	setHeader(m, first, second);
-}
-
 bool	HttpMessage::isEnd() const
 {
 	return (_isHeaderEnd && _isBodyEnd);
-}
-
-const std::string   &HttpMessage::getRow() const
-{
-	return (_row);
-}
-
-const   std::string &HttpMessage::getBody() const {
-    return (_body);
-}
-
-const std::string   &HttpMessage::getHeader(std::string key) const
-{
-	std::map<std::string, std::string>::const_iterator it = this->_headers.find(makeHeaderKeyLower(key));
-	if (it != this->_headers.end())
-		return it->second;
-	return _empty;
-}
-
-const std::string   &HttpMessage::getProtocol() const
-{
-    return (_protocol);
 }
 
 void	HttpMessage::addSendPos(std::size_t pos)
@@ -161,6 +101,11 @@ void	HttpMessage::addSendPos(std::size_t pos)
 		delete[] _sendBuffer;
 		_sendBuffer = NULL;
 	}
+}
+
+bool	HttpMessage::doesSendEnd() const
+{
+	return (_doesSendEnd);
 }
 
 const uint8_t	*HttpMessage::getSendBuffer()
@@ -175,16 +120,6 @@ const uint8_t	*HttpMessage::getSendBuffer()
 		std::memcpy((void *)_sendBuffer, (void *)_row.c_str(), _row.length());
 	}
 	return (_sendBuffer);
-}
-
-bool	HttpMessage::doesSendEnd() const
-{
-	return (_doesSendEnd);
-}
-
-void	HttpMessage::setContentLength() {
-	const std::string &contentLengthValue = getHeader("content-length");
-	_contentLength = contentLengthValue.empty() ? 0 : std::stoi(contentLengthValue);
 }
 
 std::size_t	HttpMessage::getContentLength() const {
@@ -210,3 +145,69 @@ bool	HttpMessage::isTooBigError() const
 {
 	return (_tooBigError);
 }
+
+const   std::string &HttpMessage::getBody() const {
+    return (_body);
+}
+
+const std::string   &HttpMessage::getHeader(std::string key) const
+{
+	std::map<std::string, std::string>::const_iterator it = this->_headers.find(makeHeaderKeyLower(key));
+	if (it != this->_headers.end())
+		return it->second;
+	return _empty;
+}
+
+const std::string   &HttpMessage::getProtocol() const
+{
+    return (_protocol);
+}
+
+const std::string   &HttpMessage::getRow() const
+{
+	return (_row);
+}
+
+void	HttpMessage::setBody(const std::string &row)
+{
+	if (getHeader("content-length").empty() == false)
+	{
+		std::string::size_type	content_length = std::stoi(_headers["content-length"]);
+		_body = row.substr(_readPos, content_length);
+		if (_body.length() == content_length || _body.find("\r\n\r\n") != std::string::npos)
+			_isBodyEnd = true;
+		else
+			_readPos += _body.length();
+	}
+	else if (getHeader("transfer-encoding") == "chunked")
+	{
+		if (_body.find("\r\n0\r\n\r\n") == std::string::npos)
+			return ;
+		// TODO: body = decode_chunked(body);
+		_readPos += _body.length();
+		_isBodyEnd = true;
+	}
+	else
+		_isBodyEnd = true;
+}
+
+void	HttpMessage::setHeader(std::map<std::string, std::string>& m, std::string first, std::string second)
+{
+	m[makeHeaderKeyLower(first)] = second;
+}
+
+void	HttpMessage::setHeaderFromLine(std::map<std::string, std::string>& m, const std::string& inputStr, const std::string& keyword) {
+	size_t pos = inputStr.find(keyword);
+	if (pos == std::string::npos)
+		return ;
+
+	std::string first = inputStr.substr(0, pos);
+	std::string second = inputStr.substr(pos + keyword.length());
+	setHeader(m, first, second);
+}
+
+void	HttpMessage::setContentLength() {
+	const std::string &contentLengthValue = getHeader("content-length");
+	_contentLength = contentLengthValue.empty() ? 0 : std::stoi(contentLengthValue);
+}
+

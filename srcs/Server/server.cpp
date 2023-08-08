@@ -224,9 +224,9 @@ int	Server::finish_recv(Socket *sock, HttpMessage *message, bool is_cgi_connecti
 	{
 		Request		*request = (Request *)message;
 		ClSocket	*clSock = (ClSocket *)sock;
-		request->setaddr(clSock);
-		request->setinfo();
-		request->print_all();
+		request->setAddr(clSock);
+		request->setInfo();
+		request->printAll();
 		if (request_wants_cgi(request))
 			new_connect_cgi(request, clSock);
 		else

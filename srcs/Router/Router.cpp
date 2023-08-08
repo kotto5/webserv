@@ -75,17 +75,14 @@ Response *Router::routeHandler(const Request &request)
 
 Response *Router::handleError(const Request &request, const std::string &status)
 {
-	// TODO: 本来はポート番号とサーバー名の取得に用いる
-	(void)request;
-
-		// エラーページのパスを取得
+	// エラーページのパスを取得
 	std::string error_path = Config::instance()
 		->getHTTPBlock()
-		.getServerContext("80", "host")
+		.getServerContext(request.getServerPort(), request.getHeader("host"))
 		.getErrorPage(status);
 
 	// 実体パスに変換
-	std::string actual_path = Request::convertUriToPath(error_path, "80", "host");
+	std::string actual_path = Request::convertUriToPath(error_path, request.getServerPort(), request.getHeader("host"));
 
 	//　エラーページが参照できない場合はデフォルトの内容を返す
 	if (!pathExist(actual_path.c_str()))

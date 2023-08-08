@@ -19,18 +19,23 @@ Request::Request(const std::string &method, const std::string &uriAndQuery, cons
 	this->_protocol = protocol;
 	this->_headers = headers;
 	this->_body = body;
-	this->setinfo();
+	this->setInfo();
 }
 
 /**
  * @brief リクエストのメタ情報をセットする
  *
  */
-void	Request::setinfo()
+void	Request::setInfo()
 {
 	std::string::size_type pos = this->_uriAndQuery.find("?");
-	this->_uri = pos == std::string::npos ? this->_uriAndQuery : this->_uriAndQuery.substr(0, pos);
-	this->_query = pos == std::string::npos ? "" : this->_uriAndQuery.substr(pos + 1);
+
+	this->_uri = pos == std::string::npos
+		? this->_uriAndQuery
+		: this->_uriAndQuery.substr(0, pos);
+	this->_query = pos == std::string::npos
+		? ""
+		: this->_uriAndQuery.substr(pos + 1);
 
 	// ヘッダーのContent-Lengthを取得
 	this->_content_length = this->_body.length();
@@ -38,8 +43,9 @@ void	Request::setinfo()
 	// ヘッダーのContent-Typeを取得
 	this->_content_type = this->getHeader("Content-Type");
 
-	// aliasとrootを考慮したuriを取得（TODO: ポート番号を動的に設定する必要あり）
-	this->_actual_uri = convertUriToPath(this->_uri, "80", "host");
+	// aliasとrootを考慮したuriを取得
+	this->_actual_uri = convertUriToPath(this->_uri, getServerPort(), getHeader("Host"));
+
 	// CGIに用いるscript_nameとpath_infoを取得
 	// this->_cgi_script_name = this->get
 	this->_path_info = this->_uri.find(_cgi_script_name) == std::string::npos
@@ -120,20 +126,13 @@ Request &Request::operator=(const Request &rhs)
 	return *this;
 }
 
-// Getters/Setters
-const std::string	&Request::getMethod() const {
-	return this->_method;
-}
-
-const std::string	&Request::getUri() const {
-	return this->_uri;
-}
-
-const std::string	&Request::getActualUri() const {
-	return this->_actual_uri;
-}
-
-int	Request::setaddr(ClSocket *clientSocket)
+/**
+ * @brief 接続先情報をセットする
+ *
+ * @param clientSocket
+ * @return int
+ */
+int	Request::setAddr(ClSocket *clientSocket)
 {
 	struct sockaddr_in	addr;
 	socklen_t			addr_size = sizeof(struct sockaddr_in);
@@ -154,7 +153,7 @@ int	Request::setaddr(ClSocket *clientSocket)
 	return (0);
 }
 
-void	Request::print_all(void) const
+void	Request::printAll(void) const
 {
 	std::cout << "method: [" << _method << "]" << std::endl;
 	std::cout << "uri: [" << _uri << "]" << std::endl;
@@ -188,4 +187,42 @@ void	Request::setFirstLine(const std::string &line)
 bool	Request::isBadRequest() const
 {
 	return (!isEnd());
+}
+
+// Getters/Setters
+const std::string	&Request::getMethod() const {
+	return this->_method;
+}
+
+const std::string	&Request::getUri() const {
+	return this->_uri;
+}
+
+const std::string	&Request::getActualUri() const {
+	return this->_actual_uri;
+}
+
+const std::string &Request::getServerName() const
+{
+	return this->_server_name;
+}
+
+const std::string &Request::getServerPort() const
+{
+	return this->_server_port;
+}
+
+const std::string &Request::getRemoteAddr() const
+{
+	return this->_remote_addr;
+}
+
+const std::string &Request::getRemoteHost() const
+{
+	return this->_remote_host;
+}
+
+const std::string &Request::getIp() const
+{
+	return this->_ip;
 }
