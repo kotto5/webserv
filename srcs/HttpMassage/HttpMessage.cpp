@@ -9,6 +9,7 @@ HttpMessage::HttpMessage()
 	_isBodyEnd(false), _readPos(0), _sendPos(0), _sendBuffer(NULL), _doesSendEnd(false)
 {
 	_tooBigError = false;
+	_contentLength = 0;
 }
 
 HttpMessage::~HttpMessage() {
