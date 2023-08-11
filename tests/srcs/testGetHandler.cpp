@@ -5,6 +5,7 @@
 #include "Config.hpp"
 #include "HttpMessage.hpp"
 #include "RequestException.hpp"
+#include "TestEnv.hpp"
 
 namespace
 {
@@ -20,8 +21,11 @@ protected:
 	virtual void SetUp()
 	{
 		reqGetHtml = new Request("GET", "/pages/test.html", "HTTP/1.1", std::map<std::string, std::string>(), "");
+		reqGetHtml->setAddr(env->socket).setInfo();
 		reqGetPng = new Request("GET", "/images/logo.png", "HTTP/1.1", std::map<std::string, std::string>(), "");
+		reqGetPng->setAddr(env->socket).setInfo();
 		reqNotFound = new Request("GET", "/pages/none.html", "HTTP/1.1", std::map<std::string, std::string>(), "");
+		reqNotFound->setAddr(env->socket).setInfo();
 	}
 };
 

@@ -36,8 +36,22 @@ Socket::Socket(int fd, const sockaddr *addr, socklen_t len): fd_(fd), lastAccess
 	std::cout << "Socket::Socket(fd =" << fd << ")" << std::endl;
 }
 
+Socket::Socket(const Socket &other)
+{
+	*this = other;
+}
+
 Socket::~Socket() {
     close(fd_);
+}
+
+Socket &Socket::operator=(const Socket &other)
+{
+	fd_ = other.fd_;
+	lastAccess_ = other.lastAccess_;
+	localAddr_ = other.localAddr_;
+	localLen_ = other.localLen_;
+	return (*this);
 }
 
 const sockaddr_in		&Socket::getLocalAddr() { return localAddr_; }
@@ -54,15 +68,29 @@ int Socket::getFd() { return fd_; }
 
 ClSocket::ClSocket(int fd, const sockaddr *addr, socklen_t len, sockaddr *remoteAddr, socklen_t remoteLen):
     Socket(fd, addr, len), remoteAddr_(*(sockaddr_in *
-	)remoteAddr), remoteLen_(remoteLen) {}
+	)remoteAddr), remoteLen_(remoteLen) {
+	}
 
 ClSocket::ClSocket(int fd, sockaddr *remoteAddr, socklen_t remoteLen): Socket(fd)
 {
+	std::cout << fd << remoteAddr << remoteLen << std::endl;
     remoteAddr_ = *(sockaddr_in *)(remoteAddr);
     remoteLen_ = remoteLen;
 }
 
+ClSocket::ClSocket(const ClSocket &other): Socket(other)
+{
+	*this = other;
+}
+
 ClSocket::~ClSocket() {}
+
+ClSocket &ClSocket::operator=(const ClSocket &other)
+{
+	remoteAddr_ = other.remoteAddr_;
+	remoteLen_ = other.remoteLen_;
+	return (*this);
+}
 
 // =============================================
 // ============ SvSocket class =================
@@ -80,7 +108,7 @@ int SvSocket::createSvSocket(int port)
 	int yes = 1;
 	if (setsockopt(new_sock, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1)
 	{
-        throw ServerException("setsockopt");
+		throw ServerException("setsockopt");
 	}
 	if (bind(new_sock, (struct sockaddr *)&server_address, sizeof(server_address)) == -1)
 	{
@@ -109,5 +137,6 @@ ClSocket    *SvSocket::dequeueSocket()
     if (clientFd == -1)
         return NULL;
 	set_non_blocking(clientFd);
+
     return (new ClSocket(clientFd, (sockaddr *)&this->localAddr_, this->localLen_, (sockaddr *)&remote_addr, remote_len));
 }

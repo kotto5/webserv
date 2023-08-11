@@ -35,9 +35,8 @@ public:
 	const std::string	&getRemoteAddr() const;
 	const std::string	&getRemoteHost() const;
 	const std::string	&getIp() const;
-	int					setUri();
-	int					setAddr(ClSocket *clientSocket);
-	void				setInfo();
+	Request				&setAddr(ClSocket *clientSocket);
+	Request				&setInfo();
 
 private:
 	virtual	void		setFirstLine(const std::string &line);

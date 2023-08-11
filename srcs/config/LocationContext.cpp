@@ -8,8 +8,22 @@ LocationContext::LocationContext():
 {
 }
 
+LocationContext::LocationContext(const LocationContext &other)
+{
+	*this = other;
+}
+
 LocationContext::~LocationContext()
 {
+}
+
+LocationContext &LocationContext::operator=(const LocationContext& other)
+{
+	if (this != &other)
+	{
+		_directives = other._directives;
+	}
+	return *this;
 }
 
 void LocationContext::addDirective(const std::string& directive, const std::string& value,

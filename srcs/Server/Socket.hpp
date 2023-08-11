@@ -18,7 +18,9 @@ protected:
 public:
 	Socket(int fd);
 	Socket(int fd, const sockaddr *addr, socklen_t len);
+	Socket(const Socket &other);
 	virtual ~Socket();
+	Socket &operator=(const Socket &other);
 
 	int getFd();
 	bool				isTimeout(std::time_t current_time = std::time(NULL));
@@ -41,7 +43,10 @@ private:
 public:
 	ClSocket(int fd, sockaddr *remote_addr, socklen_t remote_len);
 	ClSocket(int fd, const sockaddr *addr, socklen_t len, sockaddr *remote_addr, socklen_t remote_len);
+	ClSocket(const ClSocket &other);
 	~ClSocket();
+	ClSocket &operator=(const ClSocket &other);
+
 	const sockaddr_in &getRemoteAddr() { return remoteAddr_; }
 	socklen_t getRemoteLen() { return remoteLen_; }
 };

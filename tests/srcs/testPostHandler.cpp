@@ -6,6 +6,7 @@
 #include <streambuf>
 #include "HttpMessage.hpp"
 #include "RequestException.hpp"
+#include "TestEnv.hpp"
 
 namespace
 {
@@ -46,6 +47,7 @@ TEST_F(PostHandlerTest, createTextFile)
 	PostHandler handler;
 	std::string body = readFile("./docs/test.txt");
 	Request req(method, "/resources/unit_test/sample.txt", protocol, headers, body);
+	req.setAddr(env->socket).setInfo();
 	Response *res = handler.handleRequest(req);
 
 	std::string file_data = readFile("./docs/storage/unit_test/sample.txt");
@@ -64,6 +66,7 @@ TEST_F(PostHandlerTest, createPngFile)
 	PostHandler handler;
 	std::string body = readFile("./docs/test.png");
 	Request req(method, "/resources/unit_test/sample.png", protocol, headers, body);
+	req.setAddr(env->socket).setInfo();
 	Response *res = handler.handleRequest(req);
 
 	std::string file_data = readFile("./docs/storage/unit_test/sample_post.png");
@@ -82,6 +85,7 @@ TEST_F(PostHandlerTest, createMultiFile)
 	PostHandler handler;
 	std::string body = readFile("./docs/test.txt");
 	Request req(method, "/resources/unit_test/sample_multi.txt", protocol, headers, body);
+	req.setAddr(env->socket).setInfo();
 	Response *res_0 = handler.handleRequest(req); // 1回目
 	Response *res_1 = handler.handleRequest(req); // 2回目
 	Response *res_2 = handler.handleRequest(req); // 3回目
@@ -123,6 +127,7 @@ TEST_F(PostHandlerTest, createFileWithInvalidPath)
 {
 	PostHandler handler;
 	Request req(method, "/resources/unit_test/invalid_path/sample.txt", protocol, headers, body);
+	req.setAddr(env->socket).setInfo();
 
 	// テストデータの検証
 	try
@@ -148,6 +153,7 @@ TEST_F(PostHandlerTest, createFileFailed)
 
 	PostHandler handler;
 	Request req(method, "/resources/unit_test/sample.txt", protocol, headers, body);
+	req.setAddr(env->socket).setInfo();
 
 	// テストデータの検証
 	try

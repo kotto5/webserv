@@ -95,7 +95,7 @@ ifeq ($(UNAME_S),Darwin)  # This is for macOS
     TEST_LDFLAGS := -L$(PROJECT_DIR)/tests/lib -lgtest -lgtest_main -lpthread
 endif
 SRC_DIRS := $(shell find $(PROJECT_DIR)/srcs -type d)
-INC_FLAGS := $(addprefix -I, $(SRC_DIRS))
+INC_FLAGS := $(addprefix -I, $(SRC_DIRS)) -I./tests/include
 TEST_INCS := -I$(PROJECT_DIR)/tests/include $(INC_FLAGS)
 
 $(TEST_NAME): $(TEST_OBJS)

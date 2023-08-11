@@ -34,7 +34,7 @@ PostHandler &PostHandler::operator=(const PostHandler &rhs)
 }
 
 /**
- * @brief GETメソッドの処理を行う
+ * @brief POSTメソッドの処理を行う
  *
  * @param request リクエスト
  * @return Response レスポンス
