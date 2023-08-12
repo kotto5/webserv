@@ -3,6 +3,7 @@
 #include "Response.hpp"
 #include "Router.hpp"
 #include <gtest/gtest.h>
+#include "TestEnv.hpp"
 
 namespace
 {
@@ -16,7 +17,9 @@ protected:
 	virtual void SetUp()
 	{
 		reqGet = new Request("GET", "/index.html", "HTTP/1.1", std::map<std::string, std::string>(), "");
+		reqGet->setAddr(env->socket).setInfo();
 		reqNotFound = new Request("NONE", "/index.html", "HTTP/1.1", std::map<std::string, std::string>(), "");
+		reqNotFound->setAddr(env->socket).setInfo();
 	}
 };
 

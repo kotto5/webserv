@@ -19,27 +19,11 @@ Request::Request(const std::string &method, const std::string &uriAndQuery, cons
 	this->_protocol = protocol;
 	this->_headers = headers;
 	this->_body = body;
-	this->setinfo();
 }
 
-void	Request::setinfo()
+Request::Request(const ClSocket *clientSocket)
 {
-	std::string::size_type pos = this->_uriAndQuery.find("?");
-	this->_uri = pos == std::string::npos ? this->_uriAndQuery : this->_uriAndQuery.substr(0, pos);
-	this->_query = pos == std::string::npos ? "" : this->_uriAndQuery.substr(pos + 1);
-
-	// ヘッダーのContent-Lengthを取得
-	this->_content_length = this->_body.length();
-
-	// ヘッダーのContent-Typeを取得
-	this->_content_type = this->getHeader("Content-Type");
-
-	// aliasとrootを考慮したuriを取得（TODO: ポート番号を動的に設定する必要あり）
-	this->_actual_uri = convertUriToPath(this->_uri, "80", "host");
-	// CGIに用いるscript_nameとpath_infoを取得
-	// this->_cgi_script_name = this->get
-	this->_path_info = this->_uri.find(_cgi_script_name) == std::string::npos ?
-	"" : this->_uri.substr(this->_uri.find(_cgi_script_name) + _cgi_script_name.length());
+	this->setAddr(clientSocket);
 }
 
 Request::Request(){}
@@ -62,6 +46,7 @@ static std::string	getAliasOrRootDirective(LocationContext &Location)
  * @param uri
  * @return std::string
  */
+#include <iostream>
 std::string	Request::convertUriToPath(const std::string &uri, const std::string &port, const std::string &server_name)
 {
 	LocationContext	location;
@@ -115,41 +100,21 @@ Request &Request::operator=(const Request &rhs)
 	return *this;
 }
 
-// Getters/Setters
-const std::string	&Request::getMethod() const {
-	return this->_method;
-}
-
-const std::string	&Request::getUri() const {
-	return this->_uri;
-}
-
-const std::string	&Request::getActualUri() const {
-	return this->_actual_uri;
-}
-
-int	Request::setaddr(ClSocket *clientSocket)
+void	Request::setFirstLine(const std::string &line)
 {
-	struct sockaddr_in	addr;
-	// socklen_t			addr_size = sizeof(struct sockaddr_in);
-
-	addr = clientSocket->getLocaladdr();
-	// addr_size = clientSocket->getLocallen();
-	int	port = ntohs(addr.sin_port);
-
-	_server_name = inet_ntoa(addr.sin_addr);
-	_server_port = std::to_string(port);
-
-	addr = clientSocket->getRemoteaddr();
-	// addr_size = clientSocket->getRemotelen();
-
-	_remote_addr = inet_ntoa(addr.sin_addr);
-	_remote_host = _remote_addr;
-
-	return (0);
+	std::string::size_type	method_end = line.find(" ");
+	std::string::size_type	uri_end = line.find(" ", method_end + 1);
+	_method = line.substr(0, method_end);
+	_uriAndQuery = percentDecode(line.substr(method_end + 1, uri_end - method_end - 1));
+	_protocol = line.substr(uri_end + 1);
 }
 
-void	Request::print_all(void) const
+bool	Request::isBadRequest() const
+{
+	return (!isEnd());
+}
+
+void	Request::printAll(void) const
 {
 	std::cout << "method: [" << _method << "]" << std::endl;
 	std::cout << "uri: [" << _uri << "]" << std::endl;
@@ -171,16 +136,97 @@ void	Request::print_all(void) const
 	std::cout << "server_port: [" << _server_port << "]" << std::endl;
 }
 
-void	Request::setFirstLine(const std::string &line)
-{
-	std::string::size_type	method_end = line.find(" ");
-	std::string::size_type	uri_end = line.find(" ", method_end + 1);
-	_method = line.substr(0, method_end);
-	_uriAndQuery = percentDecode(line.substr(method_end + 1, uri_end - method_end - 1));
-	_protocol = line.substr(uri_end + 1);
+// Getters/Setters
+const std::string	&Request::getMethod() const {
+	return this->_method;
 }
 
-bool	Request::isBadRequest() const
+const std::string	&Request::getUri() const {
+	return this->_uri;
+}
+
+const std::string	&Request::getActualUri() const {
+	return this->_actual_uri;
+}
+
+const std::string &Request::getServerName() const
 {
-	return (!isEnd());
+	return this->_server_name;
+}
+
+const std::string &Request::getServerPort() const
+{
+	return this->_server_port;
+}
+
+const std::string &Request::getRemoteAddr() const
+{
+	return this->_remote_addr;
+}
+
+const std::string &Request::getRemoteHost() const
+{
+	return this->_remote_host;
+}
+
+const std::string &Request::getIp() const
+{
+	return this->_ip;
+}
+
+/**
+ * @brief 接続先情報をセットする
+ *
+ * @param clientSocket
+ * @return int
+ */
+Request &Request::setAddr(const ClSocket *clientSocket)
+{
+	struct sockaddr_in	addr;
+	socklen_t			addr_size = sizeof(struct sockaddr_in);
+
+	addr = clientSocket->getLocalAddr();
+	addr_size = clientSocket->getLocalLen();
+	int	port = ntohs(addr.sin_port);
+
+	_server_name = inet_ntoa(addr.sin_addr);
+	_server_port = std::to_string(port);
+
+	addr = clientSocket->getRemoteAddr();
+	addr_size = clientSocket->getRemoteLen();
+
+	_remote_addr = inet_ntoa(addr.sin_addr);
+	_remote_host = _remote_addr;
+	return *this;
+}
+
+/**
+ * @brief リクエストのメタ情報をセットする
+ *
+ */
+Request	&Request::setInfo()
+{
+	std::string::size_type pos = this->_uriAndQuery.find("?");
+
+	this->_uri = pos == std::string::npos
+		? this->_uriAndQuery
+		: this->_uriAndQuery.substr(0, pos);
+	this->_query = pos == std::string::npos
+		? ""
+		: this->_uriAndQuery.substr(pos + 1);
+
+	// ヘッダーのContent-Lengthを取得
+	this->_content_length = this->_body.length();
+
+	// ヘッダーのContent-Typeを取得
+	this->_content_type = this->getHeader("Content-Type");
+
+	// aliasとrootを考慮したuriを取得
+	this->_actual_uri = convertUriToPath(this->_uri, getServerPort(), getHeader("host"));
+	// CGIに用いるscript_nameとpath_infoを取得
+	// this->_cgi_script_name = this->get
+	this->_path_info = this->_uri.find(_cgi_script_name) == std::string::npos
+		? ""
+		: this->_uri.substr(this->_uri.find(_cgi_script_name) + _cgi_script_name.length());
+	return *this;
 }

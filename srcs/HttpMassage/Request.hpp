@@ -13,6 +13,7 @@ public:
 	// Constructors
 	Request(const std::string &method, const std::string &uriAndQuery, const std::string &protocol, std::map<std::string, std::string> headers, const std::string &body);
 	Request(const Request &other);
+	Request(const ClSocket *clientSocket);
 	Request();
 
 	// Destructor
@@ -21,20 +22,25 @@ public:
 	// Operators
 	Request &operator=(const Request &rhs);
 
+	// Methods
+	static std::string	convertUriToPath(const std::string &uri, const std::string &port, const std::string &server_name);
+	bool				isBadRequest() const;
+	void				printAll() const;
+
 	// Getters/Setters
 	const std::string	&getMethod() const;
 	const std::string	&getUri() const;
 	const std::string	&getActualUri() const;
-
-	static std::string	convertUriToPath(const std::string &uri, const std::string &port, const std::string &server_name);
-	void		print_all() const;
-	int			seturi();
-	int			setaddr(ClSocket *clientSocket);
-	void		setinfo();
-	bool						isBadRequest() const;
+	const std::string	&getServerName() const;
+	const std::string	&getServerPort() const;
+	const std::string	&getRemoteAddr() const;
+	const std::string	&getRemoteHost() const;
+	const std::string	&getIp() const;
+	Request				&setAddr(const ClSocket *clientSocket);
+	Request				&setInfo();
 
 private:
-	virtual	void			setFirstLine(const std::string &line);
+	virtual	void		setFirstLine(const std::string &line);
 
 	std::string _method;
 	std::string _uriAndQuery;

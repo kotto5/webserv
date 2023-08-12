@@ -34,7 +34,7 @@ PostHandler &PostHandler::operator=(const PostHandler &rhs)
 }
 
 /**
- * @brief GETメソッドの処理を行う
+ * @brief POSTメソッドの処理を行う
  *
  * @param request リクエスト
  * @return Response レスポンス
@@ -93,5 +93,6 @@ Response *PostHandler::handleRequest(const Request &request)
     std::string uridir = request.getUri().substr(0, pos + 1);
 	HttpMessage::setHeader(headers, "Location", uridir + filename);
 	HttpMessage::setHeader(headers, "content-type", Response::getMimeType(request.getActualUri()));
+
     return (new Response(_status, headers, ""));
 }

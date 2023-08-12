@@ -151,8 +151,8 @@ int	Server::accept(Socket *serverSock)
 	if (newSock == NULL)
 		return (0);
 	setFd(TYPE_RECV, newSock);
-	Recvs[newSock] = new Request();
-	std::cout << RED << "New connection, socket fd is " << newSock->getFd() << ", port is " << ntohs(newSock->getRemoteaddr().sin_port) << "time " << newSock->getLastAccess() << DEF << std::endl;
+	Recvs[newSock] = new Request(newSock);
+	std::cout << RED << "New connection, socket fd is " << newSock->getFd() << ", port is " << ntohs(newSock->getRemoteAddr().sin_port) << "time " << newSock->getLastAccess() << DEF << std::endl;
 	return (0);
 }
 
@@ -228,16 +228,14 @@ int	Server::finish_recv(Socket *sock, HttpMessage *message, bool is_cgi_connecti
 	else
 	{
 		Request		*request = (Request *)message;
-		ClSocket	*clSock = (ClSocket *)sock;
-		request->setaddr(clSock);
-		request->setinfo();
-		request->print_all();
+		request->setInfo();
+		request->printAll();
 		if (request_wants_cgi(request))
-			new_connect_cgi(request, clSock);
+			new_connect_cgi(request, sock);
 		else
 		{
-			Sends[clSock] = makeResponse(request);
-			setFd(TYPE_SEND, clSock);
+			Sends[sock] = makeResponse(request);
+			setFd(TYPE_SEND, sock);
 		}
 	}
 	Recvs.erase(sock);

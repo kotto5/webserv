@@ -123,7 +123,7 @@ const ServerContext& HTTPContext::getServerContext(const std::string& port, cons
         {
             if (it->getServerName() == host)
                 return *it;
-        }
+			}
         // server_nameがhostヘッダーと一致しない場合、最初のserverブロックを返す
         return serverContexts.at(0);
     }

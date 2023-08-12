@@ -5,6 +5,7 @@
 #include "RequestException.hpp"
 #include <fstream>
 #include <streambuf>
+#include "TestEnv.hpp"
 
 namespace
 {
@@ -39,6 +40,7 @@ TEST_F(DeleteHandlerTest, deleteTextFile)
 
 	DeleteHandler handler;
 	Request req(method, "/resources/unit_test/sample_delete.txt", protocol, headers, body);
+	req.setAddr(env->socket).setInfo();
 	Response *res = handler.handleRequest(req);
 
 	//　レスポンスが正しいか
