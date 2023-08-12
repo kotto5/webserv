@@ -1,6 +1,9 @@
 #include "HttpMessage.hpp"
 #include "HTTPContext.hpp"
 #include "Config.hpp"
+#include <algorithm>
+#include <cstring>
+
 
 std::string HttpMessage::_empty = "";
 
@@ -9,6 +12,7 @@ HttpMessage::HttpMessage()
 	_isBodyEnd(false), _readPos(0), _sendPos(0), _sendBuffer(NULL), _doesSendEnd(false)
 {
 	_tooBigError = false;
+	_contentLength = 0;
 }
 
 HttpMessage::~HttpMessage() {
@@ -16,7 +20,7 @@ HttpMessage::~HttpMessage() {
 		delete[] _sendBuffer;
 }
 
-int	HttpMessage::parsing(const std::string &row, const bool inputClosed, const std::size_t maxSize)
+int	HttpMessage::parsing(const std::string &row, const std::size_t maxSize)
 {
 	_row += row;
 	if (maxSize != 0 && _row.length() > maxSize)
@@ -24,14 +28,13 @@ int	HttpMessage::parsing(const std::string &row, const bool inputClosed, const s
 		_tooBigError = true;
 		return (1);
 	}
-	std::cout << "row: [" << row << "]" << std::endl;
+	// std::cout << "row: [" << row << "]" << std::endl;
+	std::cout << "parsing row length: [" << _row.length() << "]" << std::endl;
 
 	std::string	line;
 	std::string::size_type endPos;
 	if (_isHeaderEnd == false)
 	{
-		if (inputClosed) // execve error
-			_isHeaderEnd = true;
 		while ((endPos = _row.find("\r\n", _readPos)) != _readPos)
 		{
 			if (endPos == std::string::npos) // no new line (incomplete)
@@ -46,17 +49,19 @@ int	HttpMessage::parsing(const std::string &row, const bool inputClosed, const s
 			_readPos = endPos + 2; // Skip CRLF
 		}
 		_isHeaderEnd = true;
+		if (getHeader("content-length").empty() == false)
+			_contentLength = std::stoi(_headers["content-length"]);
+		else
+			_contentLength = 0;
 	}
-	if (_isBodyEnd == true)
-		return (0);
-	setBody(row);
-	if (inputClosed)
+	else if (_isBodyEnd == false)
 	{
-		_isBodyEnd = true;
-		_isHeaderEnd = true;
+		setBody(row);
+		return (0);
 	}
-	// if (_isBodyEnd == true)
-	// 	setInfo();
+	else
+		return (0);
+	setBody(_row.substr(_readPos));
 	return (0);
 }
 
@@ -79,6 +84,37 @@ bool HttpMessage::isValidLine(const std::string &line, const bool isFirstLine) c
 			return (false);
 	}
 	return (true);
+}
+
+void	HttpMessage::setBody(const std::string &addBody)
+{
+	if (_contentLength != 0)
+	{
+		if (_body.empty())
+			_body.reserve(_contentLength);
+		std::cout << _readPos << ":" << _contentLength << ":" << addBody.length() << std::endl;
+		_body += addBody;
+		// if (_body.length() >= _contentLength || _body.find("\r\n\r\n") != std::string::npos)
+		if (_body.length() >= _contentLength)
+		{
+			_body = _body.substr(0, _contentLength);
+			_isBodyEnd = true;
+		}
+		else
+			_readPos += addBody.length();
+	}
+	else if (getHeader("transfer-encoding") == "chunked")
+	{
+		_body += addBody;
+		_readPos += _body.length();
+		if (_body.find("\r\n0\r\n\r\n") != std::string::npos)
+		{
+			// TODO: body = decode_chunked(body);
+			_isBodyEnd = true;
+		}
+	}
+	else
+		_isBodyEnd = true;
 }
 
 std::string	HttpMessage::makeHeaderKeyLower(std::string key)
@@ -166,29 +202,6 @@ const std::string   &HttpMessage::getProtocol() const
 const std::string   &HttpMessage::getRow() const
 {
 	return (_row);
-}
-
-void	HttpMessage::setBody(const std::string &row)
-{
-	if (getHeader("content-length").empty() == false)
-	{
-		std::string::size_type	content_length = std::stoi(_headers["content-length"]);
-		_body = row.substr(_readPos, content_length);
-		if (_body.length() == content_length || _body.find("\r\n\r\n") != std::string::npos)
-			_isBodyEnd = true;
-		else
-			_readPos += _body.length();
-	}
-	else if (getHeader("transfer-encoding") == "chunked")
-	{
-		if (_body.find("\r\n0\r\n\r\n") == std::string::npos)
-			return ;
-		// TODO: body = decode_chunked(body);
-		_readPos += _body.length();
-		_isBodyEnd = true;
-	}
-	else
-		_isBodyEnd = true;
 }
 
 void	HttpMessage::setHeader(std::map<std::string, std::string>& m, std::string first, std::string second)

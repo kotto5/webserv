@@ -22,7 +22,7 @@
 // ============ Socket class ===================
 // =============================================
 
-std::time_t	Socket::timeLimit = 5;
+std::time_t	Socket::timeLimit = 60;
 
 Socket::Socket(int fd): fd_(fd), lastAccess_(std::time(NULL))
 {
@@ -135,7 +135,9 @@ ClSocket    *SvSocket::dequeueSocket()
 
     int clientFd = accept(this->fd_, (sockaddr *)&remote_addr, &remote_len);
     if (clientFd == -1)
-        return NULL;
+    {
+        return (NULL);
+    }
 	set_non_blocking(clientFd);
 
     return (new ClSocket(clientFd, (sockaddr *)&this->localAddr_, this->localLen_, (sockaddr *)&remote_addr, remote_len));

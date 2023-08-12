@@ -26,7 +26,7 @@ protected:
 	std::size_t							_sendBufferSize;
 	bool								_doesSendEnd;
 
-	std::size_t							_contentLength;
+	std::string::size_type				_contentLength;
 
 	bool						isValidLine(const std::string &line, const bool isFirstLine) const;
 	static std::string			makeHeaderKeyLower(std::string key);
@@ -37,7 +37,7 @@ public:
 	virtual ~HttpMessage();
 
 
-	int							parsing(const std::string &row, const bool inputClosed, const std::size_t limitClientMsgSize);
+	int							parsing(const std::string &row, const std::size_t limitClientMsgSize);
 	bool						isEnd() const;
 	void						addSendPos(std::size_t pos);
 	bool						doesSendEnd() const;
@@ -56,7 +56,7 @@ public:
 	static void					setHeader(std::map<std::string, std::string>& m, std::string first, std::string second);
 	static void					setHeaderFromLine(std::map<std::string, std::string>& m, const std::string& inputStr, const std::string& keyword);
 	void						setContentLength();
-	void						setBody(const std::string &row);
+	void						setBody(const std::string &addBody);
 };
 
 #endif
