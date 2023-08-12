@@ -33,6 +33,7 @@ class ConfigParser
         INDEX,
 		AUTOINDEX,
         ERROR_PAGE,
+        REDIRECT,
         UNKNOWN
     };
 
