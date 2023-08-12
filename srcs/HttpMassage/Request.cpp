@@ -21,6 +21,11 @@ Request::Request(const std::string &method, const std::string &uriAndQuery, cons
 	this->_body = body;
 }
 
+Request::Request(const ClSocket *clientSocket)
+{
+	this->setAddr(clientSocket);
+}
+
 Request::Request(){}
 
 static std::string	getAliasOrRootDirective(LocationContext &Location)
@@ -175,7 +180,7 @@ const std::string &Request::getIp() const
  * @param clientSocket
  * @return int
  */
-Request &Request::setAddr(ClSocket *clientSocket)
+Request &Request::setAddr(const ClSocket *clientSocket)
 {
 	struct sockaddr_in	addr;
 	socklen_t			addr_size = sizeof(struct sockaddr_in);

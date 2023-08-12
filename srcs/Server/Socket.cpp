@@ -54,9 +54,9 @@ Socket &Socket::operator=(const Socket &other)
 	return (*this);
 }
 
-const sockaddr_in		&Socket::getLocalAddr() { return localAddr_; }
-socklen_t				Socket::getLocalLen() { return localLen_; }
-const std::time_t		&Socket::getLastAccess() { return lastAccess_; }
+const sockaddr_in		&Socket::getLocalAddr() const { return localAddr_; }
+socklen_t				Socket::getLocalLen() const { return localLen_; }
+const std::time_t		&Socket::getLastAccess() const { return lastAccess_; }
 void					Socket::updateLastAccess() { lastAccess_ = std::time(NULL); }
 bool					Socket::isTimeout(std::time_t current_time) { return (current_time - lastAccess_ > timeLimit); }
 

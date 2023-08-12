@@ -24,9 +24,9 @@ public:
 
 	int getFd();
 	bool				isTimeout(std::time_t current_time = std::time(NULL));
-	const sockaddr_in	&getLocalAddr();
-	socklen_t			getLocalLen();
-	const std::time_t	&getLastAccess();
+	const sockaddr_in	&getLocalAddr() const ;
+	socklen_t			getLocalLen() const ;
+	const std::time_t	&getLastAccess() const ;
 	void				updateLastAccess();
 
 	static std::time_t	timeLimit;
@@ -47,8 +47,8 @@ public:
 	~ClSocket();
 	ClSocket &operator=(const ClSocket &other);
 
-	const sockaddr_in &getRemoteAddr() { return remoteAddr_; }
-	socklen_t getRemoteLen() { return remoteLen_; }
+	const sockaddr_in &getRemoteAddr() const { return remoteAddr_; }
+	socklen_t getRemoteLen() const { return remoteLen_; }
 };
 
 // =============================================

@@ -13,6 +13,7 @@ public:
 	// Constructors
 	Request(const std::string &method, const std::string &uriAndQuery, const std::string &protocol, std::map<std::string, std::string> headers, const std::string &body);
 	Request(const Request &other);
+	Request(const ClSocket *clientSocket);
 	Request();
 
 	// Destructor
@@ -35,7 +36,7 @@ public:
 	const std::string	&getRemoteAddr() const;
 	const std::string	&getRemoteHost() const;
 	const std::string	&getIp() const;
-	Request				&setAddr(ClSocket *clientSocket);
+	Request				&setAddr(const ClSocket *clientSocket);
 	Request				&setInfo();
 
 private:
