@@ -175,7 +175,7 @@ int	Server::new_connect_cgi(Request *request, Socket *clientSock)
 		Socket *sockSend = new Socket(socks[0][S_PARENT]);
 		setFd(TYPE_SEND, sockSend);
 		Sends[sockSend] = new OnlyBody();
-		Sends[sockSend]->parsing(request->getBody(), true, 0);
+		Sends[sockSend]->parsing(request->getBody(), 0);
 	}
 	else
 		close(socks[0][S_PARENT]);
@@ -202,8 +202,7 @@ int	Server::recv(Socket *sock, HttpMessage *message) {
 	}
 	else
 		std::cout << "recv_ret < 0" << std::endl;
-	// return (message->parsing(buffer, (std::size_t)recv_ret == 0, _limitClientMsgSize));
-	message->parsing(buffer, (std::size_t)recv_ret == 0, _limitClientMsgSize);
+	message->parsing(buffer, _limitClientMsgSize);
 	return ((std::size_t)recv_ret == 0);
 }
 

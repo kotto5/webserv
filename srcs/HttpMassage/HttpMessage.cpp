@@ -20,9 +20,8 @@ HttpMessage::~HttpMessage() {
 		delete[] _sendBuffer;
 }
 
-int	HttpMessage::parsing(const std::string &row, const bool inputClosed, const std::size_t maxSize)
+int	HttpMessage::parsing(const std::string &row, const std::size_t maxSize)
 {
-	(void)inputClosed;
 	_row += row;
 	if (maxSize != 0 && _row.length() > maxSize)
 	{
