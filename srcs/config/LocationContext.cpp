@@ -1,10 +1,12 @@
 #include "LocationContext.hpp"
 #include "ConfigException.hpp"
 #include <stdexcept>
+#include <iostream>
 
 LocationContext::LocationContext():
 	//_error_page(),
-	_directives()
+	_directives(),
+	_allowedMethods()
 {
 }
 
@@ -22,6 +24,7 @@ LocationContext &LocationContext::operator=(const LocationContext& other)
 	if (this != &other)
 	{
 		_directives = other._directives;
+		_allowedMethods = other._allowedMethods;
 	}
 	return *this;
 }
@@ -42,4 +45,21 @@ const std::string& LocationContext::getDirective(const std::string& directive) c
 	if (it == _directives.end())
 		throw std::runtime_error("directive not found");
 	return it->second;
+}
+
+void LocationContext::setAllowedMethods(const std::vector<std::string>& allowedMethods)
+{
+	for (std::vector<std::string>::const_iterator it = allowedMethods.begin(); it != allowedMethods.end(); ++it)
+	{
+		if (!(it == allowedMethods.begin() || it == allowedMethods.end() - 1))
+		{
+			std::string str(*it);
+			_allowedMethods.push_back(str);
+		}
+	}
+}
+
+const std::vector<std::string>& LocationContext::getAllowedMethods() const
+{
+	return _allowedMethods;
 }
