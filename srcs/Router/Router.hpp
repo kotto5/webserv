@@ -3,6 +3,10 @@
 
 #include "Request.hpp"
 #include "Handler/IHandler.hpp"
+#include "GetHandler.hpp"
+#include "PostHandler.hpp"
+#include "DeleteHandler.hpp"
+
 #include <iostream>
 #include <string>
 
@@ -20,10 +24,18 @@ public:
 	Router &operator=(const Router &rhs);
 
 	// Member functions
-	IHandler *createHandler(const Request &request);
+	Response *routeHandler(const Request &request);
+	Response *handleError(const Request &request, const std::string &status);
 
 private:
-	IHandler *_handler;
+	std::string generateDefaultErrorPage(const std::string &status);
+
+	//　登録されたハンドラーのリスト
+	std::map<std::string, IHandler *> _handlers;
+
+	GetHandler _getHandler;
+	PostHandler _postHandler;
+	DeleteHandler _deleteHandler;
 };
 
 #endif

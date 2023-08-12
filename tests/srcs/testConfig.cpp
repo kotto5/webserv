@@ -49,6 +49,12 @@ TEST_F(ConfigTest, getServerBlock)
 	std::vector<ServerContext> serverContexts = servers.at("80");
 	EXPECT_EQ(serverContexts[0].getListen(), "80");
 	EXPECT_EQ(serverContexts[0].getServerName(), "webserve1");
+	EXPECT_EQ(serverContexts[0].getErrorPage("403"), "/error_page/403.html");
+	EXPECT_EQ(serverContexts[0].getErrorPage("404"), "/error_page/404.html");
+	EXPECT_EQ(serverContexts[0].getErrorPage("501"), "/error_page/50x.html");
+	EXPECT_EQ(serverContexts[0].getErrorPage("502"), "/error_page/50x.html");
+	EXPECT_EQ(serverContexts[0].getErrorPage("503"), "/error_page/50x.html");
+	EXPECT_EQ(serverContexts[0].getErrorPage("504"), "/error_page/50x.html");
 }
 
 // 5. Locationブロックの要素が解析できているか
@@ -72,5 +78,7 @@ TEST_F(ConfigTest, getServerContexts)
 	EXPECT_EQ(lc.getDirective("path"), "/");
 	EXPECT_EQ(lc.getDirective("alias"), "./docs");
 	EXPECT_EQ(lc.getDirective("index"), "index.html");
+	EXPECT_EQ(lc.getDirective("autoindex"), "on");
+
 }
 }

@@ -276,19 +276,17 @@ int	Server::create_server_socket(int port)
 	return (0);
 }
 
-Response	*Server::makeResponse(Request *request){
+Response	*Server::makeResponse(Request *request)
+{
+	Router	router;
+
 	if (request->isTooBigError())
 		return (new Response("401"));
 	else if (request->isBadRequest())
 		return (new Response("400"));
 
-	Router	router;
-	IHandler	*handler = router.createHandler(*request);
-	if (handler == NULL)
-		return (new Response("404"));
-	Response	*response = handler->handleRequest(*request);
+	Response *response = router.routeHandler(*request);
 	Logger::instance()->writeAccessLog(*request, *response);
-	delete handler;
 	return (response);
 }
 

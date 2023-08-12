@@ -28,6 +28,7 @@ ServerContext& ServerContext::operator=(const ServerContext& other)
 		_server_name = other._server_name;
 		_locations = other._locations;
 		_directives = other._directives;
+		_error_pages = other._error_pages;
 	}
 	return *this;
 }
@@ -42,6 +43,26 @@ void ServerContext::setServerName(const std::string& server_name)
 	_server_name = server_name;
 }
 
+/**
+ * @brief エラーページをセットする
+ *
+ * @param error_pages
+ */
+void ServerContext::setErrorPages(const std::vector<std::string> &error_pages)
+{
+	if (error_pages.size() < 2)
+	{
+		throw ConfigException(ErrorCode::CONF_UNKOWN_DIRECTIVE, "ErrorPage syntax");
+	}
+	// 最後-1の要素をパスとして格納
+	std::string path = error_pages[error_pages.size() - 2];
+	for (std::vector<std::string>::size_type i = 1; i + 1 < error_pages.size(); i++)
+	{
+		// ステータスコード, パスの順に格納
+		_error_pages.insert(std::make_pair(error_pages[i], path));
+	}
+}
+
 const std::string& ServerContext::getListen() const
 {
 	return _listen;
@@ -50,6 +71,21 @@ const std::string& ServerContext::getListen() const
 const std::string& ServerContext::getServerName() const
 {
 	return _server_name;
+}
+
+/**
+ * @brief エラーページを取得する
+ *
+ * @param status
+ * @return const std::string&
+ */
+std::string ServerContext::getErrorPage(const std::string &status) const
+{
+	std::map<std::string, std::string>::const_iterator it = _error_pages.find(status);
+	if (it != _error_pages.end()) {
+		return it->second;
+	}
+	return "";
 }
 
 void ServerContext::addLocationBlock(const LocationContext& location)

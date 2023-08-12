@@ -7,6 +7,8 @@
 #include <unistd.h>
 #include "Response.hpp"
 #include "HttpMessage.hpp"
+#include "RequestException.hpp"
+#include "Logger.hpp"
 
 // Constructors
 GetHandler::GetHandler()
@@ -53,7 +55,7 @@ Response *GetHandler::handleRequest(const Request &request)
 
 		std::map<std::string, std::string> headers;
 		headers["Content-Type"] = "text/html";
-		return new Response(this->_status, headers, body);
+		return new Response(_status, headers, body);
 	}
 
 	// URIからファイルを開く
@@ -61,7 +63,8 @@ Response *GetHandler::handleRequest(const Request &request)
 	if (!htmlFile.is_open())
 	{
 		// ファイルが開けなかった場合は404を返す
-		return (new Response("404"));
+		Logger::instance()->writeErrorLog(ErrorCode::GET_FILE_NOT_EXIST, "File not found");
+		throw RequestException("404");
 	}
 
 	// ファイルの内容を読み込む
