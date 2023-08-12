@@ -40,6 +40,19 @@ Router &Router::operator=(const Router &rhs)
 	return *this;
 }
 
+bool	Router::isAllowedMethod(const std::string& method, const Request& request) const
+{
+	std::vector<std::string> allowedMethods = Config::instance()->getHTTPBlock()
+		.getServerContext(request.getServerPort(), request.getHeader("host"))
+		.getLocationContext(request.getUri()).getAllowedMethods();
+	for (std::vector<std::string>::iterator it = allowedMethods.begin(); it != allowedMethods.end(); it++)
+	{
+		if (*it == method)
+			return true;
+	}
+	return false;
+}
+
 /**
  * @brief メソッド・URIに基づき適切なハンドラーを呼び出す
  *
@@ -51,6 +64,8 @@ Response *Router::routeHandler(const Request &request)
 	std::string method = request.getMethod();
 	try
 	{
+		if (isAllowedMethod(request.getMethod(), request) == false)
+			throw RequestException("405");
 		// メソッドに対応するhandlerを呼び出し
 		IHandler *handler = _handlers.at(method);
 		return handler->handleRequest(request);
@@ -81,13 +96,15 @@ Response *Router::handleError(const Request &request, const std::string &status)
 		.getServerContext(request.getServerPort(), request.getHeader("host"))
 		.getErrorPage(status);
 
+	if (error_path == "")
+		return (new Response(status, std::map<std::string, std::string>(), generateDefaultErrorPage()));
 	// 実体パスに変換
 	std::string actual_path = Request::convertUriToPath(error_path, request.getServerPort(), request.getHeader("host"));
 
 	//　エラーページが参照できない場合はデフォルトの内容を返す
 	if (!pathExist(actual_path.c_str()))
 	{
-		std::string body = generateDefaultErrorPage("40x");
+		std::string body = generateDefaultErrorPage();
 		std::map<std::string, std::string> headers;
 		headers["content-type"] = "text/html";
 		return new Response(status, headers, body);
@@ -97,7 +114,7 @@ Response *Router::handleError(const Request &request, const std::string &status)
 	std::ifstream htmlFile(actual_path.c_str());
 	if (!htmlFile.is_open())
 	{
-		std::string body = generateDefaultErrorPage("50x");
+		std::string body = generateDefaultErrorPage();
 		std::map<std::string, std::string> headers;
 		headers["content-type"] = "text/html";
 		return new Response(status, headers, body);
@@ -120,12 +137,7 @@ Response *Router::handleError(const Request &request, const std::string &status)
  * @param status
  * @return std::string
  */
-std::string Router::generateDefaultErrorPage(const std::string &status)
+std::string Router::generateDefaultErrorPage()
 {
-	// 400系の場合
-	if (status == "40x")
-	{
-		return "<html><head><title>404 Not Found</title></head><body><center><h1>404 Not Found</h1></center><hr><center>Webserv/0.0.1</center></body></html>";
-	}
-	return "<html><head><title>500 Internal Server Error</title></head><body><center><h1>500 Internal Server Error</h1></center><hr><center>Webserv/0.0.1</center></body></html>";
+	return "<html><head><title>Error Page</title></head><body><center><h1>Error Page</h1></center><hr><center>Webserv/0.0.1</center></body></html>";
 }
