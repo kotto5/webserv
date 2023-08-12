@@ -100,7 +100,7 @@ int _socketpair(int domain, int type, int protocol, int sv[2]) {
 
 #include <filesystem>
 
-int	runCgi(Request *request, int sockRecv, int sockSend)
+int runCgi(Request *request, int pipes[2][2])
 {
     std::string script = request->getUri();
 
@@ -160,19 +160,24 @@ int	runCgi(Request *request, int sockRecv, int sockSend)
         return (ERROR);
 	else if (pid == 0)
 	{
-        (void)request;
-		dup2(sockRecv, 0);
-		dup2(sockSend, 1);
-		close(sockRecv);
-		close(sockSend);
-		std::string path = request->getActualUri();
+        std::cout << "sockRecv: " << pipes[0][0] << std::endl;
+        std::cout << "sockSend: " << pipes[1][1] << std::endl;
+        close(pipes[0][S_PARENT]);
+        close(pipes[1][S_PARENT]);
+        if (dup2(pipes[0][S_CHILD], STDIN_FILENO) == -1)
+            perror("dup2 recv");
+        if (dup2(pipes[1][S_CHILD], STDOUT_FILENO) == -1)
+            perror("dup2 send");
+        close(pipes[0][S_CHILD]);
+        close(pipes[1][S_CHILD]);
+        std::string path = request->getActualUri();
 		// std::string query = request.getQuery();
 		// std::string path_query = path + "?" + query;
 		std::string path_query = path;
 		char	*php_path = (char *)"/usr/bin/php";
-		// char *argv[] = {php_path, const_cast<char *>(path_query.c_str()), const_cast<char* const*>(cenvs.data())};
-		char *argv[] = {php_path, const_cast<char *>(path_query.c_str())};
+		char *argv[] = {php_path, const_cast<char *>(path_query.c_str()), NULL};
 		execve(php_path, argv, (char* const*)(cenvs.data()));
+        perror(path_query.c_str());
         exit(1);
 		throw ServerException("execve failed");
 	}

@@ -159,11 +159,18 @@ int	Server::accept(Socket *serverSock)
 int	Server::new_connect_cgi(Request *request, Socket *clientSock)
 {
 	int	socks[2][2];
-	if (_socketpair(AF_INET, SOCK_STREAM, 0, socks[0]) == -1)
+	if (socketpair(AF_UNIX, SOCK_STREAM, 0, socks[0]) == -1)
+	{
+		perror("socketpair");
 		throw ServerException("socketpair");
-	if (_socketpair(AF_INET, SOCK_STREAM, 0, socks[1]) == -1)
+	}
+	if (socketpair(AF_UNIX, SOCK_STREAM, 0, socks[1]) == -1)
+	{
+		perror("socketpair");
 		throw ServerException("socketpair");
-	if (runCgi(request, socks[0][S_CHILD], socks[1][S_CHILD]))
+	}
+
+	if (runCgi(request, socks))
 		throw ServerException("runCgi");
 	close(socks[0][S_CHILD]);
 	close(socks[1][S_CHILD]);
