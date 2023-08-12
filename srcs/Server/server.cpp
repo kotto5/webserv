@@ -44,8 +44,7 @@ int	Server::handle_sockets(fd_set *read_fds, fd_set *write_fds, int activity)
 		sock = *tmp;
 		if (FD_ISSET(((sock)->getFd()), read_fds))
 		{
-			if (accept(sock) == -1)
-				;
+			accept(sock);
 			--activity;
 		}
 	}
@@ -182,9 +181,8 @@ int	Server::new_connect_cgi(Request *request, Socket *clientSock)
 	{
 		Socket *sockSend = new Socket(socks[0][S_PARENT]);
 		setFd(TYPE_SEND, sockSend);
-		// setFd(TYPE_CGI, sockSend);
 		Sends[sockSend] = new OnlyBody();
-		Sends[sockSend]->parsing(request->getBody(), true, 0);
+		Sends[sockSend]->parsing(request->getBody(), 0);
 	}
 	else
 		close(socks[0][S_PARENT]);
@@ -201,11 +199,18 @@ int	Server::new_connect_cgi(Request *request, Socket *clientSock)
 int	Server::recv(Socket *sock, HttpMessage *message) {
 	ssize_t recv_ret;
 
-	sock->updateLastAccess();
 	static char buffer[BUFFER_LEN];
 	memset(buffer, 0, BUFFER_LEN);
 	recv_ret = ::recv(sock->getFd(), buffer, BUFFER_LEN, 0);
-	return (message->parsing(buffer, recv_ret == 0, _limitClientMsgSize));
+	if (recv_ret >= 0)
+	{
+		std::cout << "recv_ret >= 0 recv is " << recv_ret << std::endl;
+		sock->updateLastAccess();
+	}
+	else
+		std::cout << "recv_ret < 0" << std::endl;
+	message->parsing(buffer, _limitClientMsgSize);
+	return ((std::size_t)recv_ret == 0);
 }
 
 // bool じゃなくて dynamic_cast で判定したほうがいいかも
