@@ -1,6 +1,9 @@
 #include "HttpMessage.hpp"
 #include "HTTPContext.hpp"
 #include "Config.hpp"
+#include <algorithm>
+#include <cstring>
+
 
 std::string HttpMessage::_empty = "";
 

@@ -45,8 +45,7 @@ int	Server::handle_sockets(fd_set *read_fds, fd_set *write_fds, int activity)
 		sock = *tmp;
 		if (FD_ISSET(((sock)->getFd()), read_fds))
 		{
-			if (accept(sock) == -1)
-				;
+			accept(sock);
 			--activity;
 		}
 	}

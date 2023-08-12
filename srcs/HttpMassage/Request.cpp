@@ -134,17 +134,17 @@ const std::string	&Request::getActualUri() const {
 int	Request::setaddr(ClSocket *clientSocket)
 {
 	struct sockaddr_in	addr;
-	socklen_t			addr_size = sizeof(struct sockaddr_in);
+	// socklen_t			addr_size = sizeof(struct sockaddr_in);
 
 	addr = clientSocket->getLocaladdr();
-	addr_size = clientSocket->getLocallen();
+	// addr_size = clientSocket->getLocallen();
 	int	port = ntohs(addr.sin_port);
 
 	_server_name = inet_ntoa(addr.sin_addr);
 	_server_port = std::to_string(port);
 
 	addr = clientSocket->getRemoteaddr();
-	addr_size = clientSocket->getRemotelen();
+	// addr_size = clientSocket->getRemotelen();
 
 	_remote_addr = inet_ntoa(addr.sin_addr);
 	_remote_host = _remote_addr;

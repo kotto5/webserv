@@ -107,7 +107,9 @@ ClSocket    *SvSocket::dequeueSocket()
 
     int clientFd = accept(this->fd_, (sockaddr *)&remoteaddr, &remotelen);
     if (clientFd == -1)
-        return NULL;
+    {
+        return (NULL);
+    }
 	set_non_blocking(clientFd);
     return (new ClSocket(clientFd, (sockaddr *)&this->localaddr_, this->locallen_, (sockaddr *)&remoteaddr, remotelen));
 }
