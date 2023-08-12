@@ -23,16 +23,14 @@ HttpMessage::~HttpMessage() {
 int	HttpMessage::parsing(const std::string &row, const bool inputClosed, const std::size_t maxSize)
 {
 	(void)inputClosed;
-	std::cout << "b!" << std::endl;
 	_row += row;
 	if (maxSize != 0 && _row.length() > maxSize)
 	{
 		_tooBigError = true;
 		return (1);
 	}
-	std::cout << "row: [" << row << "]" << std::endl;
+	// std::cout << "row: [" << row << "]" << std::endl;
 	std::cout << "parsing row length: [" << _row.length() << "]" << std::endl;
-	std::cout << "c!" << std::endl;
 
 	std::string	line;
 	std::string::size_type endPos;
@@ -64,16 +62,7 @@ int	HttpMessage::parsing(const std::string &row, const bool inputClosed, const s
 	}
 	else
 		return (0);
-	std::cout << "d!" << std::endl;
 	setBody(_row.substr(_readPos));
-	// if (inputClosed)
-	// {
-	// 	_isBodyEnd = true;
-	// 	_isHeaderEnd = true;
-	// }
-	std::cout << "e!" << std::endl;
-	// if (_isBodyEnd == true)
-	// 	setinfo();
 	return (0);
 }
 
@@ -100,16 +89,12 @@ bool HttpMessage::isValidLine(const std::string &line, const bool isFirstLine) c
 
 void	HttpMessage::setBody(const std::string &addBody)
 {
-	std::cout << "d-1!" << std::endl;
 	if (_contentLength != 0)
 	{
 		if (_body.empty())
 			_body.reserve(_contentLength);
-		std::cout << "d-2!" << std::endl;
-		std::cout << "d-2-1!" << std::endl;
 		std::cout << _readPos << ":" << _contentLength << ":" << addBody.length() << std::endl;
 		_body += addBody;
-		std::cout << "d-3!" << std::endl;
 		// if (_body.length() >= _contentLength || _body.find("\r\n\r\n") != std::string::npos)
 		if (_body.length() >= _contentLength)
 		{
@@ -118,7 +103,6 @@ void	HttpMessage::setBody(const std::string &addBody)
 		}
 		else
 			_readPos += addBody.length();
-		std::cout << "d-4!" << std::endl;
 	}
 	else if (getHeader("transfer-encoding") == "chunked")
 	{
