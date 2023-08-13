@@ -61,7 +61,7 @@ all: $(NAME)
 
 #: Remove all object files.
 clean:
-	@$(RM) $(OBJS) $(DEPENDS)
+	@$(RM) -rf $(OBJDIR)
 	@${PRINTF} "${RED}Cleaned up object files in ${basename ${NAME}} ${DEFAULT}\n"
 
 #: Remove all object and executable files.
@@ -114,7 +114,7 @@ ut_run: $(MAKE)
 	-@./$(NAME) ./conf/default.conf& echo $$! > ./tests/pid.log
 
 ut_clean:
-	@rm -f $(TEST_OBJS)
+	@rm -rf $(TEST_OBJDIR)
 	@rm -f $(TEST_NAME)
 
 #: Display all commands.
