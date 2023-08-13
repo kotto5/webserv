@@ -14,7 +14,7 @@ class PostHandlerTest : public ::testing::Test
 {
 protected:
 	const std::string method = "POST";
-	const std::string uri = "/resources/unit_test/sample.txt";
+	const std::string uri = "/resources/unit_test/sample.html";
 	const std::string protocol = "HTTP/1.1";
 	std::map<std::string, std::string> headers;
 	const std::string body = "This message is for unit_test.";
@@ -40,24 +40,24 @@ std::string readFile(const std::string &filePath)
 // 正常系テスト
 // =============================================
 
-// 1. リソースが正しく作成されるか（txt）
+// 1. リソースが正しく作成されるか（html）
 TEST_F(PostHandlerTest, createTextFile)
 {
 	// インスタンスの生成
 	PostHandler handler;
-	std::string body = readFile("./docs/test.txt");
-	Request req(method, "/resources/unit_test/sample.txt", protocol, headers, body);
+	std::string body = readFile("./docs/pages/test.html");
+	Request req(method, "/resources/unit_test/sample.html", protocol, headers, body);
 	req.setAddr(env->socket).setInfo();
 	Response *res = handler.handleRequest(req);
 
-	std::string file_data = readFile("./docs/storage/unit_test/sample.txt");
+	std::string file_data = readFile("./docs/storage/unit_test/sample.html");
 
 	// テストデータの検証
 	EXPECT_EQ(res->getStatus(), "201");
 	EXPECT_EQ(file_data, body);
 	EXPECT_EQ(res->getBody(), "");
-	EXPECT_EQ(res->getHeader("Location"), "/resources/unit_test/sample.txt");
-	EXPECT_EQ(res->getHeader("Content-Type"), "text/plain");
+	EXPECT_EQ(res->getHeader("Location"), "/resources/unit_test/sample.html");
+	EXPECT_EQ(res->getHeader("Content-Type"), "text/html; charset=utf-8");
 }
 
 // 2. リソースが正しく作成されるか（png）

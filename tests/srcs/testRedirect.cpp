@@ -14,7 +14,7 @@ protected:
 	virtual void SetUp()
 	{
 		Config::release();
-		Config::initialize("./conf/testConfig/test2.conf");
+		Config::initialize("./conf/testConfig/redirectTest.conf");
 		std::system("./tests/scripts/run.sh");
 	}
 	virtual void TearDown()
