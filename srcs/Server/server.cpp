@@ -294,6 +294,8 @@ Response	*Server::makeResponse(Request *request)
 		return (new Response("401"));
 	else if (request->isBadRequest())
 		return (new Response("400"));
+	else if (request->getUri().find("..") != std::string::npos)
+		return (new Response("403"));
 
 	Response *response = router.routeHandler(*request);
 	Logger::instance()->writeAccessLog(*request, *response);
