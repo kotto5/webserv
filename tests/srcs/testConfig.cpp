@@ -81,4 +81,24 @@ TEST_F(ConfigTest, getServerContexts)
 	EXPECT_EQ(lc.getDirective("autoindex"), "on");
 
 }
+
+// 7. ポート番号が同一でserver_nameが異なるブロックを取得できるか
+TEST_F(ConfigTest, getServerContextsAsSamePort)
+{
+	HTTPContext httpBlock = Config::instance()->getHTTPBlock();
+	const ServerContext &sc = httpBlock.getServerContext("80", "webserv2.com");
+	const LocationContext lc = sc.getLocationContext("/");
+	EXPECT_EQ(lc.getDirective("alias"), "./docs");
+	EXPECT_EQ(lc.getDirective("index"), "index.html");
+}
+
+// 8.ポート番号とserver_nameが異なるブロックを取得できるか
+TEST_F(ConfigTest, getServerContextsAsOtherPort)
+{
+	HTTPContext httpBlock = Config::instance()->getHTTPBlock();
+	const ServerContext &sc = httpBlock.getServerContext("81", "webserv3.com");
+	const LocationContext lc = sc.getLocationContext("/");
+	EXPECT_EQ(lc.getDirective("alias"), "./docs");
+	EXPECT_EQ(lc.getDirective("index"), "index.html");
+}
 }
