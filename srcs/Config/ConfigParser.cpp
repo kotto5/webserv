@@ -52,6 +52,8 @@ void ConfigParser::setDirectiveType(const std::string& directive)
 		_directive_type = REDIRECT;
 	else if (directive == "error_page")
 		_directive_type = ERROR_PAGE;
+	else if (directive == "allow_methods")
+		_directive_type = ALLOW_METHODS;
 	else
 		_directive_type = UNKNOWN;
 }
@@ -72,8 +74,8 @@ bool ConfigParser::isInServerContext()
 bool ConfigParser::isInLocationContext()
 {
 	return  _directive_type == ALIAS || _directive_type == INDEX
-		|| _directive_type == ERROR_PAGE || _directive_type == AUTOINDEX ||
-		_directive_type == REDIRECT;
+		|| _directive_type == ERROR_PAGE || _directive_type == AUTOINDEX
+		|| _directive_type == REDIRECT || _directive_type == ALLOW_METHODS;
 }
 
 bool ConfigParser::isAllowedDirective()
@@ -163,7 +165,9 @@ void ConfigParser::parseLines()
 			throw ConfigException(ErrorCode::CONF_NOT_ALLOWED_DIRECTIVE, _one_line[0], _filepath, _line_number + 1);
 		}
 		else if (_directive_type == HTTP)
+		{
 			setHTTPContext();
+		}
 	}
 }
 
@@ -174,6 +178,7 @@ void ConfigParser::setHTTPContext()
 	_line_number++;
 	for ( ; _line_number < _lines.size(); _line_number++)
 	{
+		setContextType(HTTP_CONTEXT);
 		_one_line.clear();
 		_one_line = _lines[_line_number];
 		if (_one_line.empty() || _one_line[0] == "#")
@@ -182,7 +187,9 @@ void ConfigParser::setHTTPContext()
 			break ;
 		setDirectiveType(_one_line[0]);
 		if (!isAllowedDirective())
+		{
 			throw ConfigException(ErrorCode::CONF_NOT_ALLOWED_DIRECTIVE, _one_line[0], _filepath, _line_number + 1);
+		}
 		else if (_directive_type == SERVER)
 		{
 			ServerContext server_context = getServerContext();
@@ -217,7 +224,9 @@ const ServerContext ConfigParser::getServerContext()
 			break ;
 		setDirectiveType(_one_line[0]);
 		if (!isAllowedDirective())
+		{
 			throw ConfigException(ErrorCode::CONF_NOT_ALLOWED_DIRECTIVE, _one_line[0], _filepath, _line_number + 1);
+		}
 		else if (_directive_type == LOCATION)
 		{
 			LocationContext location_context = getLocationContext();
@@ -225,7 +234,6 @@ const ServerContext ConfigParser::getServerContext()
 		}
 		else
 		{
-			// server_context.addDirectives(_one_line[0], _one_line[1], _filepath, _line_number + 1);
 			if (_directive_type == LISTEN)
 				server_context.setListen(_one_line[1]);
 			else if (_directive_type == SERVER_NAME)
@@ -255,8 +263,8 @@ const LocationContext ConfigParser::getLocationContext()
 		setDirectiveType(_one_line[0]);
 		if (!isAllowedDirective())
 			throw ConfigException(ErrorCode::CONF_NOT_ALLOWED_DIRECTIVE, _one_line[0], _filepath, _line_number + 1);
-		else if (_directive_type == ERROR_PAGE)
-			location_context.addDirective(_one_line[1], _one_line[2], _filepath, _line_number + 1);
+		else if (_directive_type == ALLOW_METHODS)
+			location_context.setAllowedMethods(_one_line);
 		else
 			location_context.addDirective(_one_line[0], _one_line[1], _filepath, _line_number + 1);
 	}

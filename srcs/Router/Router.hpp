@@ -28,8 +28,9 @@ public:
 	Response *handleError(const Request &request, const std::string &status);
 
 private:
-	std::string generateDefaultErrorPage(const std::string &status);
 	bool		isRedirect(const Request &request) const;
+	std::string generateDefaultErrorPage();
+	bool	isAllowedMethod(const std::string& method, const Request& request) const;
 
 	//　登録されたハンドラーのリスト
 	std::map<std::string, IHandler *> _handlers;
