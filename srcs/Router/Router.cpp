@@ -40,6 +40,17 @@ Router &Router::operator=(const Router &rhs)
 	return *this;
 }
 
+bool	Router::isRedirect(const Request &request) const
+{
+	LocationContext location = Config::instance()->getHTTPBlock()
+		.getServerContext(request.getServerPort(), request.getHeader("host"))
+		.getLocationContext(request.getUri());
+	std::string ret = location.getDirective("redirect");
+	if (ret.empty())
+		return (false);
+	return (true);
+}
+
 bool	Router::isAllowedMethod(const std::string& method, const Request& request) const
 {
 	std::vector<std::string> allowedMethods = Config::instance()->getHTTPBlock()
@@ -64,6 +75,11 @@ Response *Router::routeHandler(const Request &request)
 	std::string method = request.getMethod();
 	try
 	{
+		if (isRedirect(request))
+		{
+			std::cout << "redirect Error" << std::endl;
+			throw RequestException("301");
+		}
 		if (isAllowedMethod(request.getMethod(), request) == false)
 			throw RequestException("405");
 		// メソッドに対応するhandlerを呼び出し
@@ -72,6 +88,16 @@ Response *Router::routeHandler(const Request &request)
 	}
 	catch (const RequestException &e)
 	{
+		if (e.getStatus() == "301")
+		{
+			std::string ret = Config::instance()->getHTTPBlock()
+				.getServerContext(request.getServerPort(), request.getHeader("host"))
+				.getLocationContext(request.getUri())
+				.getDirective("redirect");
+			std::map<std::string, std::string> headers;
+			headers["Location"] = ret;
+			return (new Response("301", headers, ""));
+		}
 		return handleError(request, e.getStatus());
 	}
 	catch (const std::out_of_range& e)

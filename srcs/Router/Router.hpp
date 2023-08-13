@@ -28,6 +28,7 @@ public:
 	Response *handleError(const Request &request, const std::string &status);
 
 private:
+	bool		isRedirect(const Request &request) const;
 	std::string generateDefaultErrorPage();
 	bool	isAllowedMethod(const std::string& method, const Request& request) const;
 

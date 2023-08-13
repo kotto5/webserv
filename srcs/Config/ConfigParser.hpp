@@ -34,6 +34,7 @@ class ConfigParser
 		AUTOINDEX,
         ALLOW_METHODS,
         ERROR_PAGE,
+        REDIRECT,
         UNKNOWN
     };
 

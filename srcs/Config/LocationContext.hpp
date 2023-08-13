@@ -16,7 +16,7 @@ class LocationContext
 		// void addErrorPage(const std::string& status_code, const std::string& error_page);
 		void addDirective(const std::string& directive, const std::string& value,
 							const std::string& filepath, int line_number);
-		const std::string& getDirective(const std::string& directive) const;
+		std::string	getDirective(const std::string& directive) const;
 		void setAllowedMethods(const std::vector<std::string>& allowedMethods);
 		const std::vector<std::string>& getAllowedMethods() const;
 

@@ -39,11 +39,11 @@ void LocationContext::addDirective(const std::string& directive, const std::stri
 	_directives.insert(std::make_pair(directive, value));
 }
 
-const std::string& LocationContext::getDirective(const std::string& directive) const
+std::string	LocationContext::getDirective(const std::string& directive) const
 {
 	std::map<std::string, std::string>::const_iterator it = _directives.find(directive);
 	if (it == _directives.end())
-		throw std::runtime_error("directive not found");
+		return ("");
 	return it->second;
 }
 
