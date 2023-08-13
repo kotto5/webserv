@@ -14,6 +14,7 @@ public:
 	Request(const std::string &method, const std::string &uriAndQuery, const std::string &protocol, std::map<std::string, std::string> headers, const std::string &body);
 	Request(const Request &other);
 	Request(const ClSocket *clientSocket);
+	Request(const std::string &row);
 	Request();
 
 	// Destructor

@@ -15,6 +15,14 @@ HttpMessage::HttpMessage()
 	_contentLength = 0;
 }
 
+HttpMessage::HttpMessage(const std::string &_row)
+	: _row(_row), _protocol(), _headers(), _body(), _isHeaderEnd(false),
+	_isBodyEnd(false), _readPos(0), _sendPos(0), _sendBuffer(NULL), _doesSendEnd(false)
+{
+	_tooBigError = false;
+	_contentLength = 0;
+}
+
 HttpMessage::~HttpMessage() {
 	if (_sendBuffer != NULL)
 		delete[] _sendBuffer;

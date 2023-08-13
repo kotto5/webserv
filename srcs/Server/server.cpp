@@ -12,7 +12,6 @@
 #include <algorithm>
 #include <ctime>
 #include "ServerException.hpp"
-#include "OnlyBody.hpp"
 
 int	Server::setup()
 {
@@ -181,18 +180,14 @@ int	Server::new_connect_cgi(Request *request, Socket *clientSock)
 	{
 		Socket *sockSend = new Socket(socks[0][S_PARENT]);
 		setFd(TYPE_SEND, sockSend);
-		Sends[sockSend] = new OnlyBody();
-		Sends[sockSend]->parsing(request->getBody(), 0);
+		Sends[sockSend] = new Request(request->getBody());
 	}
 	else
 		close(socks[0][S_PARENT]);
-
-	{
-		Socket *sockRecv = new Socket(socks[1][S_PARENT]);
-		setFd(TYPE_RECV, sockRecv);
-		setFd(TYPE_CGI, sockRecv, clientSock);
-		Recvs[sockRecv] = new Response();
-	}
+	Socket *sockRecv = new Socket(socks[1][S_PARENT]);
+	setFd(TYPE_RECV, sockRecv);
+	setFd(TYPE_CGI, sockRecv, clientSock);
+	Recvs[sockRecv] = new Response();
 	return (0);
 }
 

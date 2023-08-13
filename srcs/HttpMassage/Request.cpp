@@ -21,6 +21,9 @@ Request::Request(const std::string &method, const std::string &uriAndQuery, cons
 	this->_body = body;
 }
 
+Request::Request(const std::string &row): HttpMessage(row) {}
+
+
 Request::Request(const ClSocket *clientSocket)
 {
 	this->setAddr(clientSocket);
