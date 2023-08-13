@@ -26,10 +26,10 @@ public:
 	// Member functions
 	Response *routeHandler(const Request &request);
 	Response *handleError(const Request &request, const std::string &status);
-	bool	isAllowedMethod(const std::string& method, const Request& request) const;
 
 private:
 	std::string generateDefaultErrorPage();
+	bool	isAllowedMethod(const std::string& method, const Request& request) const;
 
 	//　登録されたハンドラーのリスト
 	std::map<std::string, IHandler *> _handlers;
