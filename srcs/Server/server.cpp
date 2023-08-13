@@ -155,42 +155,6 @@ int	Server::accept(Socket *serverSock)
 	return (0);
 }
 
-int	Server::new_connect_cgi(Request *request, Socket *clientSock)
-{
-	int	socks[2][2];
-	if (socketpair(AF_UNIX, SOCK_STREAM, 0, socks[0]) == -1)
-	{
-		perror("socketpair");
-		throw ServerException("socketpair");
-	}
-	if (socketpair(AF_UNIX, SOCK_STREAM, 0, socks[1]) == -1)
-	{
-		perror("socketpair");
-		throw ServerException("socketpair");
-	}
-
-	if (runCgi(request, socks))
-		throw ServerException("runCgi");
-	close(socks[0][S_CHILD]);
-	close(socks[1][S_CHILD]);
-	set_non_blocking(socks[0][S_PARENT]);
-	set_non_blocking(socks[1][S_PARENT]);
-
-	if (request->getBody().size() != 0)
-	{
-		Socket *sockSend = new Socket(socks[0][S_PARENT]);
-		setFd(TYPE_SEND, sockSend);
-		Sends[sockSend] = new Request(request->getBody());
-	}
-	else
-		close(socks[0][S_PARENT]);
-	Socket *sockRecv = new Socket(socks[1][S_PARENT]);
-	setFd(TYPE_RECV, sockRecv);
-	setFd(TYPE_CGI, sockRecv, clientSock);
-	Recvs[sockRecv] = new Response();
-	return (0);
-}
-
 int	Server::recv(Socket *sock, HttpMessage *message) {
 	ssize_t recv_ret;
 
@@ -211,7 +175,7 @@ int	Server::recv(Socket *sock, HttpMessage *message) {
 // bool じゃなくて dynamic_cast で判定したほうがいいかも
 int	Server::finish_recv(Socket *sock, HttpMessage *message, bool is_cgi_connection)
 {
-	std::cout << "finish_recv [" << message->getRow() << "]" << std::endl;
+	std::cout << "finish_recv [" << message->getRaw() << "]" << std::endl;
 
 	if (is_cgi_connection)
 	{
@@ -231,14 +195,9 @@ int	Server::finish_recv(Socket *sock, HttpMessage *message, bool is_cgi_connecti
 	{
 		Request		*request = (Request *)message;
 		request->setInfo();
-		request->printAll();
-		if (request_wants_cgi(request))
-			new_connect_cgi(request, sock);
-		else
-		{
-			Sends[sock] = makeResponse(request);
-			setFd(TYPE_SEND, sock);
-		}
+		// request->printAll();
+		Sends[sock] = makeResponse(request);
+		setFd(TYPE_SEND, sock);
 	}
 	Recvs.erase(sock);
 	delete (message);
@@ -312,6 +271,14 @@ int	Server::set_fd_set(fd_set &set, std::list<Socket *> sockets, int &maxFd)
 	return (0);
 }
 
+/**
+ * @brief 指定したソケットを追加する
+ *
+ * @param type
+ * @param sock
+ * @param client_sock
+ * @return int
+ */
 int	Server::setFd(int type, Socket *sock, Socket *client_sock)
 {
 	if (type == TYPE_RECV)
@@ -325,4 +292,22 @@ int	Server::setFd(int type, Socket *sock, Socket *client_sock)
 	else
 		return (1);
 	return (0);
+}
+
+/**
+ * @brief
+ *
+ */
+void Server::createSocketForCgi(Socket *sockSend == NULL, Socket *sockRecv == NULL, const std::string &body)
+{
+	if (sockSend)
+	{
+		setFd(TYPE_SEND, sockSend);
+		Sends[sockSend] = new Request(body);
+	}
+	else if (sockRecv)
+	{
+		setFd(TYPE_RECV, sockRecv);
+		setFd(TYPE_CGI, sockRecv, _clientSocket);
+	}
 }

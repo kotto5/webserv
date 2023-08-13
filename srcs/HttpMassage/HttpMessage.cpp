@@ -8,15 +8,15 @@
 std::string HttpMessage::_empty = "";
 
 HttpMessage::HttpMessage()
-    : _row(), _protocol(), _headers(), _body(), _isHeaderEnd(false),
+    : _raw(), _protocol(), _headers(), _body(), _isHeaderEnd(false),
 	_isBodyEnd(false), _readPos(0), _sendPos(0), _sendBuffer(NULL), _doesSendEnd(false)
 {
 	_tooBigError = false;
 	_contentLength = 0;
 }
 
-HttpMessage::HttpMessage(const std::string &_row)
-	: _row(_row), _protocol(), _headers(), _body(), _isHeaderEnd(false),
+HttpMessage::HttpMessage(const std::string &_raw)
+	: _raw(_raw), _protocol(), _headers(), _body(), _isHeaderEnd(false),
 	_isBodyEnd(false), _readPos(0), _sendPos(0), _sendBuffer(NULL), _doesSendEnd(false)
 {
 	_tooBigError = false;
@@ -28,26 +28,38 @@ HttpMessage::~HttpMessage() {
 		delete[] _sendBuffer;
 }
 
-int	HttpMessage::parsing(const std::string &row, const std::size_t maxSize)
+/**
+ * @brief リクエスト・レスポンスの解析
+ *
+ * @param raw リクエスト・レスポンスの生データ
+ * @param maxSize 最大サイズ
+ * @return int
+ */
+int	HttpMessage::parsing(const std::string &raw, const std::size_t maxSize)
 {
-	_row += row;
-	if (maxSize != 0 && _row.length() > maxSize)
+	_raw += raw;
+	std::cout << "--------" << std::endl;
+	std::cout << raw << std::endl;
+	std::cout << maxSize <<std::endl;
+	// 最大サイズを超えたらエラー
+	if (maxSize != 0 && _raw.length() > maxSize)
 	{
 		_tooBigError = true;
 		return (1);
 	}
-	// std::cout << "row: [" << row << "]" << std::endl;
-	std::cout << "parsing row length: [" << _row.length() << "]" << std::endl;
+	std::cout << "parsing raw length: [" << _raw.length() << "]" << std::endl;
 
 	std::string	line;
 	std::string::size_type endPos;
+
+	// ヘッダーの解析
 	if (_isHeaderEnd == false)
 	{
-		while ((endPos = _row.find("\r\n", _readPos)) != _readPos)
+		while ((endPos = _raw.find("\r\n", _readPos)) != _readPos)
 		{
 			if (endPos == std::string::npos) // no new line (incomplete)
 				return (0);
-			line = _row.substr(_readPos, endPos - _readPos);
+			line = _raw.substr(_readPos, endPos - _readPos);
 			if (isValidLine(line, _readPos == 0) == false)
 				return (1);
 			if (_readPos == 0)
@@ -64,12 +76,12 @@ int	HttpMessage::parsing(const std::string &row, const std::size_t maxSize)
 	}
 	else if (_isBodyEnd == false)
 	{
-		setBody(row);
+		setBody(_raw);
 		return (0);
 	}
 	else
 		return (0);
-	setBody(_row.substr(_readPos));
+	setBody(raw.substr(_readPos));
 	return (0);
 }
 
@@ -94,15 +106,20 @@ bool HttpMessage::isValidLine(const std::string &line, const bool isFirstLine) c
 	return (true);
 }
 
+/**
+ * @brief リクエスト／レスポンスボディをセットする
+ *
+ * @param addBody
+ */
 void	HttpMessage::setBody(const std::string &addBody)
 {
+	// lengthがある
 	if (_contentLength != 0)
 	{
 		if (_body.empty())
 			_body.reserve(_contentLength);
 		std::cout << _readPos << ":" << _contentLength << ":" << addBody.length() << std::endl;
 		_body += addBody;
-		// if (_body.length() >= _contentLength || _body.find("\r\n\r\n") != std::string::npos)
 		if (_body.length() >= _contentLength)
 		{
 			_body = _body.substr(0, _contentLength);
@@ -110,7 +127,7 @@ void	HttpMessage::setBody(const std::string &addBody)
 		}
 		else
 			_readPos += addBody.length();
-	}
+	} // chunkedのとき
 	else if (getHeader("transfer-encoding") == "chunked")
 	{
 		_body += addBody;
@@ -158,10 +175,10 @@ const uint8_t	*HttpMessage::getSendBuffer()
 		return (NULL);
 	if (_sendBuffer == NULL)
 	{
-		std::cout << "getSendBuffer: _row is[" << _row << "]" << std::endl;
-		_sendBufferSize = _row.length();
+		std::cout << "getSendBuffer: _raw is[" << _raw << "]" << std::endl;
+		_sendBufferSize = _raw.length();
 		_sendBuffer = new uint8_t[_sendBufferSize];
-		std::memcpy((void *)_sendBuffer, (void *)_row.c_str(), _row.length());
+		std::memcpy((void *)_sendBuffer, (void *)_raw.c_str(), _raw.length());
 	}
 	return (_sendBuffer);
 }
@@ -207,9 +224,9 @@ const std::string   &HttpMessage::getProtocol() const
     return (_protocol);
 }
 
-const std::string   &HttpMessage::getRow() const
+const std::string   &HttpMessage::getRaw() const
 {
-	return (_row);
+	return (_raw);
 }
 
 void	HttpMessage::setHeader(std::map<std::string, std::string>& m, std::string first, std::string second)

@@ -3,6 +3,7 @@
 #include "GetHandler.hpp"
 #include "PostHandler.hpp"
 #include "DeleteHandler.hpp"
+#include "CgiHandler.hpp"
 #include "Logger.hpp"
 #include "Config.hpp"
 #include "utils.hpp"
@@ -72,6 +73,14 @@ bool	Router::isAllowedMethod(const std::string& method, const Request& request) 
  */
 Response *Router::routeHandler(const Request &request)
 {
+	// CGIの場合
+	if (request_wants_cgi(request))
+	{
+		IHandler *handler = new CgiHandler();
+		handler->setSocket(request.getSocket());
+		return handler->handleRequest(request);
+	}
+
 	std::string method = request.getMethod();
 	try
 	{
@@ -154,7 +163,6 @@ Response *Router::handleError(const Request &request, const std::string &status)
 	std::map<std::string, std::string> headers;
 	headers["content-type"] = "text/html";
 	return new Response(status, headers, buffer.str());
-
 }
 
 /**
