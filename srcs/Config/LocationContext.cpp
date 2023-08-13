@@ -40,6 +40,6 @@ std::string	LocationContext::getDirective(const std::string& directive) const
 {
 	std::map<std::string, std::string>::const_iterator it = _directives.find(directive);
 	if (it == _directives.end())
-		return "";
+		return ("");
 	return it->second;
 }
