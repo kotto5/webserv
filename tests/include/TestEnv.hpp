@@ -15,7 +15,7 @@ public:
 	virtual void SetUp()
 	{
 		// 設定ファイルの読み込み
-		Config::initialize("./conf/default.conf");
+		Config::initialize("./conf/testConfig/defaultTest.conf");
 		Logger::initialize("./logs/ut_access.log", "./logs/ut_error.log");
 
 		// テスト用ディレクトリを作成
