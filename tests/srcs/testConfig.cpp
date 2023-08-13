@@ -67,6 +67,8 @@ TEST_F(ConfigTest, getLocationBlock)
 	EXPECT_EQ(locationContexts[0].getDirective("path"), "/");
 	EXPECT_EQ(locationContexts[0].getDirective("alias"), "./docs");
 	EXPECT_EQ(locationContexts[0].getDirective("index"), "index.html");
+	EXPECT_EQ(locationContexts[0].getAllowedMethods()[0], "GET");
+	EXPECT_EQ(locationContexts[0].getAllowedMethods()[1], "POST");
 }
 
 // 6. ポート番号が一致するServerブロックをすべて取得できるか
@@ -79,7 +81,6 @@ TEST_F(ConfigTest, getServerContexts)
 	EXPECT_EQ(lc.getDirective("alias"), "./docs");
 	EXPECT_EQ(lc.getDirective("index"), "index.html");
 	EXPECT_EQ(lc.getDirective("autoindex"), "on");
-
 }
 
 // 7. ポート番号が同一でserver_nameが異なるブロックを取得できるか

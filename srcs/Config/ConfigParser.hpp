@@ -32,6 +32,7 @@ class ConfigParser
         ALIAS,
         INDEX,
 		AUTOINDEX,
+        ALLOW_METHODS,
         ERROR_PAGE,
         UNKNOWN
     };
