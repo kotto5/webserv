@@ -46,7 +46,6 @@ static std::string	getAliasOrRootDirective(LocationContext &Location)
  * @param uri
  * @return std::string
  */
-#include <iostream>
 std::string	Request::convertUriToPath(const std::string &uri, const std::string &port, const std::string &server_name)
 {
 	LocationContext	location;

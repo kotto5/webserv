@@ -160,7 +160,9 @@ void ConfigParser::parseLines()
 			throw ConfigException(ErrorCode::CONF_NOT_ALLOWED_DIRECTIVE, _one_line[0], _filepath, _line_number + 1);
 		}
 		else if (_directive_type == HTTP)
+		{
 			setHTTPContext();
+		}
 	}
 }
 
@@ -171,6 +173,7 @@ void ConfigParser::setHTTPContext()
 	_line_number++;
 	for ( ; _line_number < _lines.size(); _line_number++)
 	{
+		setContextType(HTTP_CONTEXT);
 		_one_line.clear();
 		_one_line = _lines[_line_number];
 		if (_one_line.empty() || _one_line[0] == "#")
@@ -179,7 +182,9 @@ void ConfigParser::setHTTPContext()
 			break ;
 		setDirectiveType(_one_line[0]);
 		if (!isAllowedDirective())
+		{
 			throw ConfigException(ErrorCode::CONF_NOT_ALLOWED_DIRECTIVE, _one_line[0], _filepath, _line_number + 1);
+		}
 		else if (_directive_type == SERVER)
 		{
 			ServerContext server_context = getServerContext();
@@ -214,7 +219,9 @@ const ServerContext ConfigParser::getServerContext()
 			break ;
 		setDirectiveType(_one_line[0]);
 		if (!isAllowedDirective())
+		{
 			throw ConfigException(ErrorCode::CONF_NOT_ALLOWED_DIRECTIVE, _one_line[0], _filepath, _line_number + 1);
+		}
 		else if (_directive_type == LOCATION)
 		{
 			LocationContext location_context = getLocationContext();
