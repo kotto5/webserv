@@ -33,6 +33,7 @@ protected:
 
 public:
 	HttpMessage();
+	HttpMessage(const std::string &_row);
 	// HttpMessage(const std::string &protocol, std::map<std::string, std::string> headers, const std::string &body);
 	virtual ~HttpMessage();
 
