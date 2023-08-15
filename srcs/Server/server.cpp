@@ -220,6 +220,7 @@ int	Server::finish_recv(Socket *sock, HttpMessage *message, bool is_cgi_connecti
 		waitpid(-1, &wstatus, 0);
 		Socket	*clSocket = cgi_client[sock];
 		cgi_client.erase(sock);
+		// if (WEXITSTATUS(wstatus) == 1 || !message->isEnd())
 		if (WEXITSTATUS(wstatus) == 1)
 			Sends[clSocket] = new Response("500");
 		else
