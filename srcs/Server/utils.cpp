@@ -151,14 +151,7 @@ int runCgi(Request *request, int pipes[2][2])
 	{
         std::cout << "sockRecv: " << pipes[0][0] << std::endl;
         std::cout << "sockSend: " << pipes[1][1] << std::endl;
-        close(pipes[0][S_PARENT]);
-        close(pipes[1][S_PARENT]);
-        if (dup2(pipes[0][S_CHILD], STDIN_FILENO) == -1)
-            perror("dup2 recv");
-        if (dup2(pipes[1][S_CHILD], STDOUT_FILENO) == -1)
-            perror("dup2 send");
-        close(pipes[0][S_CHILD]);
-        close(pipes[1][S_CHILD]);
+
         std::string path = request->getActualUri();
         // request class has "uriAndQuery" and "uri" and "query"
         // uriAndQuery is full uri
@@ -183,6 +176,19 @@ int runCgi(Request *request, int pipes[2][2])
             querys.push_back(path.substr(start, end - start));
             start = end + 1;
         }
+        std::cout << "=================================" << std::endl;
+        std::cout << "path: " << path << std::endl;
+        std::cout << "=================================" << std::endl;
+
+        close(pipes[0][S_PARENT]);
+        close(pipes[1][S_PARENT]);
+        if (dup2(pipes[0][S_CHILD], STDIN_FILENO) == -1)
+            perror("dup2 recv");
+        if (dup2(pipes[1][S_CHILD], STDOUT_FILENO) == -1)
+            perror("dup2 send");
+        close(pipes[0][S_CHILD]);
+        close(pipes[1][S_CHILD]);
+
 
 		char	*php_path = (char *)"/usr/bin/php";
         char    **argv = new char*[querys.size() + 3];
@@ -197,6 +203,8 @@ int runCgi(Request *request, int pipes[2][2])
         exit(1);
 		throw ServerException("execve failed");
 	}
+    else
+        return (0);
     return (0);
 }
 

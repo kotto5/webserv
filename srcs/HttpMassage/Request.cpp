@@ -136,6 +136,7 @@ void	Request::printAll(void) const
 	std::cout << "cgi_script_name: [" << _cgi_script_name << "]" << std::endl;
 	std::cout << "path_info: [" << _path_info << "]" << std::endl;
 	std::cout << "actual_uri: [" << _actual_uri << "]" << std::endl;
+	std::cout << "query: [" << _query << "]" << std::endl;
 	std::cout << "remote_addr: [" << _remote_addr << "]" << std::endl;
 	std::cout << "remote_host: [" << _remote_host << "]" << std::endl;
 	std::cout << "server_name: [" << _server_name << "]" << std::endl;
