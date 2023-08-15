@@ -15,6 +15,7 @@ class Router
 public:
 	// Constructors
 	Router();
+	Router(Server &server);
 	Router(const Router &other);
 
 	// Destructor
@@ -24,7 +25,7 @@ public:
 	Router &operator=(const Router &rhs);
 
 	// Member functions
-	Response *routeHandler(const Request &request, Server *server = NULL);
+	Response *routeHandler(const Request &request, Socket *sock = NULL);
 	Response *handleError(const Request &request, const std::string &status);
 
 private:
@@ -39,6 +40,8 @@ private:
 	GetHandler _getHandler;
 	PostHandler _postHandler;
 	DeleteHandler _deleteHandler;
+
+	Server *_server;
 };
 
 #endif

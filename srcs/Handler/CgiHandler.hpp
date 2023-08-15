@@ -28,10 +28,11 @@ public:
 
 	// Member functions
 	virtual Response	*handleRequest(const Request &request);
-	void setClientSocket(Socket clientSocket);
+	void setClientSocket(Socket *clientSocket);
 
 private:
 	Server	*_server;
+	Socket	*_clientSocket;
 	int runCgi(const Request &request, int pipes[2][2]);
 	std::vector<char *> createEnvs(const Request &request);
 };

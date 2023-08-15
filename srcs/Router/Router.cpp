@@ -15,6 +15,14 @@
 #include <filesystem>
 #include <sstream>
 
+Router::Router(Server &server)
+{
+	_handlers["GET"] = &_getHandler;
+	_handlers["POST"] = &_postHandler;
+	_handlers["DELETE"] = &_deleteHandler;
+	_server = &server;
+}
+
 // Constructors
 Router::Router()
 {
@@ -71,13 +79,14 @@ bool	Router::isAllowedMethod(const std::string& method, const Request& request) 
  * @param request
  * @return Response*
  */
-Response *Router::routeHandler(const Request &request, Server *server)
+Response *Router::routeHandler(const Request &request, Socket *sock)
 {
 	// CGIの場合
 	if (requestWantsCgi(request))
 	{
-		IHandler *handler = new CgiHandler(server);
-		return handler->handleRequest(request);
+		CgiHandler *handler = new CgiHandler(_server);
+		handler->setClientSocket(sock);
+		handler->handleRequest(request);
 	}
 
 	std::string method = request.getMethod();

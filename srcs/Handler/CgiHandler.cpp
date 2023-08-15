@@ -70,9 +70,8 @@ Response *CgiHandler::handleRequest(const Request &request)
 	else
 		close(socks[0][S_PARENT]);
 	Socket *sockRecv = new Socket(socks[1][S_PARENT]);
-	_server->createSocketForCgi(NULL, sockRecv, request.getBody());
-	return new Response();
-	// Recvs[sockRecv] = new Response();
+	_server->createSocketForCgi(NULL, sockRecv, request.getBody(), _clientSocket);
+	return NULL;
 }
 
 /**
@@ -182,4 +181,9 @@ std::vector<char *> CgiHandler::createEnvs(const Request &request)
     cenvs.push_back(nullptr); // execveには最後にnullポインタが必要
 
 	return cenvs;
+}
+
+void CgiHandler::setClientSocket(Socket *clientSocket)
+{
+	_clientSocket = clientSocket;
 }

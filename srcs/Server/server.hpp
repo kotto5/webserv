@@ -60,12 +60,12 @@ class Server {
 		int					finish_send(Socket *sock, HttpMessage *message);
 		int					setFd(int type, Socket *sock, Socket *client_sock = NULL);
 		bool				check_timeout();
-		void				createSocketForCgi(Socket *sockSend, Socket *sockRecv, const std::string &body);
+		void				createSocketForCgi(Socket *sockSend, Socket *sockRecv, const std::string &body, Socket *sock = NULL);
 
 	static bool			does_finish_recv(const std::string &request, bool is_cgi_connection, ssize_t recv_ret);
 	static bool			does_finish_send(const std::string &request, ssize_t recv_ret);
 	static int			set_fd_set(fd_set &set, std::list<Socket *> sockets, int &maxFd);
-	static Response		*makeResponse(Request *request);
+		Response		*makeResponse(Request *request, Socket *sock);
 };
 
 #endif

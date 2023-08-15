@@ -196,7 +196,7 @@ int	Server::finish_recv(Socket *sock, HttpMessage *message, bool is_cgi_connecti
 		Request		*request = (Request *)message;
 		request->setInfo();
 		// request->printAll();
-		Sends[sock] = makeResponse(request);
+		Sends[sock] = makeResponse(request, sock);
 		setFd(TYPE_SEND, sock);
 	}
 	Recvs.erase(sock);
@@ -233,9 +233,10 @@ int	Server::create_server_socket(int port)
 	return (0);
 }
 
-Response	*Server::makeResponse(Request *request)
+Response	*Server::makeResponse(Request *request, Socket *sock)
 {
-	Router	router;
+	// ルーター初期化
+	Router	router(*this);
 
 	if (request->isTooBigError())
 		return (new Response("401"));
@@ -244,7 +245,9 @@ Response	*Server::makeResponse(Request *request)
 	else if (request->getUri().find("..") != std::string::npos)
 		return (new Response("403"));
 
-	Response *response = router.routeHandler(*request);
+	// ルーティング
+	Response *response = router.routeHandler(*request, sock);
+	// アクセスログを書き込む
 	Logger::instance()->writeAccessLog(*request, *response);
 	return (response);
 }
@@ -288,10 +291,12 @@ int	Server::setFd(int type, Socket *sock, Socket *client_sock)
 }
 
 /**
- * @brief
+ * @brief CGI用のソケットを作成する
+ *
+ * @detail delegateパターンを用いてCgiHandlerクラスに移譲する
  *
  */
-void Server::createSocketForCgi(Socket *sockSend, Socket *sockRecv, const std::string &body)
+void Server::createSocketForCgi(Socket *sockSend, Socket *sockRecv, const std::string &body, Socket *clientSocket)
 {
 	if (sockSend)
 	{
@@ -301,6 +306,7 @@ void Server::createSocketForCgi(Socket *sockSend, Socket *sockRecv, const std::s
 	else if (sockRecv)
 	{
 		setFd(TYPE_RECV, sockRecv);
-		setFd(TYPE_CGI, sockRecv, _clientSocket);
+		setFd(TYPE_CGI, sockRecv, clientSocket);
+		Recvs[sockRecv] = new Response();
 	}
 }
