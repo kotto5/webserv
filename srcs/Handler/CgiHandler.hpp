@@ -4,6 +4,7 @@
 #include "IHandler.hpp"
 #include "Response.hpp"
 #include "Socket.hpp"
+#include "server.hpp"
 #include <iostream>
 
 enum {
@@ -15,7 +16,8 @@ class CgiHandler : public IHandler
 {
 public:
 	// Constructors
-	CgiHandler();
+	CgiHandler(Server *server);
+	CgiHandler(Socket clientSocket);
 	CgiHandler(const CgiHandler &other);
 
 	// Destructor
@@ -29,7 +31,7 @@ public:
 	void setClientSocket(Socket clientSocket);
 
 private:
-	Socket _clientSocket;
+	Server	*_server;
 	int runCgi(const Request &request, int pipes[2][2]);
 	std::vector<char *> createEnvs(const Request &request);
 };

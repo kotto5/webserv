@@ -58,10 +58,9 @@ class Server {
 		ssize_t				send(Socket *sock, HttpMessage *message);
 		int					finish_recv(Socket *sock, HttpMessage *message, bool is_cgi_connection);
 		int					finish_send(Socket *sock, HttpMessage *message);
-		bool				request_wants_cgi(Request *request);
 		int					setFd(int type, Socket *sock, Socket *client_sock = NULL);
 		bool				check_timeout();
-		void				createSocketForCgi(Socket *sock, const std::string &body);
+		void				createSocketForCgi(Socket *sockSend, Socket *sockRecv, const std::string &body);
 
 	static bool			does_finish_recv(const std::string &request, bool is_cgi_connection, ssize_t recv_ret);
 	static bool			does_finish_send(const std::string &request, ssize_t recv_ret);

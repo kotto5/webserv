@@ -204,13 +204,6 @@ int	Server::finish_recv(Socket *sock, HttpMessage *message, bool is_cgi_connecti
 	return (0);
 }
 
-bool	Server::request_wants_cgi(Request *request)
-{
-	if (request->getActualUri().find(".php") != std::string::npos)
-		return (true);
-	return (false);
-}
-
 ssize_t		Server::send(Socket *sock, HttpMessage *message)
 {
 	ssize_t ret;
@@ -298,7 +291,7 @@ int	Server::setFd(int type, Socket *sock, Socket *client_sock)
  * @brief
  *
  */
-void Server::createSocketForCgi(Socket *sockSend == NULL, Socket *sockRecv == NULL, const std::string &body)
+void Server::createSocketForCgi(Socket *sockSend, Socket *sockRecv, const std::string &body)
 {
 	if (sockSend)
 	{

@@ -6,14 +6,14 @@
 #include <filesystem>
 
 // Constructors
-CgiHandler::CgiHandler()
+CgiHandler::CgiHandler(Server *server): _server(server)
 {
 	_status = "200";
 }
 
-CgiHandler::CgiHandler(const CgiHandler &other)
+CgiHandler::CgiHandler(const CgiHandler &other): _server(other._server)
 {
-	_status = other._status;
+	*this = other;
 }
 
 // Destructor
@@ -25,6 +25,7 @@ CgiHandler &CgiHandler::operator=(const CgiHandler &rhs)
 	if (this != &rhs)
 	{
 		_status = rhs._status;
+		_server = rhs._server;
 	}
 	return *this;
 }
@@ -64,21 +65,14 @@ Response *CgiHandler::handleRequest(const Request &request)
 	{
 		// FDからソケットを新規作成
 		Socket *sockSend = new Socket(socks[0][S_PARENT]);
-		setFd(TYPE_SEND, sockSend);
-		Sends[sockSend] = new Request(request.getBody());
+		_server->createSocketForCgi(sockSend, NULL, request.getBody());
 	}
 	else
 		close(socks[0][S_PARENT]);
 	Socket *sockRecv = new Socket(socks[1][S_PARENT]);
-	setFd(TYPE_RECV, sockRecv);
-	setFd(TYPE_CGI, sockRecv, _clientSocket);
+	_server->createSocketForCgi(NULL, sockRecv, request.getBody());
 	return new Response();
 	// Recvs[sockRecv] = new Response();
-}
-
-void CgiHandler::setClientSocket(Socket clientSocket)
-{
-	_clientSocket = clientSocket;
 }
 
 /**

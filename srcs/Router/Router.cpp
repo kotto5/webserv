@@ -66,18 +66,17 @@ bool	Router::isAllowedMethod(const std::string& method, const Request& request) 
 }
 
 /**
- * @brief メソッド・URIに基づき適切なハンドラーを呼び出す
+ * @brief リクエストに基づき適切なハンドラーを呼び出す
  *
  * @param request
  * @return Response*
  */
-Response *Router::routeHandler(const Request &request)
+Response *Router::routeHandler(const Request &request, Server *server)
 {
 	// CGIの場合
-	if (request_wants_cgi(request))
+	if (requestWantsCgi(request))
 	{
-		IHandler *handler = new CgiHandler();
-		handler->setSocket(request.getSocket());
+		IHandler *handler = new CgiHandler(server);
 		return handler->handleRequest(request);
 	}
 
@@ -132,7 +131,9 @@ Response *Router::handleError(const Request &request, const std::string &status)
 		.getErrorPage(status);
 
 	if (error_path == "")
+	{
 		return (new Response(status, std::map<std::string, std::string>(), generateDefaultErrorPage()));
+	}
 	// 実体パスに変換
 	std::string actual_path = Request::convertUriToPath(error_path, request.getServerPort(), request.getHeader("host"));
 
@@ -174,4 +175,18 @@ Response *Router::handleError(const Request &request, const std::string &status)
 std::string Router::generateDefaultErrorPage()
 {
 	return "<html><head><title>Error Page</title></head><body><center><h1>Error Page</h1></center><hr><center>Webserv/0.0.1</center></body></html>";
+}
+
+/**
+ * @brief CGIのリクエストか否かを判定する
+ *
+ * @param request
+ * @return true
+ * @return false
+ */
+bool	Router::requestWantsCgi(const Request &request)
+{
+	if (request.getActualUri().find(".php") != std::string::npos)
+		return (true);
+	return (false);
 }

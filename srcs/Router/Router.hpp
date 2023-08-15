@@ -6,7 +6,7 @@
 #include "GetHandler.hpp"
 #include "PostHandler.hpp"
 #include "DeleteHandler.hpp"
-
+#include "server.hpp"
 #include <iostream>
 #include <string>
 
@@ -24,13 +24,14 @@ public:
 	Router &operator=(const Router &rhs);
 
 	// Member functions
-	Response *routeHandler(const Request &request);
+	Response *routeHandler(const Request &request, Server *server = NULL);
 	Response *handleError(const Request &request, const std::string &status);
 
 private:
 	bool		isRedirect(const Request &request) const;
 	std::string generateDefaultErrorPage();
 	bool	isAllowedMethod(const std::string& method, const Request& request) const;
+	bool	requestWantsCgi(const Request &request);
 
 	//　登録されたハンドラーのリスト
 	std::map<std::string, IHandler *> _handlers;
