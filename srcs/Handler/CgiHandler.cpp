@@ -40,12 +40,9 @@ Response *CgiHandler::handleRequest(const Request &request)
 {
 	// ソケットペアを作成
 	int	socks[2][2];
-	if (socketpair(AF_UNIX, SOCK_STREAM, 0, socks[0]) == -1)
-	{
-		perror("socketpair");
-		throw ServerException("socketpair");
-	}
-	if (socketpair(AF_UNIX, SOCK_STREAM, 0, socks[1]) == -1)
+	
+	if (socketpair(AF_UNIX, SOCK_STREAM, 0, socks[0]) == -1
+		|| socketpair(AF_UNIX, SOCK_STREAM, 0, socks[1]) == -1)
 	{
 		perror("socketpair");
 		throw ServerException("socketpair");
@@ -98,8 +95,12 @@ int CgiHandler::runCgi(const Request &request, int pipes[2][2])
     // for (auto p : cenvs) {
     //     free(p);
     // }
-
-	if (fork() == 0)
+	int pid = fork();
+	if (pid == -1)
+	{
+		throw ServerException("execve failed");
+	}
+	else if (pid == 0)
 	{
         std::cout << "sockRecv: " << pipes[0][0] << std::endl;
         std::cout << "sockSend: " << pipes[1][1] << std::endl;
@@ -123,11 +124,7 @@ int CgiHandler::runCgi(const Request &request, int pipes[2][2])
         exit(1);
 		throw ServerException("execve failed");
 	}
-	else
-	{
-		return -1;
-	}
-    return (0);
+    return 0;
 }
 
 /**
