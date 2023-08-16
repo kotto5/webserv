@@ -4,7 +4,7 @@
 #include "IHandler.hpp"
 #include "Response.hpp"
 #include "Socket.hpp"
-#include "server.hpp"
+#include "Server.hpp"
 #include <iostream>
 
 enum {

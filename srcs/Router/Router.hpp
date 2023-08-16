@@ -6,7 +6,7 @@
 #include "GetHandler.hpp"
 #include "PostHandler.hpp"
 #include "DeleteHandler.hpp"
-#include "server.hpp"
+#include "Server.hpp"
 #include <iostream>
 #include <string>
 

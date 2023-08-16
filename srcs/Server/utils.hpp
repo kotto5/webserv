@@ -3,7 +3,7 @@
 
 #include <unistd.h>
 #include <string>
-#include "server.hpp"
+#include "Server.hpp"
 
 void	set_non_blocking(int socket);
 size_t	find_start(const std::string &str, size_t start, const std::string &target);

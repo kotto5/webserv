@@ -1,7 +1,7 @@
 #include "Request.hpp"
 #include "Config.hpp"
 #include "ConfigException.hpp"
-#include "server.hpp"
+#include "Server.hpp"
 #include "Logger.hpp"
 #include <iostream>
 #include <map>

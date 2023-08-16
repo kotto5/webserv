@@ -2,7 +2,7 @@
 #include <fcntl.h>
 #include <cstdlib>
 #include <cstdio>
-#include "server.hpp"
+#include "Server.hpp"
 #include <map>
 #include "ErrorCode.hpp"
 #include <vector>

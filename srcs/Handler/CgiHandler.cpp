@@ -1,7 +1,7 @@
 #include "CgiHandler.hpp"
 #include "ServerException.hpp"
 #include "utils.hpp"
-#include "server.hpp"
+#include "Server.hpp"
 #include "Socket.hpp"
 #include <filesystem>
 
