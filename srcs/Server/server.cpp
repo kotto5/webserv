@@ -296,17 +296,22 @@ int	Server::setFd(int type, Socket *sock, Socket *client_sock)
  * @detail delegateパターンを用いてCgiHandlerクラスに移譲する
  *
  */
-void Server::createSocketForCgi(Socket *sockSend, Socket *sockRecv, const std::string &body, Socket *clientSocket)
+void Server::createSocketForCgi(int fd, const std::string &body, Socket *clientSocket)
 {
-	if (sockSend)
+	// CGI用のソケットを作成する
+	Socket *sock = new Socket(fd);
+
+	if (!clientSocket)
 	{
-		setFd(TYPE_SEND, sockSend);
-		Sends[sockSend] = new Request(body);
+		// 送信
+		setFd(TYPE_SEND, sock);
+		Sends[sock] = new Request(body);
 	}
-	else if (sockRecv)
+	else
 	{
-		setFd(TYPE_RECV, sockRecv);
-		setFd(TYPE_CGI, sockRecv, clientSocket);
-		Recvs[sockRecv] = new Response();
+		// 受信
+		setFd(TYPE_RECV, sock);
+		setFd(TYPE_CGI, sock, clientSocket);
+		Recvs[sock] = new Response();
 	}
 }

@@ -40,11 +40,10 @@ Response *CgiHandler::handleRequest(const Request &request)
 {
 	// ソケットペアを作成
 	int	socks[2][2];
-	
+
 	if (socketpair(AF_UNIX, SOCK_STREAM, 0, socks[0]) == -1
 		|| socketpair(AF_UNIX, SOCK_STREAM, 0, socks[1]) == -1)
 	{
-		perror("socketpair");
 		throw ServerException("socketpair");
 	}
 
@@ -60,14 +59,16 @@ Response *CgiHandler::handleRequest(const Request &request)
 
 	if (request.getBody().size() != 0)
 	{
-		// FDからソケットを新規作成
-		Socket *sockSend = new Socket(socks[0][S_PARENT]);
-		_server->createSocketForCgi(sockSend, NULL, request.getBody());
+		// リクエストボディがある場合はCGIに送信する
+		_server->createSocketForCgi(socks[0][S_PARENT], request.getBody());
 	}
 	else
+	{
+		// リクエストボディがない場合はEOFを送信する
 		close(socks[0][S_PARENT]);
-	Socket *sockRecv = new Socket(socks[1][S_PARENT]);
-	_server->createSocketForCgi(NULL, sockRecv, request.getBody(), _clientSocket);
+	}
+	// レスポンスを受信する
+	_server->createSocketForCgi(socks[1][S_PARENT], request.getBody(), _clientSocket);
 	return NULL;
 }
 
@@ -85,16 +86,6 @@ int CgiHandler::runCgi(const Request &request, int pipes[2][2])
 	// 環境変数を整形する
 	std::vector<char *> envs = createEnvs(request);
 
-    // // execveを呼び出す際にcenvs.data()を環境変数として渡します
-    // char *argv[] = { "/path/to/your/command", nullptr };
-    // if (execve(argv[0], argv, cenvs.data()) == -1) {
-    //     perror("execve failed");
-    // }
-
-    // // メモリを開放します
-    // for (auto p : cenvs) {
-    //     free(p);
-    // }
 	int pid = fork();
 	if (pid == -1)
 	{
@@ -113,8 +104,6 @@ int CgiHandler::runCgi(const Request &request, int pipes[2][2])
         close(pipes[0][S_CHILD]);
         close(pipes[1][S_CHILD]);
         std::string path = request.getActualUri();
-		// std::string query = request.getQuery();
-		// std::string path_query = path + "?" + query;
 		std::string path_query = path;
 		char	*php_path = (char *)"/usr/bin/php";
 		char *argv[] = {php_path, const_cast<char *>(path_query.c_str()), NULL};
