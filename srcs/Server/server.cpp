@@ -196,8 +196,12 @@ int	Server::finish_recv(Socket *sock, HttpMessage *message, bool is_cgi_connecti
 		Request		*request = (Request *)message;
 		request->setInfo();
 		// request->printAll();
-		Sends[sock] = makeResponse(request, sock);
-		setFd(TYPE_SEND, sock);
+		Response *res = makeResponse(request, sock);
+		if (res)
+		{
+			Sends[sock] = res;
+			setFd(TYPE_SEND, sock);
+		}
 	}
 	Recvs.erase(sock);
 	delete (message);
@@ -247,6 +251,10 @@ Response	*Server::makeResponse(Request *request, Socket *sock)
 
 	// ルーティング
 	Response *response = router.routeHandler(*request, sock);
+	if (!response)
+	{
+		return NULL;
+	}
 	// アクセスログを書き込む
 	Logger::instance()->writeAccessLog(*request, *response);
 	return (response);

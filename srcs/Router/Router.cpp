@@ -87,6 +87,7 @@ Response *Router::routeHandler(const Request &request, Socket *sock)
 		CgiHandler *handler = new CgiHandler(_server);
 		handler->setClientSocket(sock);
 		handler->handleRequest(request);
+		return NULL;
 	}
 
 	std::string method = request.getMethod();
