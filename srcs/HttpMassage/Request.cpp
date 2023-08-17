@@ -1,4 +1,4 @@
-#include "Request.hpp"
+	#include "Request.hpp"
 #include "ErrorCode.hpp"
 #include "Config.hpp"
 #include "ConfigException.hpp"
@@ -27,6 +27,10 @@ Request::Request(const std::string &row): HttpMessage(row) {}
 Request::Request(const ClSocket *clientSocket)
 {
 	this->setAddr(clientSocket);
+	std::cout << "port: " << _server_port << std::endl;
+	std::cout << "server name: " << _server_name << std::endl;
+	std::cout << "remote addr: " << _remote_addr << std::endl;
+	std::cout << "remote host: " << _remote_host << std::endl;
 }
 
 Request::Request(){}
@@ -132,6 +136,7 @@ void	Request::printAll(void) const
 	std::cout << "cgi_script_name: [" << _cgi_script_name << "]" << std::endl;
 	std::cout << "path_info: [" << _path_info << "]" << std::endl;
 	std::cout << "actual_uri: [" << _actual_uri << "]" << std::endl;
+	std::cout << "query: [" << _query << "]" << std::endl;
 	std::cout << "remote_addr: [" << _remote_addr << "]" << std::endl;
 	std::cout << "remote_host: [" << _remote_host << "]" << std::endl;
 	std::cout << "server_name: [" << _server_name << "]" << std::endl;
@@ -231,4 +236,16 @@ Request	&Request::setInfo()
 		? ""
 		: this->_uri.substr(this->_uri.find(_cgi_script_name) + _cgi_script_name.length());
 	return *this;
+}
+
+const std::string	&Request::getContentType() const {
+	return this->_content_type;
+}
+
+const std::string	&Request::getQuery() const {
+	return this->_query;
+}
+
+const std::string	&Request::getPathInfo() const {
+	return this->_path_info;
 }

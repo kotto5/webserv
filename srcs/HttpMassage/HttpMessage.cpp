@@ -68,11 +68,13 @@ int	HttpMessage::parsing(const std::string &raw, const std::size_t maxSize)
 				HttpMessage::setHeaderFromLine(_headers, line, ": ");
 			_readPos = endPos + 2; // Skip CRLF
 		}
+		_readPos = endPos + 2; // Skip CRLF
 		_isHeaderEnd = true;
 		if (getHeader("content-length").empty() == false)
 			_contentLength = std::stoi(_headers["content-length"]);
 		else
 			_contentLength = 0;
+		setBody(_row.substr(_readPos));
 	}
 	else if (_isBodyEnd == false)
 	{

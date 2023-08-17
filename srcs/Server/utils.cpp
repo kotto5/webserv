@@ -19,6 +19,7 @@
 #include <cstdlib>
 #include <algorithm>
 #include <cstdlib>
+#include <filesystem>
 
 void set_non_blocking(int socket){
 	if (fcntl(socket, F_SETFL, O_NONBLOCK) == -1)
@@ -31,72 +32,6 @@ size_t	find_start(const std::string &str, size_t start, const std::string &targe
 	std::string substr = str.substr(start);
 	return (substr.find(target));
 }
-
-// redefine socketpair function
-// 1 : make socket it listen()
-// 2 : make socket it connect()
-// 3 : make socket from accept()
-// if all system call is success, return 0
-
-// int _socketpair(int domain, int type, int protocol, int sv[2]) {
-//     int listener;
-//     struct sockaddr_in name, client_name;
-//     socklen_t client_len = sizeof(client_name);
-
-//     // 1. Create a socket.
-//     listener = socket(domain, SOCK_STREAM, protocol);
-//     if (listener == -1) {
-//         return -1;
-//     }
-
-//     // 2. Bind the socket to an address.
-//     memset(&name, 0, sizeof(name));
-//     name.sin_family = domain;
-//     name.sin_addr.s_addr = INADDR_ANY;
-//     name.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-//     if (bind(listener, (struct sockaddr *)&name, sizeof(name)) == -1) {
-//         perror("bind");
-//         close(listener);
-//         return -1;
-//     }
-
-//     // 3. Listen on the socket.
-//     if (listen(listener, 1) == -1) {
-//         close(listener);
-//         return -1;
-//     }
-
-//     // 4. Get the port number.
-//     socklen_t name_len = sizeof(name);
-//     if (getsockname(listener, (struct sockaddr *)&name, &name_len) == -1) {
-//         close(listener);
-//         return -1;
-//     }
-
-//     // 5. Create and connect the second socket.
-//     sv[1] = socket(domain, type, protocol);
-//     if (sv[1] == -1) {
-//         close(listener);
-//         return -1;
-//     }
-//     if (connect(sv[1], (struct sockaddr *)&name, name_len) == -1) {
-//         close(listener);
-//         close(sv[1]);
-//         return -1;
-//     }
-
-//     // 6. Accept the connection on the listener socket.
-//     sv[0] = accept(listener, (struct sockaddr *)&client_name, &client_len);
-//     if (sv[0] == -1) {
-//         close(listener);
-//         close(sv[1]);
-//         return -1;
-//     }
-
-//     // Close the listener socket as we no longer need it.
-//     close(listener);
-//     return 0;
-// }
 
 int isValidFd(int fd) {
     return (fcntl(fd, F_GETFD) != -1 || errno != EBADF);
@@ -214,3 +149,73 @@ int strtoi(std::string str)
 	}
 	return (ret);
 }
+
+// redefine socketpair function
+// 1 : make socket it listen()
+// 2 : make socket it connect()
+// 3 : make socket from accept()
+// if all system call is success, return 0
+
+
+// int _socketpair(int domain, int type, int protocol, int sv[2]) {
+//     int listener;
+//     struct sockaddr_in name, client_name;
+//     socklen_t client_len = sizeof(client_name);
+
+//     // 1. Create a socket.
+//     listener = socket(domain, SOCK_STREAM, protocol);
+//     if (listener == -1) {
+//         return -1;
+//     }
+
+//     // 2. Bind the socket to an address.
+//     memset(&name, 0, sizeof(name));
+//     name.sin_family = domain;
+//     name.sin_addr.s_addr = INADDR_ANY;
+//     name.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+//     if (bind(listener, (struct sockaddr *)&name, sizeof(name)) == -1) {
+//         perror("bind");
+//         close(listener);
+//         return -1;
+//     }
+
+//     // 3. Listen on the socket.
+//     if (listen(listener, 1) == -1) {
+//         close(listener);
+//         return -1;
+//     }
+
+//     // 4. Get the port number.
+//     socklen_t name_len = sizeof(name);
+//     if (getsockname(listener, (struct sockaddr *)&name, &name_len) == -1) {
+//         close(listener);
+//         return -1;
+//     }
+
+//     // 5. Create and connect the second socket.
+//     sv[1] = socket(domain, type, protocol);
+//     if (sv[1] == -1) {
+//         close(listener);
+//         return -1;
+//     }
+//     if (connect(sv[1], (struct sockaddr *)&name, name_len) == -1) {
+//         close(listener);
+//         close(sv[1]);
+//         return -1;
+//     }
+
+//     // 6. Accept the connection on the listener socket.
+//     sv[0] = accept(listener, (struct sockaddr *)&client_name, &client_len);
+//     if (sv[0] == -1) {
+//         close(listener);
+//         close(sv[1]);
+//         return -1;
+//     }
+
+//     // Close the listener socket as we no longer need it.
+//     close(listener);
+//     return 0;
+// }
+
+// https://tex2e.github.io/rfc-translater/html/rfc3875.html#4-1--Request-Meta-Variables
+
