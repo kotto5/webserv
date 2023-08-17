@@ -74,16 +74,10 @@ int	HttpMessage::parsing(const std::string &raw, const std::size_t maxSize)
 			_contentLength = std::stoi(_headers["content-length"]);
 		else
 			_contentLength = 0;
-		setBody(_row.substr(_readPos));
+		setBody(_raw.substr(_readPos));
 	}
 	else if (_isBodyEnd == false)
-	{
-		setBody(_raw);
-		return (0);
-	}
-	else
-		return (0);
-	setBody(raw.substr(_readPos));
+		setBody(raw.substr(_readPos));
 	return (0);
 }
 
