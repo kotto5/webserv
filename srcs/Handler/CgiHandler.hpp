@@ -33,7 +33,7 @@ public:
 private:
 	Server	*_server;
 	Socket	*_clientSocket;
-	int runCgi(const Request &request, int pipes[2][2]);
+	int runCgi(const Request &request, int pipes[2]);
 	std::vector<char *> createEnvs(const Request &request);
 };
 

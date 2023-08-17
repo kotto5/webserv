@@ -13,6 +13,10 @@
 #include <ctime>
 #include "ServerException.hpp"
 
+Server::Server() {}
+
+Server::~Server() {}
+
 int	Server::setup()
 {
 	// 設定されているポートをすべて取得
@@ -21,7 +25,7 @@ int	Server::setup()
 
 	for (itr = ports.begin(); itr != ports.end(); itr++)
 	{
-		if (create_server_socket(strtoi(*itr)))
+		if (createServerSocket(strtoi(*itr)))
 			return (1);
 	}
 	memset(&timeout, 0, sizeof(timeout));
@@ -30,7 +34,29 @@ int	Server::setup()
 	return (0);
 }
 
-int	Server::handle_sockets(fd_set *read_fds, fd_set *write_fds, int activity)
+int	Server::run()
+{
+	while (1)
+	{
+		int max_fd = 0;
+		fd_set read_fds;
+		fd_set write_fds;
+		FD_ZERO(&read_fds);
+		FD_ZERO(&write_fds);
+		Server::set_fd_set(read_fds, server_sockets, max_fd);
+		Server::set_fd_set(read_fds, recv_sockets, max_fd);
+		Server::set_fd_set(write_fds, send_sockets, max_fd);
+
+		int	activity = select(max_fd + 1, &read_fds, &write_fds, NULL, &timeout);
+		if (activity == -1)
+			throw ServerException("select");
+		if (activity == 0 && checkTimeout())
+			continue ;
+		handleSockets(&read_fds, &write_fds, activity);
+	}
+}
+
+int	Server::handleSockets(fd_set *read_fds, fd_set *write_fds, int activity)
 {
 	std::list<Socket *>::iterator	itr;
 	std::list<Socket *>::iterator	tmp;
@@ -53,10 +79,10 @@ int	Server::handle_sockets(fd_set *read_fds, fd_set *write_fds, int activity)
 		sock = *tmp;
 		if (FD_ISSET(sock->getFd(), read_fds))
 		{
-			does_connected_cgi = (cgi_client.count(sock) == 1);
 			if (recv(sock, Recvs[sock]) == 1 || Recvs[sock]->isEnd())
 			{
-				finish_recv(sock, Recvs[sock], does_connected_cgi);
+				does_connected_cgi = (cgi_client.count(sock) == 1);
+				finishRecv(sock, Recvs[sock], does_connected_cgi);
 				recv_sockets.erase(tmp);
 			}
 			--activity;
@@ -71,7 +97,9 @@ int	Server::handle_sockets(fd_set *read_fds, fd_set *write_fds, int activity)
 			send(sock, Sends[sock]);
 			if (Sends[sock]->doesSendEnd())
 			{
-				finish_send(sock, Sends[sock]);
+				Sends.erase(sock);
+				delete (Sends[sock]);
+				delete (sock);
 				send_sockets.erase(tmp);
 			}
 			--activity;
@@ -80,7 +108,7 @@ int	Server::handle_sockets(fd_set *read_fds, fd_set *write_fds, int activity)
 	return (0);
 }
 
-bool	Server::check_timeout()
+bool	Server::checkTimeout()
 {
 	std::list<Socket *>::iterator	itr;
 	std::list<Socket *>::iterator	tmp;
@@ -118,31 +146,6 @@ bool	Server::check_timeout()
 	return (timeoutOccurred);
 }
 
-int	Server::run()
-{
-	while (1)
-	{
-		int max_fd = 0;
-		fd_set read_fds;
-		fd_set write_fds;
-		FD_ZERO(&read_fds);
-		FD_ZERO(&write_fds);
-		Server::set_fd_set(read_fds, server_sockets, max_fd);
-		Server::set_fd_set(read_fds, recv_sockets, max_fd);
-		Server::set_fd_set(write_fds, send_sockets, max_fd);
-
-		int	activity = select(max_fd + 1, &read_fds, &write_fds, NULL, &timeout);
-		if (activity == -1)
-			throw ServerException("select");
-		if (activity == 0 && check_timeout())
-			continue ;
-		handle_sockets(&read_fds, &write_fds, activity);
-	}
-}
-
-Server::Server() {}
-Server::~Server() {}
-
 int	Server::accept(Socket *serverSock)
 {
 	SvSocket *svSock = dynamic_cast<SvSocket *>(serverSock);
@@ -173,10 +176,11 @@ int	Server::recv(Socket *sock, HttpMessage *message) {
 }
 
 // bool じゃなくて dynamic_cast で判定したほうがいいかも
-int	Server::finish_recv(Socket *sock, HttpMessage *message, bool is_cgi_connection)
+int	Server::finishRecv(Socket *sock, HttpMessage *message, bool is_cgi_connection)
 {
-	std::cout << "finish_recv [" << message->getRaw() << "]" << std::endl;
+	std::cout << "finishRecv [" << message->getRaw() << "]" << std::endl;
 
+	// CGI固有の通信である場合
 	if (is_cgi_connection)
 	{
 		// fork pid も cgi socket とかに入れたろうかな
@@ -221,15 +225,13 @@ ssize_t		Server::send(Socket *sock, HttpMessage *message)
 	return (ret);
 }
 
-int		Server::finish_send(Socket *sock, HttpMessage *message)
-{
-	Sends.erase(sock);
-	delete (message);
-	delete (sock);
-	return (0);
-}
-
-int	Server::create_server_socket(int port)
+/**
+ * @brief サーバーソケット作成
+ *
+ * @param port
+ * @return int
+ */
+int	Server::createServerSocket(int port)
 {
 	Socket *sock = new SvSocket(port);
 	if (sock == NULL)
@@ -240,15 +242,16 @@ int	Server::create_server_socket(int port)
 
 Response	*Server::makeResponse(Request *request, Socket *sock)
 {
-	// ルーター初期化
-	Router	router(*this);
-
+	// リクエスト時点でのエラーハンドリング
 	if (request->isTooBigError())
 		return (new Response("401"));
 	else if (request->isBadRequest())
 		return (new Response("400"));
 	else if (request->getUri().find("..") != std::string::npos)
 		return (new Response("403"));
+
+		// ルーター初期化
+	Router	router(*this);
 
 	// ルーティング
 	Response *response = router.routeHandler(*request, sock);

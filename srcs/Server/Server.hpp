@@ -35,7 +35,8 @@ typedef enum e_type {
 
 typedef	std::pair<std::string, std::string>	massages;
 
-class Server {
+class Server
+{
 public:
 	Server();
 	~Server();
@@ -53,20 +54,19 @@ private:
 	timeval							timeout;
 	std::size_t						_limitClientMsgSize;
 
-	int				create_server_socket(int port);
-	int				handle_sockets(fd_set *read_fds, fd_set *write_fds, int activity);
+	int				createServerSocket(int port);
+	int				handleSockets(fd_set *read_fds, fd_set *write_fds, int activity);
 	int				accept(Socket *serverSocket);
 	int				recv(Socket *sock, HttpMessage *message);
 	ssize_t			send(Socket *sock, HttpMessage *message);
-	int				finish_recv(Socket *sock, HttpMessage *message, bool is_cgi_connection);
-	int				finish_send(Socket *sock, HttpMessage *message);
+	int				finishRecv(Socket *sock, HttpMessage *message, bool is_cgi_connection);
 	int				setFd(int type, Socket *sock, Socket *client_sock = NULL);
-	bool			check_timeout();
+	bool			checkTimeout();
 
-	static bool		does_finish_recv(const std::string &request, bool is_cgi_connection, ssize_t recv_ret);
-	static bool		does_finish_send(const std::string &request, ssize_t recv_ret);
 	static int		set_fd_set(fd_set &set, std::list<Socket *> sockets, int &maxFd);
 	Response		*makeResponse(Request *request, Socket *sock);
+	static bool		does_finishRecv(const std::string &request, bool is_cgi_connection, ssize_t recv_ret);
+	static bool		does_finish_send(const std::string &request, ssize_t recv_ret);
 };
 
 #endif

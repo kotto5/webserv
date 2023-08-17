@@ -91,15 +91,15 @@ Response *Router::routeHandler(const Request &request, Socket *sock)
 		return NULL;
 	}
 
-	std::string method = request.getMethod();
 	try
 	{
+		const std::string method = request.getMethod();
 		if (isRedirect(request))
 		{
 			std::cout << "redirect Error" << std::endl;
 			throw RequestException("301");
 		}
-		if (isAllowedMethod(request.getMethod(), request) == false)
+		if (isAllowedMethod(method, request) == false)
 			throw RequestException("405");
 		// メソッドに対応するhandlerを呼び出し
 		IHandler *handler = _handlers.at(method);
