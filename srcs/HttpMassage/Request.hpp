@@ -31,11 +31,14 @@ public:
 	// Getters/Setters
 	const std::string	&getMethod() const;
 	const std::string	&getUri() const;
+	const std::string	&getQuery() const;
 	const std::string	&getActualUri() const;
 	const std::string	&getServerName() const;
 	const std::string	&getServerPort() const;
 	const std::string	&getRemoteAddr() const;
 	const std::string	&getRemoteHost() const;
+	const std::string	&getContentType() const;
+	const std::string	&getPathInfo() const;
 	const std::string	&getIp() const;
 	Request				&setAddr(const ClSocket *clientSocket);
 	Request				&setInfo();
