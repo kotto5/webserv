@@ -170,7 +170,7 @@ int	Server::recv(Socket *sock, HttpMessage *message) {
 		sock->updateLastAccess();
 	}
 	else
-		std::cout << "recv_ret < 0" << std::endl;	
+		std::cout << "recv_ret < 0" << std::endl;
 	if (recv_ret == -1)
 		message->parsing((""), _limitClientMsgSize);
 	else
@@ -245,15 +245,7 @@ int	Server::createServerSocket(int port)
 
 Response	*Server::makeResponse(Request *request, Socket *sock)
 {
-	// リクエスト時点でのエラーハンドリング
-	if (request->isTooBigError())
-		return (new Response("401"));
-	else if (request->isBadRequest())
-		return (new Response("400"));
-	else if (request->getUri().find("..") != std::string::npos)
-		return (new Response("403"));
-
-		// ルーター初期化
+	// ルーター初期化
 	Router	router(*this);
 
 	// ルーティング

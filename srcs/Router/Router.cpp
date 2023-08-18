@@ -81,6 +81,20 @@ bool	Router::isAllowedMethod(const std::string& method, const Request& request) 
  */
 Response *Router::routeHandler(const Request &request, Socket *sock)
 {
+	// リクエスト時点でのエラーハンドリング
+	if (request.isTooBigError())
+	{
+		return (new Response("401"));
+	}
+	else if (request.isBadRequest())
+	{
+		return (new Response("400"));
+	}
+	else if (request.getUri().find("..") != std::string::npos)
+	{
+		return (new Response("403"));
+	}
+
 	// CGIの場合
 	if (requestWantsCgi(request))
 	{
