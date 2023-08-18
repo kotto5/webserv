@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Contact Us</title>
+	<style>
+		body {
+			font-family: Arial, sans-serif;
+		}
+		form {
+			margin: 0 auto;
+			width: 300px;
+		}
+		label {
+			display: block;
+			margin-top: 20px;
+		}
+		input[type="text"], input[type="email"], textarea {
+			width: 100%;
+			padding: 10px;
+		}
+		button {
+			padding: 10px 20px;
+			margin-top: 20px;
+		}
+    </style>
+</head>
+<body>
+    <h1>Contact Us</h1>
+    <form id="contact-form" method="POST" enctype="multipart/form-data">
+		<label for="url">Submit to URL:</label>
+		<input type="text" id="url" name="url" placeholder="/submit_contact">
+
+		<label for="Upload">Upload an image:</label>
+		<input type="file" id="Upload" name="Upload" accept=".txt,.pdf">
+
+        <button type="submit">Send Message</button>
+    </form>
+
+    <script>
+        // Get the form element
+        const form = document.getElementById('contact-form');
+        
+        // Add a submit event listener
+        form.addEventListener('submit', function(event) {
+            // Get the URL input field
+            const urlInput = document.getElementById('url');
+            
+            // Set the form's action attribute to the value of the URL input field
+            form.action = urlInput.value;
+            
+            // The form will now submit to the specified URL
+        });
+    </script>
+</body>
+</html>
