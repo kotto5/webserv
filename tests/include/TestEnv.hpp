@@ -5,6 +5,7 @@
 #include "Config.hpp"
 #include "Logger.hpp"
 #include "Socket.hpp"
+#include <string.h>
 
 class TestEnv: public testing::Environment{
 public:
@@ -24,7 +25,7 @@ public:
 		std::system((command + " " + path).c_str());
 
 		// クライアントソケットをモック化
-		std::memset(&address, 0, sizeof(address));
+		memset(&address, 0, sizeof(address));
 		address.sin_family = AF_INET;
 		inet_pton(AF_INET, "127.0.0.1", &address.sin_addr);
 		address.sin_port = htons(80);
