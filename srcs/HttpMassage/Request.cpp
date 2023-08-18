@@ -84,7 +84,7 @@ std::string	Request::convertUriToPath(const std::string &uri, const std::string 
 	return (alias + ret.substr(path.length()));
 }
 
-Request::Request(const Request &other)
+Request::Request(const Request &other): HttpMessage()
 {
 	*this = other;
 }
@@ -190,17 +190,17 @@ const std::string &Request::getIp() const
 Request &Request::setAddr(const ClSocket *clientSocket)
 {
 	struct sockaddr_in	addr;
-	socklen_t			addr_size = sizeof(struct sockaddr_in);
+	// socklen_t			addr_size = sizeof(struct sockaddr_in);
 
 	addr = clientSocket->getLocalAddr();
-	addr_size = clientSocket->getLocalLen();
+	// addr_size = clientSocket->getLocalLen();
 	int	port = ntohs(addr.sin_port);
 
 	_server_name = inet_ntoa(addr.sin_addr);
 	_server_port = std::to_string(port);
 
 	addr = clientSocket->getRemoteAddr();
-	addr_size = clientSocket->getRemoteLen();
+	// addr_size = clientSocket->getRemoteLen();
 
 	_remote_addr = inet_ntoa(addr.sin_addr);
 	_remote_host = _remote_addr;
