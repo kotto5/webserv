@@ -170,8 +170,11 @@ int	Server::recv(Socket *sock, HttpMessage *message) {
 		sock->updateLastAccess();
 	}
 	else
-		std::cout << "recv_ret < 0" << std::endl;
-	message->parsing(buffer, _limitClientMsgSize);
+		std::cout << "recv_ret < 0" << std::endl;	
+	if (recv_ret == -1)
+		message->parsing((""), _limitClientMsgSize);
+	else
+		message->parsing(std::string(buffer, (std::size_t)recv_ret), _limitClientMsgSize);
 	return ((std::size_t)recv_ret == 0);
 }
 

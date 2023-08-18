@@ -44,15 +44,15 @@ public:
 	int				run();
 	void			createSocketForCgi(int fd, const std::string &body, Socket *sock = NULL);
 
-private:
-	std::list<Socket *>				server_sockets;
-	std::list<Socket *>				recv_sockets;
-	std::list<Socket *>				send_sockets;
-	std::map<Socket *, Socket *>	cgi_client;
-	std::map<Socket *, HttpMessage *>	Recvs;
-	std::map<Socket *, HttpMessage *>	Sends;
-	timeval							timeout;
-	std::size_t						_limitClientMsgSize;
+	private:
+		std::list<Socket *>				server_sockets;
+		std::list<Socket *>				recv_sockets;
+		std::list<Socket *>				send_sockets;
+		std::map<Socket *, Socket *>	cgi_client;
+		std::map<Socket *, HttpMessage *>	Recvs;
+		std::map<Socket *, HttpMessage *>	Sends;
+		timeval							timeout;
+		std::size_t						_limitClientMsgSize;
 
 	int				createServerSocket(int port);
 	int				handleSockets(fd_set *read_fds, fd_set *write_fds, int activity);

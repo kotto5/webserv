@@ -33,7 +33,7 @@ Response::Response(const std::string &status)
 }
 
 
-Response::Response(const Response &other)
+Response::Response(const Response &other): HttpMessage()
 {
 	this->_status = other._status;
 	this->_protocol = other._protocol;

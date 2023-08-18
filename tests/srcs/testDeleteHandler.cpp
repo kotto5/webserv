@@ -67,6 +67,7 @@ TEST_F(DeleteHandlerTest, deleteFileWithInvalidPath)
 	try
 	{
 		res = handler.handleRequest(req);
+		delete res;
 		FAIL() << "Expected RequestException";
 	}
 	catch (const RequestException &e)
