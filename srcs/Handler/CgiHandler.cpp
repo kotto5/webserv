@@ -52,8 +52,8 @@ Response *CgiHandler::handleRequest(const Request &request)
 		throw ServerException("runCgi");
 	}
 	close(socks[S_CHILD]);
-	set_non_blocking(socks[S_PARENT]);
 
+	set_non_blocking(socks[S_PARENT]);
 	if (request.getBody().size() != 0)
 	{
 		// リクエストボディがある場合はCGIに送信する
@@ -80,7 +80,7 @@ int CgiHandler::runCgi(const Request &request, int pipes[2])
 {
 	// スクリプトのURIを取得
     std::string script = request.getUri();
-	// 環境変数を整形する
+	// 環境変数を整形
 	std::vector<char *> envs = createEnvs(request);
 
 	int pid = fork();

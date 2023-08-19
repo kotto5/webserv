@@ -60,9 +60,9 @@ int	Server::handleSockets(fd_set *read_fds, fd_set *write_fds, int activity)
 {
 	std::list<Socket *>::iterator	itr;
 	std::list<Socket *>::iterator	tmp;
-	bool							does_connected_cgi;
 	Socket							*sock;
 
+	// サーバーソケット受信
 	for (itr = server_sockets.begin(); activity && itr != server_sockets.end();)
 	{
 		tmp = itr++;
@@ -73,6 +73,7 @@ int	Server::handleSockets(fd_set *read_fds, fd_set *write_fds, int activity)
 			--activity;
 		}
 	}
+	// クライアントソケット受信
 	for (itr = recv_sockets.begin(); activity && itr != recv_sockets.end();)
 	{
 		tmp = itr++;
@@ -81,13 +82,13 @@ int	Server::handleSockets(fd_set *read_fds, fd_set *write_fds, int activity)
 		{
 			if (recv(sock, Recvs[sock]) == 1 || Recvs[sock]->isEnd())
 			{
-				does_connected_cgi = (cgi_client.count(sock) == 1);
-				finishRecv(sock, Recvs[sock], does_connected_cgi);
+				finishRecv(sock, Recvs[sock]);
 				recv_sockets.erase(tmp);
 			}
 			--activity;
 		}
 	}
+	// クライアントソケット送信
 	for (itr = send_sockets.begin(); activity && itr != send_sockets.end();)
 	{
 		tmp = itr++;
@@ -179,12 +180,13 @@ int	Server::recv(Socket *sock, HttpMessage *message) {
 }
 
 // bool じゃなくて dynamic_cast で判定したほうがいいかも
-int	Server::finishRecv(Socket *sock, HttpMessage *message, bool is_cgi_connection)
+int	Server::finishRecv(Socket *sock, HttpMessage *message)
 {
 	std::cout << "finishRecv [" << message->getRaw() << "]" << std::endl;
 
+	bool is_cgi_connect = (cgi_client.count(sock) == 1);
 	// CGI固有の通信である場合
-	if (is_cgi_connection)
+	if (is_cgi_connect)
 	{
 		// fork pid も cgi socket とかに入れたろうかな
 		int	wstatus;
@@ -201,7 +203,7 @@ int	Server::finishRecv(Socket *sock, HttpMessage *message, bool is_cgi_connectio
 	}
 	else
 	{
-		Request		*request = (Request *)message;
+		Request	*request = (Request *)message;
 		request->setInfo();
 		// request->printAll();
 		Response *res = makeResponse(request, sock);

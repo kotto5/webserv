@@ -2,11 +2,12 @@
 #define ROUTER_HPP
 
 #include "Request.hpp"
-#include "Handler/IHandler.hpp"
+#include "IHandler.hpp"
 #include "GetHandler.hpp"
 #include "PostHandler.hpp"
 #include "DeleteHandler.hpp"
 #include "Server.hpp"
+#include "ServerContext.hpp"
 #include <iostream>
 #include <string>
 
@@ -14,7 +15,6 @@ class Router
 {
 public:
 	// Constructors
-	Router();
 	Router(Server &server);
 	Router(const Router &other);
 
@@ -29,9 +29,10 @@ public:
 	Response *handleError(const Request &request, const std::string &status);
 
 private:
+	Router();
 	bool		isRedirect(const Request &request) const;
 	std::string generateDefaultErrorPage();
-	bool	isAllowedMethod(const std::string& method, const Request& request) const;
+	bool	isAllowedMethod(const Request& request) const;
 	bool	requestWantsCgi(const Request &request);
 
 	//　登録されたハンドラーのリスト
@@ -42,6 +43,7 @@ private:
 	DeleteHandler _deleteHandler;
 
 	Server *_server;
+	const ServerContext *_serverContext;
 };
 
 #endif
