@@ -31,11 +31,11 @@ public:
 
 private:
 	bool		isRedirect(const Request &request) const;
+	bool		isAllowedMethod(const Request& request) const;
+	bool		isConnectionCgi(const Request &request);
 	std::string generateDefaultErrorPage();
-	bool	isAllowedMethod(const Request& request) const;
-	bool	requestWantsCgi(const Request &request);
 
-	//　登録されたハンドラーのリスト
+	//　登録したハンドラーのリスト
 	std::map<std::string, IHandler *> _handlers;
 
 	GetHandler _getHandler;

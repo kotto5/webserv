@@ -9,6 +9,9 @@ class ErrorCode
 public:
 	typedef enum {
 		SYSTEM_CALL, // システムコールの失敗
+		RECV_TIMEOUT, // 受信タイムアウト
+		SEND_TIMEOUT, // 受信タイムアウト
+		NOT_METHOD, // 許可されていないメソッド
 		REQ_PARSE, // リクエストの解析に失敗
 		RES_PARSE, // レスポンスの解析に失敗
 		GET_FILE_NOT_EXIST, // ファイルが存在しない

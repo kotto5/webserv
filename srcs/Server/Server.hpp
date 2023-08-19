@@ -59,14 +59,10 @@ private:
 	int				accept(Socket *serverSocket);
 	int				recv(Socket *sock, HttpMessage *message);
 	ssize_t			send(Socket *sock, HttpMessage *message);
-	int				finishRecv(Socket *sock, HttpMessage *message);
+	void 			finishRecv(Socket *sock, HttpMessage *message);
 	int				setFd(int type, Socket *sock, Socket *client_sock = NULL);
 	bool			checkTimeout();
-
 	static int		set_fd_set(fd_set &set, std::list<Socket *> sockets, int &maxFd);
-	Response		*makeResponse(Request *request, Socket *sock);
-	static bool		does_finishRecv(const std::string &request, bool is_cgi_connection, ssize_t recv_ret);
-	static bool		does_finish_send(const std::string &request, ssize_t recv_ret);
 };
 
 #endif

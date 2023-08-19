@@ -94,7 +94,9 @@ int CgiHandler::runCgi(const Request &request, int pipes[2])
         std::cout << "sockSend: " << pipes[S_PARENT] << std::endl;
         close(pipes[S_PARENT]);
         if (dup2(pipes[S_CHILD], STDOUT_FILENO) == -1)
-            perror("dup2 send");
+		{
+			throw ServerException("dup2 send");
+		}
         close(pipes[S_CHILD]);
         std::string path = request.getActualUri();
 		std::string path_query = path;
