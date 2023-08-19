@@ -18,6 +18,7 @@ public:
 	Router(Server &server);
 	Router(const Router &other);
 
+	Router();
 	// Destructor
 	~Router();
 
@@ -29,7 +30,6 @@ public:
 	Response *handleError(const Request &request, const std::string &status);
 
 private:
-	Router();
 	bool		isRedirect(const Request &request) const;
 	std::string generateDefaultErrorPage();
 	bool	isAllowedMethod(const Request& request) const;

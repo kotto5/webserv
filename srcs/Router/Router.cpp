@@ -88,18 +88,6 @@ Response *Router::routeHandler(const Request &request, Socket *sock)
 	{
 		return (new Response("403"));
 	}
-	else if (isAllowedMethod(request) == false)
-	{
-		return new Response("405");
-	}
-
-	// リダイレクトの場合
-	if (isRedirect(request))
-	{
-		std::map<std::string, std::string> headers;
-		headers["Location"] = _serverContext->getLocationContext(request.getUri()).getDirective("redirect");
-		return (new Response("301", headers, ""));
-	}
 
 	// CGIの場合
 	if (requestWantsCgi(request))
@@ -110,15 +98,28 @@ Response *Router::routeHandler(const Request &request, Socket *sock)
 		return NULL;
 	}
 
+	// リダイレクトの場合
+	if (isRedirect(request))
+	{
+		std::map<std::string, std::string> headers;
+		headers["Location"] = _serverContext->getLocationContext(request.getUri()).getDirective("redirect");
+		return new Response("301", headers, "");
+	}
+
+
 	// メソッドに対応するhandlerを呼び出し
 	try
 	{
+		if (isAllowedMethod(request) == false)
+		{
+			throw RequestException("405");
+		}
 		IHandler *handler = _handlers.at(request.getMethod());
 		return handler->handleRequest(request);
 	}
 	catch (const RequestException &e)
 	{
-			return handleError(request, e.getStatus());
+		return handleError(request, e.getStatus());
 	}
 	catch (const std::out_of_range& e)
 	{
