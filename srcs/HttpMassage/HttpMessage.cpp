@@ -228,3 +228,8 @@ void	HttpMessage::setContentLength() {
 	_contentLength = contentLengthValue.empty() ? 0 : std::stoi(contentLengthValue);
 }
 
+
+void	HttpMessage::addHeader(std::string key, std::string value)
+{
+	setHeader(_headers, key, value);
+}
