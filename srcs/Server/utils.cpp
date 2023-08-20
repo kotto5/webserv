@@ -153,15 +153,6 @@ int runCgi(Request *request, int pipes[2][2])
         std::cout << "sockSend: " << pipes[1][1] << std::endl;
 
         std::string path = request->getActualUri();
-        // request class has "uriAndQuery" and "uri" and "query"
-        // uriAndQuery is full uri
-        // uriAndQuery is splitted to uri and query by "?"
-        // uri?variable=1&variable=2&variable=3
-        // querys = split by "&" from query
-        // querys = ["variable=1", "variable=2", "variable=3"]
-        // please make "querys" Vector variable from "query" variable with split by "&"
-        // so you have to set value by split by "&" from "query" variable
-
         std::vector<std::string> querys;
         std::string::size_type  start = 0;
         std::string::size_type  end = 0;
@@ -199,7 +190,7 @@ int runCgi(Request *request, int pipes[2][2])
         argv[querys.size() + 2] = nullptr;
 
 		execve(php_path, argv, (char* const*)(cenvs.data()));
-        perror(path.c_str());
+        perror(("execve error : " + path).c_str());
         exit(1);
 		throw ServerException("execve failed");
 	}
