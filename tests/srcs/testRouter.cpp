@@ -19,13 +19,13 @@ protected:
 	virtual void SetUp()
 	{
 		reqGet = new Request("GET", "/index.html", "HTTP/1.1", std::map<std::string, std::string>(), "");
-		reqGet->setAddr(env->socket).setInfo();
+		reqGet->setAddr(env->socket).setInfo().parsing("\r\n\r\n", 0);
 		reqPost = new Request("POST", "/storage/unit_test/router_test.txt", "HTTP/1.1", std::map<std::string, std::string>(), "");
-		reqPost->setAddr(env->socket).setInfo();
+		reqPost->setAddr(env->socket).setInfo().parsing("\r\n\r\n", 0);
 		reqDelete = new Request("DELETE", "/index.html", "HTTP/1.1", std::map<std::string, std::string>(), "");
-		reqDelete->setAddr(env->socket).setInfo();
+		reqDelete->setAddr(env->socket).setInfo().parsing("\r\n\r\n", 0);
 		reqNotFound = new Request("NONE", "/index.html", "HTTP/1.1", std::map<std::string, std::string>(), "");
-		reqNotFound->setAddr(env->socket).setInfo();
+		reqNotFound->setAddr(env->socket).setInfo().parsing("\r\n\r\n", 0);
 	}
 };
 

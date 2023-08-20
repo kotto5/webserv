@@ -3,6 +3,7 @@
 #include "GetHandler.hpp"
 #include "PostHandler.hpp"
 #include "DeleteHandler.hpp"
+#include "CgiHandler.hpp"
 #include "Logger.hpp"
 #include "Config.hpp"
 #include "utils.hpp"
@@ -15,16 +16,18 @@
 #include <sstream>
 
 // Constructors
-Router::Router()
+Router::Router(Server &server)
 {
 	_handlers["GET"] = &_getHandler;
 	_handlers["POST"] = &_postHandler;
 	_handlers["DELETE"] = &_deleteHandler;
+	_server = &server;
+	_serverContext = NULL;
 }
 
 Router::Router(const Router &other)
 {
-	this->_handlers = other._handlers;
+	*this = other;
 }
 
 // Destructor
@@ -36,75 +39,129 @@ Router &Router::operator=(const Router &rhs)
 	if (this != &rhs)
 	{
 		this->_handlers = rhs._handlers;
+		this->_server = rhs._server;
+		this->_serverContext = rhs._serverContext;
 	}
 	return *this;
 }
 
+/**
+ * @brief リクエストに基づきハンドラーの固有処理を呼び出す
+ *
+ * @param request
+ * @return Response*
+ */
+Response *Router::routeHandler(const Request &request, Socket *sock)
+{
+	//　リクエストに応じたServerコンテキストを取得
+	_serverContext = &Config::instance()->getHTTPBlock()
+		.getServerContext(request.getServerPort(), request.getHeader("host"));
+
+	if (request.isBadRequest())
+	{
+		// リクエストが不正である場合
+		return (new Response("400"));
+	}
+	else if (request.isTooBigError())
+	{
+		// リクエストが大きすぎる場合
+		return (new Response("401"));
+	}
+	else if (request.getUri().find("..") != std::string::npos)
+	{
+		// ディレクトリトラバーサルの場合
+		return (new Response("403"));
+	}
+	else if (isRedirect(request))
+	{
+		// リダイレクトの場合
+		std::map<std::string, std::string> headers;
+		headers["Location"] = _serverContext->getLocationContext(request.getUri()).getDirective("redirect");
+		return new Response("301", headers, "");
+	}
+
+	// メソッドに対応するhandlerを呼び出し
+	try
+	{
+		if (isAllowedMethod(request) == false)
+		{
+			// 許可されていないメソッドの場合
+			throw RequestException("405");
+		}
+		if (isConnectionCgi(request))
+		{
+			// CGIの場合
+			CgiHandler handler(_server);
+			handler.setClientSocket(sock);
+			return handler.handleRequest(request);
+		}
+		IHandler *handler = _handlers.at(request.getMethod());
+		return handler->handleRequest(request);
+	}
+	catch (const RequestException &e)
+	{
+		// ハンドラー固有の処理に失敗した場合
+		return handleError(request, e.getStatus());
+	}
+	catch (const ServerException &e)
+	{
+		// サーバー固有の処理に失敗した場合
+		Logger::instance()->writeErrorLog(ErrorCode::SYSTEM_CALL, e.what(), &request);
+		return handleError(request, "500");
+	}
+	catch (const std::out_of_range& e)
+	{
+		Logger::instance()->writeErrorLog(ErrorCode::NOT_METHOD, NULL, &request);
+		// 対応するメソッドがない場合は405を返す
+		return handleError(request, "405");
+	}
+}
+
+/**
+ * @brief リダイレクトであるかどうかを判定する
+ *
+ * @param request
+ * @return true
+ * @return false
+ */
 bool	Router::isRedirect(const Request &request) const
 {
-	LocationContext location = Config::instance()->getHTTPBlock()
-		.getServerContext(request.getServerPort(), request.getHeader("host"))
-		.getLocationContext(request.getUri());
-	std::string ret = location.getDirective("redirect");
-	if (ret.empty())
+	std::string dest = _serverContext->getLocationContext(request.getUri()).getDirective("redirect");
+	if (dest.empty())
 		return (false);
 	return (true);
 }
 
-bool	Router::isAllowedMethod(const std::string& method, const Request& request) const
+/**
+ * @brief 許可されたメソッドかどうかを判定する
+ *
+ * @param request
+ * @return true
+ * @return false
+ */
+bool	Router::isAllowedMethod(const Request& request) const
 {
-	std::vector<std::string> allowedMethods = Config::instance()->getHTTPBlock()
-		.getServerContext(request.getServerPort(), request.getHeader("host"))
-		.getLocationContext(request.getUri()).getAllowedMethods();
+	std::vector<std::string> allowedMethods = _serverContext->getLocationContext(request.getUri()).getAllowedMethods();
 	for (std::vector<std::string>::iterator it = allowedMethods.begin(); it != allowedMethods.end(); it++)
 	{
-		if (*it == method)
+		if (*it == request.getMethod())
 			return true;
 	}
 	return false;
 }
 
 /**
- * @brief メソッド・URIに基づき適切なハンドラーを呼び出す
+ * @brief CGIのリクエストか否かを判定する
  *
  * @param request
- * @return Response*
+ * @return true
+ * @return false
  */
-Response *Router::routeHandler(const Request &request)
+bool	Router::isConnectionCgi(const Request &request)
 {
-	std::string method = request.getMethod();
-	try
-	{
-		if (isRedirect(request))
-		{
-			std::cout << "redirect Error" << std::endl;
-			throw RequestException("301");
-		}
-		if (isAllowedMethod(request.getMethod(), request) == false)
-			throw RequestException("405");
-		// メソッドに対応するhandlerを呼び出し
-		IHandler *handler = _handlers.at(method);
-		return handler->handleRequest(request);
-	}
-	catch (const RequestException &e)
-	{
-		if (e.getStatus() == "301")
-		{
-			std::string ret = Config::instance()->getHTTPBlock()
-				.getServerContext(request.getServerPort(), request.getHeader("host"))
-				.getLocationContext(request.getUri())
-				.getDirective("redirect");
-			std::map<std::string, std::string> headers;
-			headers["Location"] = ret;
-			return (new Response("301", headers, ""));
-		}
-		return handleError(request, e.getStatus());
-	}
-	catch (const std::out_of_range& e)
-	{
-		// 対応するメソッドがない場合は405を返す
-		return handleError(request, "405");
-	}
+	if (request.getActualUri().find(".php") != std::string::npos)
+		return (true);
+	return (false);
 }
 
 /**
@@ -117,13 +174,12 @@ Response *Router::routeHandler(const Request &request)
 Response *Router::handleError(const Request &request, const std::string &status)
 {
 	// エラーページのパスを取得
-	std::string error_path = Config::instance()
-		->getHTTPBlock()
-		.getServerContext(request.getServerPort(), request.getHeader("host"))
-		.getErrorPage(status);
+	std::string error_path = _serverContext->getErrorPage(status);
 
 	if (error_path == "")
+	{
 		return (new Response(status, std::map<std::string, std::string>(), generateDefaultErrorPage()));
+	}
 	// 実体パスに変換
 	std::string actual_path = Request::convertUriToPath(error_path, request.getServerPort(), request.getHeader("host"));
 
@@ -154,7 +210,6 @@ Response *Router::handleError(const Request &request, const std::string &status)
 	std::map<std::string, std::string> headers;
 	headers["content-type"] = "text/html";
 	return new Response(status, headers, buffer.str());
-
 }
 
 /**
@@ -165,5 +220,16 @@ Response *Router::handleError(const Request &request, const std::string &status)
  */
 std::string Router::generateDefaultErrorPage()
 {
-	return "<html><head><title>Error Page</title></head><body><center><h1>Error Page</h1></center><hr><center>Webserv/0.0.1</center></body></html>";
+	return "<html><head><title>Error Page</title></head><body><center><h1>\
+		Error Page</h1></center><hr><center>Webserv/0.0.1</center></body></html>";
 }
+
+// Not use
+Router::Router()
+{
+	_handlers["GET"] = &_getHandler;
+	_handlers["POST"] = &_postHandler;
+	_handlers["DELETE"] = &_deleteHandler;
+	_serverContext = NULL;
+}
+

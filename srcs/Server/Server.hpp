@@ -35,39 +35,35 @@ typedef enum e_type {
 
 typedef	std::pair<std::string, std::string>	massages;
 
-class Server {
-	private:
-		std::list<Socket *>				server_sockets;
-		std::list<Socket *>				recv_sockets;
-		std::list<Socket *>				send_sockets;
-		std::map<Socket *, Socket *>	cgi_client;
-		std::map<Socket *, HttpMessage *>	Recvs;
-		std::map<Socket *, HttpMessage *>	Sends;
-		timeval							timeout;
-		std::size_t						_limitClientMsgSize;
+class Server
+{
+public:
+	Server();
+	~Server();
+	int				setup();
+	int				run();
+	void			createSocketForCgi(int fd, const std::string &body, Socket *sock = NULL);
 
-	public:
-		Server();
-		~Server();
-		int					setup();
-		int					create_server_socket(int port);
-		int					run();
-		int					handle_sockets(fd_set *read_fds, fd_set *write_fds, int activity);
-		int					accept(Socket *serverSocket);
-		int					recv(Socket *sock, HttpMessage *message);
-		ssize_t				send(Socket *sock, HttpMessage *message);
-		int					finish_recv(Socket *sock, HttpMessage *message, bool is_cgi_connection);
-		int					finish_send(Socket *sock, HttpMessage *message);
-		bool				request_wants_cgi(Request *request);
-		int					new_connect_cgi(Request *request, Socket *clientSocket);
-		int					setFd(int type, Socket *sock, Socket *client_sock = NULL);
-		bool				check_timeout();
+private:
+	std::list<Socket *>					server_sockets;
+	std::list<Socket *>					recv_sockets;
+	std::list<Socket *>					send_sockets;
+	std::map<Socket *, Socket *>		cgi_client;
+	std::map<Socket *, HttpMessage *>	Recvs;
+	std::map<Socket *, HttpMessage *>	Sends;
+	timeval								timeout;
+	std::size_t							_limitClientMsgSize;
 
-	static bool			does_finish_recv(const std::string &request, bool is_cgi_connection, ssize_t recv_ret);
-	static bool			does_finish_send(const std::string &request, ssize_t recv_ret);
-	static int			set_fd_set(fd_set &set, std::list<Socket *> sockets, int &maxFd);
-	static Request		*parse_request(const std::string &row_request);
-	static Response		*makeResponse(Request *request);
+	int				createServerSocket(int port);
+	int				handleSockets(fd_set *read_fds, fd_set *write_fds, int activity);
+	int				accept(Socket *serverSocket);
+	int				recv(Socket *sock, HttpMessage *message);
+	ssize_t			send(Socket *sock, HttpMessage *message);
+	void 			finishRecv(Socket *sock, HttpMessage *message, bool is_cgi);
+	void			finishSend(Socket *sock, HttpMessage *message);
+	int				setFd(int type, Socket *sock, Socket *client_sock = NULL);
+	bool			checkTimeout();
+	static int		set_fd_set(fd_set &set, std::list<Socket *> sockets, int &maxFd);
 };
 
 #endif
