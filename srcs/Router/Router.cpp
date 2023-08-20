@@ -51,7 +51,7 @@ Router &Router::operator=(const Router &rhs)
  * @param request
  * @return Response*
  */
-Response *Router::routeHandler(const HttpMessage &message, Socket *sock)
+HttpMessage *Router::routeHandler(const HttpMessage &message, Socket *sock)
 {
 	try {
 		const Response &response = dynamic_cast<const Response &>(message);
