@@ -95,9 +95,10 @@ int	Server::handleSockets(fd_set *read_fds, fd_set *write_fds, int activity)
 		sock = *tmp_socket;
 		if (FD_ISSET(sock->getFd(), read_fds))
 		{
+			bool is_cgi = cgi_client.count(sock);
 			if (recv(sock, Recvs[sock]) == 1 || Recvs[sock]->isEnd())
 			{
-				finishRecv(sock, Recvs[sock]);
+				finishRecv(sock, Recvs[sock], is_cgi);
 				recv_sockets.erase(tmp_socket);
 			}
 			--activity;
@@ -113,15 +114,20 @@ int	Server::handleSockets(fd_set *read_fds, fd_set *write_fds, int activity)
 			send(sock, Sends[sock]);
 			if (Sends[sock]->doesSendEnd())
 			{
-				Sends.erase(sock);
-				delete (Sends[sock]);
-				delete (sock);
+				finishSend(sock, Sends[sock]);
 				send_sockets.erase(tmp_socket);
 			}
 			--activity;
 		}
 	}
 	return (0);
+}
+
+void	Server::finishSend(Socket *sock, HttpMessage *message)
+{
+	Sends.erase(sock);
+	delete (message);
+	delete (sock);
 }
 
 int	Server::accept(Socket *serverSock)
@@ -169,12 +175,12 @@ ssize_t		Server::send(Socket *sock, HttpMessage *message)
 }
 
 // bool じゃなくて dynamic_cast で判定したほうがいいかも
-void Server::finishRecv(Socket *sock, HttpMessage *message)
+void Server::finishRecv(Socket *sock, HttpMessage *message, bool is_cgi)
 {
 	std::cout << "finishRecv [" << message->getRaw() << "]" << std::endl;
 
 	// CGI固有の通信である場合
-	if (cgi_client.count(sock))
+	if (is_cgi)
 	{
 		// fork pid も cgi socket とかに入れたろうかな
 		int	wstatus;
@@ -188,22 +194,23 @@ void Server::finishRecv(Socket *sock, HttpMessage *message)
 			Sends[clSocket] = new Response(*(Response *)message);
 		setFd(TYPE_SEND, clSocket);
 		delete (sock);
-		return ;
 	}
-	// リクエストを作成
-	Request	*request = (Request *)message;
-	request->setInfo();
-	// ルーター初期化
-	Router router(*this);
-	// ルーティング
-	Response *response = router.routeHandler(*request, sock);
-	if (response)
+	else
 	{
-		// レスポンスを送信用ソケットに追加　
-		Sends[sock] = response;
-		setFd(TYPE_SEND, sock);
-		// アクセスログを書き込む
-		Logger::instance()->writeAccessLog(*request, *response);
+		Request	*request = (Request *)message;
+		request->setInfo();
+		// ルーター初期化
+		Router router(*this);
+		// ルーティング
+		Response *response = router.routeHandler(*request, sock);
+		if (response)
+		{
+			// レスポンスを送信用ソケットに追加　
+			Sends[sock] = response;
+			setFd(TYPE_SEND, sock);
+			// アクセスログを書き込む
+			Logger::instance()->writeAccessLog(*request, *response);
+		}
 	}
 	Recvs.erase(sock);
 	delete (message);

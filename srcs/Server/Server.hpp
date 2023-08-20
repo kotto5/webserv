@@ -59,7 +59,8 @@ private:
 	int				accept(Socket *serverSocket);
 	int				recv(Socket *sock, HttpMessage *message);
 	ssize_t			send(Socket *sock, HttpMessage *message);
-	void 			finishRecv(Socket *sock, HttpMessage *message);
+	void 			finishRecv(Socket *sock, HttpMessage *message, bool is_cgi);
+	void			finishSend(Socket *sock, HttpMessage *message);
 	int				setFd(int type, Socket *sock, Socket *client_sock = NULL);
 	bool			checkTimeout();
 	static int		set_fd_set(fd_set &set, std::list<Socket *> sockets, int &maxFd);
