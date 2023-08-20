@@ -198,6 +198,7 @@ void Server::finishRecv(Socket *sock, HttpMessage *message)
 	if (response)
 	{
 		// レスポンスを送信用ソケットに追加　
+		addKeepAliveHeader(response, (ClSocket *)sock, request);
 		Sends[sock] = response;
 		setFd(TYPE_SEND, sock);
 		// アクセスログを書き込む
@@ -242,35 +243,6 @@ int	Server::setFd(int type, Socket *sock, Socket *client_sock)
 		return (1);
 	return (0);
 }
-
-// void	addKeepAliveHeader(Response *response, ClSocket *clientSock, Request *request)
-// {
-// 	if (request->getHeader("connection") == "close" || clientSock->getMaxRequest() == 0)
-// 		response->addHeader("connection", "close");
-// 	else
-// 	{
-// 		response->addHeader("connection", "keep-alive");
-// 		std::string	keepAliveValue("timeout=");
-// 		keepAliveValue += std::to_string(Socket::timeLimit);
-// 		keepAliveValue += ", max=";
-// 		keepAliveValue += std::to_string(clientSock->getMaxRequest());
-// 		response->addHeader("keep-alive", keepAliveValue);
-// 		clientSock->decrementMaxRequest();
-// 	}
-// 	response->makeRowString();
-// }
-
-	// if (request->isTooBigError())
-	// 	return (new Response("401"));
-	// else if (request->isBadRequest())
-	// 	return (new Response("400"));
-	// else if (request->getUri().find("..") != std::string::npos)
-	// 	return (new Response("403"));
-
-	// Response *response = router.routeHandler(*request);
-	// addKeepAliveHeader(response, clientSock, request);
-	// Logger::instance()->writeAccessLog(*request, *response);
-	// return (response);
 
 bool	Server::checkTimeout()
 {
@@ -349,4 +321,21 @@ void Server::createSocketForCgi(int fd, const std::string &body, Socket *clientS
 		setFd(TYPE_CGI, sock, clientSocket);
 		Recvs[sock] = new Response();
 	}
+}
+
+void	Server::addKeepAliveHeader(Response *response, ClSocket *clientSock, Request *request)
+{
+	if (request->getHeader("connection") == "close" || clientSock->getMaxRequest() == 0)
+		response->addHeader("connection", "close");
+	else
+	{
+		response->addHeader("connection", "keep-alive");
+		std::string	keepAliveValue("timeout=");
+		keepAliveValue += std::to_string(Socket::timeLimit);
+		keepAliveValue += ", max=";
+		keepAliveValue += std::to_string(clientSock->getMaxRequest());
+		response->addHeader("keep-alive", keepAliveValue);
+		clientSock->decrementMaxRequest();
+	}
+	response->makeRowString();
 }
