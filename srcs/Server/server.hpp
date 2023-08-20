@@ -67,7 +67,7 @@ class Server {
 	static bool			does_finish_send(const std::string &request, ssize_t recv_ret);
 	static int			set_fd_set(fd_set &set, std::list<Socket *> sockets, int &maxFd);
 	static Request		*parse_request(const std::string &row_request);
-	static Response		*makeResponse(Request *request);
+	static Response		*makeResponse(Request *request, ClSocket *clientSocket);
 };
 
 #endif
