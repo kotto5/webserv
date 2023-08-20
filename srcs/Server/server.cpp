@@ -240,7 +240,7 @@ int	Server::finish_recv(Socket *sock, HttpMessage *message, bool is_cgi_connecti
 			new_connect_cgi(request, sock);
 		else
 		{
-			Sends[sock] = makeResponse(request);
+			Sends[sock] = makeResponse(request, (ClSocket*) sock);
 			setFd(TYPE_SEND, sock);
 		}
 	}
@@ -271,8 +271,14 @@ ssize_t		Server::send(Socket *sock, HttpMessage *message)
 int		Server::finish_send(Socket *sock, HttpMessage *message)
 {
 	Sends.erase(sock);
+	if (message->getHeader("connection") == "close")
+		delete (sock);
+	else
+	{
+		Recvs[sock] = new Request((ClSocket *)sock);
+		setFd(TYPE_RECV, sock);
+	}
 	delete (message);
-	delete (sock);
 	return (0);
 }
 
@@ -285,7 +291,24 @@ int	Server::create_server_socket(int port)
 	return (0);
 }
 
-Response	*Server::makeResponse(Request *request)
+void	addKeepAliveHeader(Response *response, ClSocket *clientSock, Request *request)
+{
+	if (request->getHeader("connection") == "close" || clientSock->getMaxRequest() == 0)
+		response->addHeader("connection", "close");
+	else
+	{
+		response->addHeader("connection", "keep-alive");
+		std::string	keepAliveValue("timeout=");
+		keepAliveValue += std::to_string(Socket::timeLimit);
+		keepAliveValue += ", max=";
+		keepAliveValue += std::to_string(clientSock->getMaxRequest());
+		response->addHeader("keep-alive", keepAliveValue);
+		clientSock->decrementMaxRequest();
+	}
+	response->makeRowString();
+}
+
+Response	*Server::makeResponse(Request *request, ClSocket *clientSock)
 {
 	Router	router;
 
@@ -297,6 +320,7 @@ Response	*Server::makeResponse(Request *request)
 		return (new Response("403"));
 
 	Response *response = router.routeHandler(*request);
+	addKeepAliveHeader(response, clientSock, request);
 	Logger::instance()->writeAccessLog(*request, *response);
 	return (response);
 }
