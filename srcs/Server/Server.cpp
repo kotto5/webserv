@@ -1,5 +1,5 @@
 #include "Config.hpp"
-#include "server.hpp"
+#include "Server.hpp"
 #include "utils.hpp"
 #include "Request.hpp"
 #include <errno.h>
@@ -203,7 +203,7 @@ int	Server::recv(Socket *sock, HttpMessage *message) {
 		sock->updateLastAccess();
 	}
 	else
-		std::cout << "recv_ret < 0" << std::endl;	
+		std::cout << "recv_ret < 0" << std::endl;
 	if (recv_ret == -1)
 		message->parsing((""), _limitClientMsgSize);
 	else

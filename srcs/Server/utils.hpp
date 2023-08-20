@@ -3,7 +3,7 @@
 
 #include <unistd.h>
 #include <string>
-#include "server.hpp"
+#include "Server.hpp"
 
 enum {
 	ERROR = -1,

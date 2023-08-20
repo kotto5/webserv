@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include "Config.hpp"
 #include <fstream>
-#include "server.hpp"
+#include "Server.hpp"
 
 namespace
 {
