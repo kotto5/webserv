@@ -224,7 +224,7 @@ void	Server::finishSend(Socket *sock, HttpMessage *message)
 }
 
 /**
- * @brief 指定したソケットを監視リストに追加する
+ * @brief 指定したソケットを監視対象に追加する
  *
  * @param type
  * @param sock

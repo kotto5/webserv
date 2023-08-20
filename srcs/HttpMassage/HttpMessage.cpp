@@ -130,12 +130,33 @@ void	HttpMessage::setBody(const std::string &addBody)
 		_readPos += _body.length();
 		if (_body.find("\r\n0\r\n\r\n") != std::string::npos)
 		{
-			// TODO: body = decode_chunked(body);
+			_body = decodeChunked(_body);
 			_isBodyEnd = true;
 		}
 	}
 	else
 		_isBodyEnd = true;
+}
+
+
+std::string decodeChunked(const std::string &body)
+{
+	std::string::size_type	pos = 0;
+	std::string::size_type	endPos;
+	std::string				decodedBody;
+	std::string				chunkSizeStr;
+	int						chunkSize;
+
+	while ((endPos = body.find("\r\n", pos)) != std::string::npos)
+	{
+		chunkSizeStr = body.substr(pos, endPos - pos);
+		chunkSize = std::stoi(chunkSizeStr, NULL, 16);
+		if (chunkSize == 0)
+			break;
+		decodedBody += body.substr(endPos + 2, chunkSize);
+		pos = endPos + 2 + chunkSize + 2;
+	}
+	return (decodedBody);
 }
 
 std::string	HttpMessage::makeHeaderKeyLower(std::string key)

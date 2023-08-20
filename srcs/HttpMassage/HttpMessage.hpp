@@ -45,6 +45,7 @@ public:
 	void						printHeader() const;
 	bool						isBadRequest() const;
 	bool						isTooBigError() const;
+	std::string					decodeChunked(const std::string &body);
 
 	const std::string  			&getRaw() const;
 	const std::string			&getProtocol() const;
