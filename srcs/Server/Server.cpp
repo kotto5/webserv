@@ -123,13 +123,6 @@ int	Server::handleSockets(fd_set *read_fds, fd_set *write_fds, int activity)
 	return (0);
 }
 
-void	Server::finishSend(Socket *sock, HttpMessage *message)
-{
-	Sends.erase(sock);
-	delete (message);
-	delete (sock);
-}
-
 int	Server::accept(Socket *serverSock)
 {
 	SvSocket *svSock = dynamic_cast<SvSocket *>(serverSock);
