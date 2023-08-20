@@ -21,6 +21,7 @@ public:
 	Response &operator=(const Response &rhs);
 
 	// Member functions
+	void	makeRowString();
 	std::string toString() const;
 	static std::string getMimeType(const std::string &filename);
 
