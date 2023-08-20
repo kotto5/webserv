@@ -10,7 +10,7 @@
 class HttpMessage
 {
 protected:
-	std::string							_row;
+	std::string							_raw;
 	std::string							_protocol;
 	std::map<std::string, std::string>	_headers;
 	std::string							_body;
@@ -33,7 +33,7 @@ protected:
 
 public:
 	HttpMessage();
-	HttpMessage(const std::string &_row);
+	HttpMessage(const std::string &_raw);
 	// HttpMessage(const std::string &protocol, std::map<std::string, std::string> headers, const std::string &body);
 	virtual ~HttpMessage();
 
@@ -46,7 +46,7 @@ public:
 	bool						isBadRequest() const;
 	bool						isTooBigError() const;
 
-	const std::string  			&getRow() const;
+	const std::string  			&getRaw() const;
 	const std::string			&getProtocol() const;
 	const std::string  			&getHeader(std::string key) const;
 	void						addHeader(std::string key, std::string value);

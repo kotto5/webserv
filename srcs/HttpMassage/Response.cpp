@@ -4,7 +4,7 @@
 #include <ctime>
 
 Response::Response() {
-	_row = "";
+	_raw = "";
 }
 
 Response::Response(const std::string &status, std::map<std::string, std::string> headers,
@@ -39,7 +39,7 @@ Response::Response(const Response &other): HttpMessage()
 	this->_protocol = other._protocol;
 	this->_headers = other._headers;
 	this->_body = other._body;
-	_row = other._row;
+	_raw = other._raw;
 }
 
 // Destructor
@@ -78,9 +78,6 @@ const std::string	&Response::getStatusMessage(const std::string &statusCode) con
  *
  * @return std::string レスポンス内容
  */
-
-#include <unistd.h>
-
 std::string Response::toString() const
 {
 	std::string response;
@@ -176,5 +173,5 @@ void	Response::setFirstLine(const std::string &line)
 
 void	Response::makeRowString()
 {
-	_row = toString();
+	_raw = toString();
 }
