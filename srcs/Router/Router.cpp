@@ -51,8 +51,14 @@ Router &Router::operator=(const Router &rhs)
  * @param request
  * @return Response*
  */
-Response *Router::routeHandler(const Request &request, Socket *sock)
+Response *Router::routeHandler(const HttpMessage &message, Socket *sock)
 {
+	try {
+		const Response &response = dynamic_cast<const Response &>(message);
+		(void)response;
+	}
+	catch (const std::exception &e) {}
+	const Request &request = dynamic_cast<const Request &>(message);
 	//　リクエストに応じたServerコンテキストを取得
 	_serverContext = &Config::instance()->getHTTPBlock()
 		.getServerContext(request.getServerPort(), request.getHeader("host"));
