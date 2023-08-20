@@ -68,7 +68,7 @@ int Socket::getFd() { return fd_; }
 
 ClSocket::ClSocket(int fd, const sockaddr *addr, socklen_t len, sockaddr *remoteAddr, socklen_t remoteLen):
     Socket(fd, addr, len), remoteAddr_(*(sockaddr_in *
-	)remoteAddr), remoteLen_(remoteLen) {
+	)remoteAddr), remoteLen_(remoteLen), maxRequest_(MAX_REQUEST) {
 	}
 
 ClSocket::ClSocket(int fd, sockaddr *remoteAddr, socklen_t remoteLen): Socket(fd)
@@ -76,6 +76,7 @@ ClSocket::ClSocket(int fd, sockaddr *remoteAddr, socklen_t remoteLen): Socket(fd
 	std::cout << fd << remoteAddr << remoteLen << std::endl;
     remoteAddr_ = *(sockaddr_in *)(remoteAddr);
     remoteLen_ = remoteLen;
+	maxRequest_ = MAX_REQUEST;
 }
 
 ClSocket::ClSocket(const ClSocket &other): Socket(other)
@@ -89,6 +90,7 @@ ClSocket &ClSocket::operator=(const ClSocket &other)
 {
 	remoteAddr_ = other.remoteAddr_;
 	remoteLen_ = other.remoteLen_;
+	maxRequest_ = other.maxRequest_;
 	return (*this);
 }
 

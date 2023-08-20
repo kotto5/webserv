@@ -19,7 +19,7 @@ Response::Response(const std::string &status, std::map<std::string, std::string>
 	setContentLength();
 	// ヘッダーにServerを追加
 	setServer();
-	_raw = toString();
+	makeRowString();
 }
 
 Response::Response(const std::string &status)
@@ -29,7 +29,7 @@ Response::Response(const std::string &status)
 	setDate();
 	setContentLength();
 	setServer();
-	_raw = toString();
+	makeRowString();
 }
 
 
@@ -169,4 +169,9 @@ void	Response::setFirstLine(const std::string &line)
 	_protocol = line.substr(0, method_end);
 	_status = line.substr(method_end + 1, uri_end - method_end - 1);
 	_statusMessage = line.substr(uri_end + 1);
+}
+
+void	Response::makeRowString()
+{
+	_raw = toString();
 }
