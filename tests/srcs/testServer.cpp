@@ -37,7 +37,7 @@ TEST_F(ServerTest, request)
 // 2. chunked形式のリクエストを受け付けるか
 TEST_F(ServerTest, chunkedRequest)
 {
-	std::string content = "\"GET / HTTP/1.1\r\nHost: localhost\r\nConnection: keep-alive\r\nTransfer-Encoding: chunked\r\n\r\n\5\r\nHello\r\n5\r\nWorld\r\n0\r\n\r\n\"";
+	std::string content = "\"GET / HTTP/1.1\r\nHost: localhost\r\nTransfer-Encoding: chunked\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\n4\r\nWiki\r\n5\r\npedia\r\ne\r\n in\r\n\r\nchunks.\r\n0\r\n\r\n\"";
 	std::system((command + " " + content).c_str());
 
 	// ファイルからHTTPステータスコードを読み込む

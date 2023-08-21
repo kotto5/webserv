@@ -109,7 +109,7 @@ bool HttpMessage::isValidLine(const std::string &line, const bool isFirstLine) c
  */
 void	HttpMessage::setBody(const std::string &addBody)
 {
-	// lengthがある
+	// lengthが指定されている場合
 	if (_contentLength != 0)
 	{
 		if (_body.empty())
@@ -123,7 +123,7 @@ void	HttpMessage::setBody(const std::string &addBody)
 		}
 		else
 			_readPos += addBody.length();
-	} // chunkedのとき
+	} // chunkedが指定されている場合
 	else if (getHeader("transfer-encoding") == "chunked")
 	{
 		_body += addBody;
@@ -138,19 +138,24 @@ void	HttpMessage::setBody(const std::string &addBody)
 		_isBodyEnd = true;
 }
 
-
-std::string decodeChunked(const std::string &body)
+/**
+ * @brief チャンク化されたデータを復号する
+ *
+ * @param body
+ * @return std::string
+ */
+std::string HttpMessage::decodeChunked(const std::string &body)
 {
 	std::string::size_type	pos = 0;
 	std::string::size_type	endPos;
-	std::string				decodedBody;
+	std::string				decodedBody = "";
 	std::string				chunkSizeStr;
 	int						chunkSize;
 
 	while ((endPos = body.find("\r\n", pos)) != std::string::npos)
 	{
 		chunkSizeStr = body.substr(pos, endPos - pos);
-		chunkSize = std::stoi(chunkSizeStr, NULL, 16);
+		chunkSize = std::stoi(chunkSizeStr, NULL, 16); // 例外はparsingの呼び出し元で大域的に処理する
 		if (chunkSize == 0)
 			break;
 		decodedBody += body.substr(endPos + 2, chunkSize);

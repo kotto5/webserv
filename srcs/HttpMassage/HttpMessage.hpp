@@ -30,22 +30,20 @@ protected:
 
 	bool						isValidLine(const std::string &line, const bool isFirstLine) const;
 	static std::string			makeHeaderKeyLower(std::string key);
+	std::string					decodeChunked(const std::string &body);
 
 public:
 	HttpMessage();
 	HttpMessage(const std::string &_raw);
-	// HttpMessage(const std::string &protocol, std::map<std::string, std::string> headers, const std::string &body);
 	virtual ~HttpMessage();
 
-
 	int							parsing(const std::string &row, const std::size_t limitClientMsgSize);
-	bool						isEnd() const;
-	void						addSendPos(std::size_t pos);
 	bool						doesSendEnd() const;
+	void						addSendPos(std::size_t pos);
 	void						printHeader() const;
 	bool						isBadRequest() const;
 	bool						isTooBigError() const;
-	std::string					decodeChunked(const std::string &body);
+	bool						isEnd() const;
 
 	const std::string  			&getRaw() const;
 	const std::string			&getProtocol() const;
