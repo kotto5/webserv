@@ -35,7 +35,7 @@ class ConfigParser
         ALLOW_METHODS,
         ERROR_PAGE,
         REDIRECT,
-		CGI_PATH,
+		CGI_PASS,
         UNKNOWN
     };
 
