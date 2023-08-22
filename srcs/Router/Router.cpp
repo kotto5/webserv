@@ -4,6 +4,7 @@
 #include "PostHandler.hpp"
 #include "DeleteHandler.hpp"
 #include "CgiHandler.hpp"
+#include "CgiResHandler.hpp"
 #include "Logger.hpp"
 #include "Config.hpp"
 #include "utils.hpp"
@@ -51,14 +52,16 @@ Router &Router::operator=(const Router &rhs)
  * @param request
  * @return Response*
  */
-HttpMessage *Router::routeHandler(const HttpMessage &message, Socket *sock)
+HttpMessage *Router::routeHandler(HttpMessage &message, Socket *sock)
 {
 	try {
-		const Response &response = dynamic_cast<const Response &>(message);
-		(void)response;
+		Response &response = dynamic_cast<Response &>(message);
+		CgiResHandler handler;
+		return handler.handleMessage(response);
 	}
 	catch (const std::exception &e) {}
-	const Request &request = dynamic_cast<const Request &>(message);
+	Request &request = dynamic_cast<Request &>(message);
+	request.setInfo();
 	//　リクエストに応じたServerコンテキストを取得
 	_serverContext = &Config::instance()->getHTTPBlock()
 		.getServerContext(request.getServerPort(), request.getHeader("host"));
