@@ -179,31 +179,20 @@ void Server::finishRecv(Socket *sock, HttpMessage *message, bool is_cgi)
 {
 	std::cout << "finishRecv [" << message->getRaw() << "]" << std::endl;
 
-	// CGI固有の通信である場合
-	if (is_cgi)
+	Router router(*this);
+	// ルーティング
+	HttpMessage *newMessage = router.routeHandler(*message, sock);
+	if (newMessage)
 	{
-		// fork pid も cgi socket とかに入れたろうかな
-		int	wstatus;
-		waitpid(-1, &wstatus, 0);
-		Socket	*clSocket = cgi_client[sock];
-		cgi_client.erase(sock);
-		// if (WEXITSTATUS(wstatus) == 1 || !message->isEnd())
-		if (WEXITSTATUS(wstatus) == 1)
-			Sends[clSocket] = new Response("500");
+		if (is_cgi)
+		{
+			Socket	*clSocket = cgi_client[sock];
+			Sends[clSocket] = newMessage;
+			setFd(TYPE_SEND, clSocket);
+			cgi_client.erase(sock);
+			delete (sock);
+		}
 		else
-			Sends[clSocket] = new Response(*(Response *)message);
-		setFd(TYPE_SEND, clSocket);
-		delete (sock);
-	}
-	else
-	{
-		Request	*request = (Request *)message;
-		request->setInfo();
-		// ルーター初期化
-		Router router(*this);
-		// ルーティング
-		HttpMessage *newMessage = router.routeHandler(*request, sock);
-		if (newMessage)
 		{
 			// レスポンスを送信用ソケットに追加　
 			Sends[sock] = newMessage;
@@ -211,7 +200,7 @@ void Server::finishRecv(Socket *sock, HttpMessage *message, bool is_cgi)
 			// アクセスログを書き込む
 			Response *response = dynamic_cast<Response *>(newMessage);
 			if (response)
-				Logger::instance()->writeAccessLog(*request, *response);
+				Logger::instance()->writeAccessLog(*(Request *)message, *response);
 		}
 	}
 	Recvs.erase(sock);
