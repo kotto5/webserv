@@ -130,7 +130,7 @@ void	HttpMessage::setBody(const std::string &addBody)
 		_readPos += _body.length();
 		if (_body.find("\r\n0\r\n\r\n") != std::string::npos)
 		{
-			_body = decodeChunked(_body);
+			decodeChunked(_body);
 			_isBodyEnd = true;
 		}
 	}
@@ -141,27 +141,38 @@ void	HttpMessage::setBody(const std::string &addBody)
 /**
  * @brief チャンク化されたデータを復号する
  *
- * @param body
- * @return std::string
+ * @detail この関数は副作用を持つ
+ * @param body チャンク化された文字列
+ * @return void
  */
-std::string HttpMessage::decodeChunked(const std::string &body)
+void	HttpMessage::decodeChunked(std::string &body)
 {
-	std::string::size_type	pos = 0;
-	std::string::size_type	endPos;
-	std::string				decodedBody = "";
-	std::string				chunkSizeStr;
-	int						chunkSize;
+	size_t 		readPos = 0;
+	size_t 		writePos = 0;
 
-	while ((endPos = body.find("\r\n", pos)) != std::string::npos)
+	while (readPos < body.size())
 	{
-		chunkSizeStr = body.substr(pos, endPos - pos);
-		chunkSize = std::stoi(chunkSizeStr, NULL, 16); // 例外はparsingの呼び出し元で大域的に処理する
-		if (chunkSize == 0)
+		size_t endPos = body.find("\r\n", readPos);
+		if (endPos == std::string::npos)
+		{
 			break;
-		decodedBody += body.substr(endPos + 2, chunkSize);
-		pos = endPos + 2 + chunkSize + 2;
+		}
+		// chunkサイズを取得
+		unsigned long chunkSize = std::stoul(body.substr(readPos, endPos - readPos), nullptr, 16);
+		readPos = endPos + 2; // サイズの次の行頭に進める
+		if (readPos + chunkSize <= body.size())
+		{
+			std::copy(body.begin() + readPos, body.begin() + readPos + chunkSize, body.begin() + writePos);
+			writePos += chunkSize;
+			readPos += chunkSize;
+		}
+		else
+		{
+			break;
+		}
+		readPos += 2; // CRLFの分をスキップ
 	}
-	return (decodedBody);
+	body.erase(writePos);
 }
 
 std::string	HttpMessage::makeHeaderKeyLower(std::string key)

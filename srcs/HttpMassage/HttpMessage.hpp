@@ -30,7 +30,7 @@ protected:
 
 	bool						isValidLine(const std::string &line, const bool isFirstLine) const;
 	static std::string			makeHeaderKeyLower(std::string key);
-	std::string					decodeChunked(const std::string &body);
+	void						decodeChunked(std::string &body);
 
 public:
 	HttpMessage();
