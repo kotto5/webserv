@@ -4,6 +4,7 @@
 #include "PostHandler.hpp"
 #include "DeleteHandler.hpp"
 #include "CgiHandler.hpp"
+#include "CgiResHandler.hpp"
 #include "Logger.hpp"
 #include "Config.hpp"
 #include "utils.hpp"
@@ -51,8 +52,16 @@ Router &Router::operator=(const Router &rhs)
  * @param request
  * @return Response*
  */
-Response *Router::routeHandler(const Request &request, Socket *sock)
+HttpMessage *Router::routeHandler(HttpMessage &message, Socket *sock)
 {
+	try {
+		Response &response = dynamic_cast<Response &>(message);
+		CgiResHandler handler;
+		return handler.handleMessage(response);
+	}
+	catch (const std::exception &e) {}
+	Request &request = dynamic_cast<Request &>(message);
+	request.setInfo();
 	//　リクエストに応じたServerコンテキストを取得
 	_serverContext = &Config::instance()->getHTTPBlock()
 		.getServerContext(request.getServerPort(), request.getHeader("host"));
@@ -91,7 +100,7 @@ Response *Router::routeHandler(const Request &request, Socket *sock)
 		if (isConnectionCgi(request))
 		{
 			// CGIの場合
-			CgiHandler handler(_server);
+			CgiHandler handler(_server, _serverContext->getLocationContext(request.getUri()));
 			handler.setClientSocket(sock);
 			return handler.handleRequest(request);
 		}

@@ -172,38 +172,31 @@ void Server::finishRecv(Socket *sock, HttpMessage *message, bool is_cgi)
 {
 	std::cout << "finishRecv [" << message->getRaw() << "]" << std::endl;
 
-	// CGI固有の通信である場合
-	if (is_cgi)
+	Router router(*this);
+	// ルーティング
+	HttpMessage *newMessage = router.routeHandler(*message, sock);
+	if (newMessage)
 	{
-		// fork pid も cgi socket とかに入れたろうかな
-		int	wstatus;
-		waitpid(-1, &wstatus, 0);
-		Socket	*clSocket = cgi_client[sock];
-		cgi_client.erase(sock);
-		// if (WEXITSTATUS(wstatus) == 1 || !message->isEnd())
-		if (WEXITSTATUS(wstatus) == 1)
-			Sends[clSocket] = new Response("500");
+		if (is_cgi)
+		{
+			Socket	*clSocket = cgi_client[sock];
+			Sends[clSocket] = newMessage;
+			setFd(TYPE_SEND, clSocket);
+			cgi_client.erase(sock);
+			delete (sock);
+		}
 		else
-			Sends[clSocket] = new Response(*(Response *)message);
-		setFd(TYPE_SEND, clSocket);
-		delete (sock);
-	}
-	else
-	{
-		Request	*request = (Request *)message;
-		request->setInfo();
-		// ルーター初期化
-		Router router(*this);
-		// ルーティング
-		Response *response = router.routeHandler(*request, sock);
-		if (response)
 		{
 			// レスポンスを送信用ソケットに追加　
-			addKeepAliveHeader(response, (ClSocket *)sock, request);
-			Sends[sock] = response;
+			Sends[sock] = newMessage;
 			setFd(TYPE_SEND, sock);
 			// アクセスログを書き込む
-			Logger::instance()->writeAccessLog(*request, *response);
+			Response *response = dynamic_cast<Response *>(newMessage);
+			if (response)
+			{
+				Logger::instance()->writeAccessLog(*(Request *)message, *response);
+				addKeepAliveHeader(response, (ClSocket *)sock, message);
+			}
 		}
 	}
 	Recvs.erase(sock);
@@ -325,7 +318,7 @@ void Server::createSocketForCgi(int fd, const std::string &body, Socket *clientS
 	}
 }
 
-void	Server::addKeepAliveHeader(Response *response, ClSocket *clientSock, Request *request)
+void	Server::addKeepAliveHeader(Response *response, ClSocket *clientSock, HttpMessage *request)
 {
 	if (request->getHeader("connection") == "close" || clientSock->getMaxRequest() == 0)
 		response->addHeader("connection", "close");

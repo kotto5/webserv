@@ -35,7 +35,7 @@ TEST_F(RouterTest, createGetRequest)
 	// インスタンスの生成
 	Router router;
 	// テストデータの検証
-	Response *response = router.routeHandler(*reqGet);
+	Response *response = (Response *)router.routeHandler(*reqGet);
 	EXPECT_EQ(response->getStatus(), "200");
 }
 
@@ -45,7 +45,7 @@ TEST_F(RouterTest, notRequest)
 	// インスタンスの生成
 	Router router;
 	// テストデータの検証
-	Response *response = router.routeHandler(*reqNotFound);
+	Response *response = (Response *)router.routeHandler(*reqNotFound);
 	EXPECT_EQ(response->getStatus(), "405");
 }
 
@@ -55,11 +55,11 @@ TEST_F(RouterTest, allowedMethod)
 	// インスタンスの生成
 	Router router;
 	// テストデータの検証
-	Response *res1 = router.routeHandler(*reqGet);
+	Response *res1 = (Response *)router.routeHandler(*reqGet);
 	EXPECT_EQ(res1->getStatus(), "200");
-	Response *res2 = router.routeHandler(*reqPost);
+	Response *res2 = (Response *)router.routeHandler(*reqPost);
 	EXPECT_EQ(res2->getStatus(), "201");
-	Response *res3 = router.routeHandler(*reqDelete);
+	Response *res3 = (Response *)router.routeHandler(*reqDelete);
 	EXPECT_EQ(res3->getStatus(), "405");
 }
 };
