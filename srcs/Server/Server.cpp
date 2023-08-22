@@ -123,13 +123,6 @@ int	Server::handleSockets(fd_set *read_fds, fd_set *write_fds, int activity)
 	return (0);
 }
 
-void	Server::finishSend(Socket *sock, HttpMessage *message)
-{
-	Sends.erase(sock);
-	delete (message);
-	delete (sock);
-}
-
 int	Server::accept(Socket *serverSock)
 {
 	SvSocket *svSock = dynamic_cast<SvSocket *>(serverSock);
@@ -200,10 +193,26 @@ void Server::finishRecv(Socket *sock, HttpMessage *message, bool is_cgi)
 			// アクセスログを書き込む
 			Response *response = dynamic_cast<Response *>(newMessage);
 			if (response)
+			{
 				Logger::instance()->writeAccessLog(*(Request *)message, *response);
+				addKeepAliveHeader(response, (ClSocket *)sock, message);
+			}
 		}
 	}
 	Recvs.erase(sock);
+	delete (message);
+}
+
+void	Server::finishSend(Socket *sock, HttpMessage *message)
+{
+	Sends.erase(sock);
+	if (message->getHeader("connection") == "close")
+		delete (sock);
+	else
+	{
+		Recvs[sock] = new Request((ClSocket *)sock);
+		setFd(TYPE_RECV, sock);
+	}
 	delete (message);
 }
 
@@ -307,4 +316,21 @@ void Server::createSocketForCgi(int fd, const std::string &body, Socket *clientS
 		setFd(TYPE_CGI, sock, clientSocket);
 		Recvs[sock] = new Response();
 	}
+}
+
+void	Server::addKeepAliveHeader(Response *response, ClSocket *clientSock, Request *request)
+{
+	if (request->getHeader("connection") == "close" || clientSock->getMaxRequest() == 0)
+		response->addHeader("connection", "close");
+	else
+	{
+		response->addHeader("connection", "keep-alive");
+		std::string	keepAliveValue("timeout=");
+		keepAliveValue += std::to_string(Socket::timeLimit);
+		keepAliveValue += ", max=";
+		keepAliveValue += std::to_string(clientSock->getMaxRequest());
+		response->addHeader("keep-alive", keepAliveValue);
+		clientSock->decrementMaxRequest();
+	}
+	response->makeRowString();
 }

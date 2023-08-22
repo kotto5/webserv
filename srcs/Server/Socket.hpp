@@ -34,11 +34,14 @@ public:
 
 // =============================================
 
+#define MAX_REQUEST 3
+
 class ClSocket : public Socket
 {
 private:
 	sockaddr_in	remoteAddr_;
 	socklen_t	remoteLen_;
+	int			maxRequest_;
 
 public:
 	ClSocket(int fd, sockaddr *remote_addr, socklen_t remote_len);
@@ -49,6 +52,8 @@ public:
 
 	const sockaddr_in &getRemoteAddr() const { return remoteAddr_; }
 	socklen_t getRemoteLen() const { return remoteLen_; }
+	int getMaxRequest() const { return maxRequest_; }
+	void decrementMaxRequest() { maxRequest_--; }
 };
 
 // =============================================

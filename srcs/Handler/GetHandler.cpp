@@ -89,7 +89,7 @@ bool GetHandler::enableAutoindex(const Request &request)
 	try
 	{
 		return Config::instance()->getHTTPBlock()
-			.getServerContext("80", "host")
+			.getServerContext(request.getServerPort(), "host")
 			.getLocationContext(request.getUri()).getDirective("autoindex") == "on";
 	}
 	catch (const std::runtime_error &e)

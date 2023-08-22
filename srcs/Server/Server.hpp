@@ -64,6 +64,7 @@ private:
 	int				setFd(int type, Socket *sock, Socket *client_sock = NULL);
 	bool			checkTimeout();
 	static int		set_fd_set(fd_set &set, std::list<Socket *> sockets, int &maxFd);
+	void			addKeepAliveHeader(Response *response, ClSocket *clientSock, Request *request);
 };
 
 #endif
