@@ -54,76 +54,69 @@ Router &Router::operator=(const Router &rhs)
  */
 HttpMessage *Router::routeHandler(HttpMessage &message, Socket *sock)
 {
-	try {
-		Response &response = dynamic_cast<Response &>(message);
+	if (Response *response = dynamic_cast<Response *>(&message))
+	{
 		CgiResHandler handler;
-		return handler.handleMessage(response);
+		return handler.handleMessage(*response);
 	}
-	catch (const std::exception &e) {}
-	Request &request = dynamic_cast<Request &>(message);
-	request.setInfo();
-	//　リクエストに応じたServerコンテキストを取得
-	_serverContext = &Config::instance()->getHTTPBlock()
-		.getServerContext(request.getServerPort(), request.getHeader("host"));
+	else if (Request *request = dynamic_cast<Request *>(&message))
+	{
+		request->setInfo();
+		//　リクエストに応じたServerコンテキストを取得
+		_serverContext = &Config::instance()->getHTTPBlock()
+			.getServerContext(request->getServerPort(), request->getHeader("host"));
 
-	if (request.isBadRequest())
-	{
-		// リクエストが不正である場合
-		return (new Response("400"));
-	}
-	else if (request.isTooBigError())
-	{
-		// リクエストが大きすぎる場合
-		return (new Response("401"));
-	}
-	else if (request.getUri().find("..") != std::string::npos)
-	{
-		// ディレクトリトラバーサルの場合
-		return (new Response("403"));
-	}
-	else if (isRedirect(request))
-	{
-		// リダイレクトの場合
-		std::map<std::string, std::string> headers;
-		headers["Location"] = _serverContext->getLocationContext(request.getUri()).getDirective("redirect");
-		return new Response("301", headers, "");
-	}
+		if (request->isBadRequest())
+			return (new Response("400"));
+		else if (request->isTooBigError())
+			return (new Response("401"));
+		else if (request->getUri().find("..") != std::string::npos)
+			return (new Response("403")); // ディレクトリトラバーサルの場合
+		else if (isRedirect(*request))
+		{
+			std::map<std::string, std::string> headers;
+			headers["Location"] = _serverContext->getLocationContext(request->getUri()).getDirective("redirect");
+			return new Response("301", headers, "");
+		}
 
-	// メソッドに対応するhandlerを呼び出し
-	try
-	{
-		if (isAllowedMethod(request) == false)
+		// メソッドに対応するhandlerを呼び出し
+		try
 		{
-			// 許可されていないメソッドの場合
-			throw RequestException("405");
+			if (isAllowedMethod(*request) == false)
+			{
+				// 許可されていないメソッドの場合
+				throw RequestException("405");
+			}
+			if (isConnectionCgi(*request))
+			{
+				// CGIの場合
+				CgiHandler handler(_server, _serverContext->getLocationContext(request->getUri()));
+				handler.setClientSocket(sock);
+				return handler.handleRequest(*request);
+			}
+			IHandler *handler = _handlers.at(request->getMethod());
+			return handler->handleRequest(*request);
 		}
-		if (isConnectionCgi(request))
+		catch (const RequestException &e)
 		{
-			// CGIの場合
-			CgiHandler handler(_server, _serverContext->getLocationContext(request.getUri()));
-			handler.setClientSocket(sock);
-			return handler.handleRequest(request);
+			// ハンドラー固有の処理に失敗した場合
+			return handleError(*request, e.getStatus());
 		}
-		IHandler *handler = _handlers.at(request.getMethod());
-		return handler->handleRequest(request);
+		catch (const ServerException &e)
+		{
+			// サーバー固有の処理に失敗した場合
+			Logger::instance()->writeErrorLog(ErrorCode::SYSTEM_CALL, e.what(), request);
+			return handleError(*request, "500");
+		}
+		catch (const std::out_of_range& e)
+		{
+			Logger::instance()->writeErrorLog(ErrorCode::NOT_METHOD, NULL, request);
+			// 対応するメソッドがない場合は405を返す
+			return handleError(*request, "405");
+		}
 	}
-	catch (const RequestException &e)
-	{
-		// ハンドラー固有の処理に失敗した場合
-		return handleError(request, e.getStatus());
-	}
-	catch (const ServerException &e)
-	{
-		// サーバー固有の処理に失敗した場合
-		Logger::instance()->writeErrorLog(ErrorCode::SYSTEM_CALL, e.what(), &request);
-		return handleError(request, "500");
-	}
-	catch (const std::out_of_range& e)
-	{
-		Logger::instance()->writeErrorLog(ErrorCode::NOT_METHOD, NULL, &request);
-		// 対応するメソッドがない場合は405を返す
-		return handleError(request, "405");
-	}
+	else
+		return (NULL);
 }
 
 /**
