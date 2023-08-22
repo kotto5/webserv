@@ -318,7 +318,7 @@ void Server::createSocketForCgi(int fd, const std::string &body, Socket *clientS
 	}
 }
 
-void	Server::addKeepAliveHeader(Response *response, ClSocket *clientSock, Request *request)
+void	Server::addKeepAliveHeader(Response *response, ClSocket *clientSock, HttpMessage *request)
 {
 	if (request->getHeader("connection") == "close" || clientSock->getMaxRequest() == 0)
 		response->addHeader("connection", "close");
