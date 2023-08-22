@@ -14,7 +14,7 @@ public:
 	virtual ~IHandler() {};
 
 	// Member function
-	virtual Response	*handleRequest(const Request &request) = 0;
+	virtual HttpMessage	*handleRequest(const Request &request) = 0;
 protected:
 	std::string	_status;
 	LocationContext _locationContext;
