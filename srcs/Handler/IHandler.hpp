@@ -3,6 +3,7 @@
 
 #include "Response.hpp"
 #include "Request.hpp"
+#include "LocationContext.hpp"
 #include <iostream>
 #include <string>
 
@@ -16,6 +17,7 @@ public:
 	virtual HttpMessage	*handleRequest(const Request &request) = 0;
 protected:
 	std::string	_status;
+	LocationContext _locationContext;
 };
 
 #endif

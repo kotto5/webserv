@@ -6,7 +6,7 @@
 #include <filesystem>
 
 // Constructors
-CgiHandler::CgiHandler(Server *server): _server(server)
+CgiHandler::CgiHandler(Server *server, const LocationContext &lc): _server(server), _locationContext(lc)
 {
 	_status = "200";
 }
@@ -101,11 +101,11 @@ int CgiHandler::runCgi(const Request &request, int pipes[2])
         std::string path = request.getActualUri();
 		std::string path_query = path;
 
-		char	*php_path = (char *)"/usr/bin/php";
-		char *argv[] = {php_path, const_cast<char *>(path_query.c_str()), NULL};
+		char *cgi_pass = const_cast<char *>(_locationContext.getDirective("cgi_pass").c_str());
+		char *argv[] = {cgi_pass, const_cast<char *>(path_query.c_str()), NULL};
 
 		// プログラム呼び出し
-		execve(php_path, argv, (char* const*)(envs.data()));
+		execve(cgi_pass, argv, (char* const*)(envs.data()));
         perror(path_query.c_str());
         exit(1);
 		throw ServerException("execve failed");

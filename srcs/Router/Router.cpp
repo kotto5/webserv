@@ -100,7 +100,7 @@ HttpMessage *Router::routeHandler(HttpMessage &message, Socket *sock)
 		if (isConnectionCgi(request))
 		{
 			// CGIの場合
-			CgiHandler handler(_server);
+			CgiHandler handler(_server, _serverContext->getLocationContext(request.getUri()));
 			handler.setClientSocket(sock);
 			return handler.handleRequest(request);
 		}

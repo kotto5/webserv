@@ -5,6 +5,7 @@
 #include "Response.hpp"
 #include "Socket.hpp"
 #include "Server.hpp"
+#include "LocationContext.hpp"
 #include <iostream>
 
 enum {
@@ -16,7 +17,7 @@ class CgiHandler : public IHandler
 {
 public:
 	// Constructors
-	CgiHandler(Server *server);
+	CgiHandler(Server *server, const LocationContext &locationContext);
 	CgiHandler(Socket clientSocket);
 	CgiHandler(const CgiHandler &other);
 
@@ -33,6 +34,8 @@ public:
 private:
 	Server	*_server;
 	Socket	*_clientSocket;
+	LocationContext _locationContext;
+
 	int runCgi(const Request &request, int pipes[2]);
 	std::vector<char *> createEnvs(const Request &request);
 };
