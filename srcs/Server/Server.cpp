@@ -202,14 +202,16 @@ void Server::finishRecv(Socket *sock, HttpMessage *message, bool is_cgi)
 		// ルーター初期化
 		Router router(*this);
 		// ルーティング
-		Response *response = router.routeHandler(*request, sock);
-		if (response)
+		HttpMessage *newMessage = router.routeHandler(*request, sock);
+		if (newMessage)
 		{
 			// レスポンスを送信用ソケットに追加　
-			Sends[sock] = response;
+			Sends[sock] = newMessage;
 			setFd(TYPE_SEND, sock);
 			// アクセスログを書き込む
-			Logger::instance()->writeAccessLog(*request, *response);
+			Response *response = dynamic_cast<Response *>(newMessage);
+			if (response)
+				Logger::instance()->writeAccessLog(*request, *response);
 		}
 	}
 	Recvs.erase(sock);
