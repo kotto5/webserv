@@ -99,19 +99,19 @@ TEST_F(PostHandlerTest, createMultiFile)
 	EXPECT_EQ(file_data_0, body);
 	EXPECT_EQ(res_0->getBody(), "");
 	EXPECT_EQ(res_0->getHeader("Location"), "/resources/unit_test/sample_multi.txt");
-	EXPECT_EQ(res_0->getHeader("Content-Type"), "text/plain");
+	EXPECT_EQ(res_0->getHeader("Content-Type"), "text/plain; charset=utf-8");
 
 	EXPECT_EQ(res_1->getStatus(), "201");
 	EXPECT_EQ(file_data_1, body);
 	EXPECT_EQ(res_1->getBody(), "");
 	EXPECT_EQ(res_1->getHeader("Location"), "/resources/unit_test/0sample_multi.txt");
-	EXPECT_EQ(res_1->getHeader("Content-Type"), "text/plain");
+	EXPECT_EQ(res_1->getHeader("Content-Type"), "text/plain; charset=utf-8");
 
 	EXPECT_EQ(res_2->getStatus(), "201");
 	EXPECT_EQ(file_data_2, body);
 	EXPECT_EQ(res_2->getBody(), "");
 	EXPECT_EQ(res_2->getHeader("Location"), "/resources/unit_test/1sample_multi.txt");
-	EXPECT_EQ(res_2->getHeader("Content-Type"), "text/plain");
+	EXPECT_EQ(res_2->getHeader("Content-Type"), "text/plain; charset=utf-8");
 
 	delete res_0;
 	delete res_1;
