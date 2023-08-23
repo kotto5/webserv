@@ -22,7 +22,7 @@ protected:
 	{
 		reqGetHtml = new Request("GET", "/pages/test.html", "HTTP/1.1", std::map<std::string, std::string>(), "");
 		reqGetHtml->setAddr(env->socket).setInfo();
-		reqGetPng = new Request("GET", "/images/logo.png", "HTTP/1.1", std::map<std::string, std::string>(), "");
+		reqGetPng = new Request("GET", "/assets/logo.png", "HTTP/1.1", std::map<std::string, std::string>(), "");
 		reqGetPng->setAddr(env->socket).setInfo();
 		reqNotFound = new Request("GET", "/pages/none.html", "HTTP/1.1", std::map<std::string, std::string>(), "");
 		reqNotFound->setAddr(env->socket).setInfo();

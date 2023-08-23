@@ -21,18 +21,15 @@
 	}
 	</style>
 </head>
+
 <body>
-
-<h2>Delete Request Test</h2>
-<p>Enter the resource URL to delete:</p>
-
-<form id="deleteForm">
-	<input type="url" id="resourceUrl" placeholder="https://example.com/resource-to-delete">
-	<input type="submit" value="Send DELETE request">
-</form>
-
+	<h2>Delete Request Test</h2>
+	<p>Enter the resource URL to delete:</p>
+	<form id="deleteForm">
+		<input type="url" id="resourceUrl" placeholder="https://resource-to-delete">
+		<input type="submit" value="Send DELETE request">
+	</form>
 <p id="result"></p>
-
 <script>
 	document.getElementById('deleteForm').addEventListener('submit', function(event) {
 		event.preventDefault();
@@ -41,13 +38,17 @@
 		fetch(url, {
 			method: 'DELETE'
 		})
-		.then(response => response.text())
-		.then(data => {
-			document.getElementById('result').textContent = `Response: ${data}`;
-		})
-		.catch(error => {
-			document.getElementById('result').textContent = `Error: ${error}`;
-		});
+		.then(response => {
+		if (response.ok) {
+			// リクエストが成功した場合のステータスコード (e.g., 200 OK, 204 No Content)
+			document.getElementById('result').textContent = `Response status: ${response.status} (${response.statusText})`;
+		} else {
+			// リクエストが失敗した場合のステータスコード (e.g., 404 Not Found, 500 Internal Server Error)
+			throw new Error(`Server responded with status: ${response.status} (${response.statusText})`);
+		}
+	})
+	.catch(error => {
+		document.getElementById('result').textContent = `Error: ${error.message}`;
 	});
 </script>
 

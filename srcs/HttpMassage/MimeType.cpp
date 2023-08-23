@@ -20,7 +20,7 @@ std::map<std::string, std::string> createMimeType()
 	mimeType[".png"] = "image/png";
 	mimeType[".gif"] = "image/gif";
 	mimeType[".json"] = "application/json";
-	mimeType[".txt"] = "text/plain; charset=utf-8";
+	mimeType[".txt"] = "text/plain; " + MimeType::charset;
 
 	return mimeType;
 };

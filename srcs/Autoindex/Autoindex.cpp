@@ -178,11 +178,11 @@ std::string Autoindex::formatSize(long long byte)
 std::string Autoindex::getIcon(const FileInfo &file)
 {
 	if (file.fileName == "../")
-		return "<img src=\"/images/back.png\">";
+		return "<img src=\"/assets/back.png\">";
 	else if (file.isDirectory)
-		return "<img src=\"/images/folder.png\">";
+		return "<img src=\"/assets/folder.png\">";
 	else
-		return "<img src=\"/images/file.png\">";
+		return "<img src=\"/assets/file.png\">";
 }
 
 // Not use
