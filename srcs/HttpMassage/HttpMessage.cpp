@@ -233,9 +233,9 @@ void	HttpMessage::printHeader() const
 		std::cout << "\t[" << it->first << "]: [" << it->second << "]" << std::endl;
 }
 
-bool	HttpMessage::isBadRequest() const
+bool	HttpMessage::getIsBadFormat() const
 {
-	return (!isEnd());
+	return (_isBadFormat);
 }
 
 bool	HttpMessage::isTooBigError() const

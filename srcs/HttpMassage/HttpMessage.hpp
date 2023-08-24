@@ -17,6 +17,7 @@ protected:
 
 	bool								_isHeaderEnd;
 	bool								_isBodyEnd;
+	bool								_isBadFormat;
 	bool								_tooBigError;
 	static	std::string					_empty;
 
