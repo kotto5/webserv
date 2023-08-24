@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POST Request Test</title>
+    <style>
+        #postForm {
+            font-size: 20px;
+        }
+
+        #resourceUrl, #postData {
+            width: 50%;
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+
+        #postForm input[type="submit"] {
+            padding: 10px 20px;
+        }
+    </style>
+</head>
+<body>
+
+<h2>POST Request Test</h2>
+<p>Enter the resource URL and data to post:</p>
+
+<form id="postForm">
+    <input type="url" id="resourceUrl" placeholder="localhost/resources/sample.html">
+    <br>
+    <textarea id="postData" rows="4" placeholder="Enter data to POST..."></textarea>
+    <br>
+    <input type="submit" value="Send POST request">
+</form>
+
+<p id="result"></p>
+
+<script>
+    document.getElementById('postForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        const url = document.getElementById('resourceUrl').value;
+        const data = document.getElementById('postData').value;
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',  // Change this if needed
+            },
+            body: data  // For JSON data, you might want to use JSON.stringify(data)
+        })
+        .then(response => response.text())
+        .then(data => {
+            document.getElementById('result').textContent = `Response: ${data}`;
+        })
+        .catch(error => {
+            document.getElementById('result').textContent = `Error: ${error}`;
+        });
+    });
+</script>
+
+</body>
+</html>
