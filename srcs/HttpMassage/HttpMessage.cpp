@@ -13,6 +13,8 @@ HttpMessage::HttpMessage()
 {
 	_tooBigError = false;
 	_contentLength = 0;
+	_isChunked = false;
+	_isBadFormat = false;
 }
 
 HttpMessage::HttpMessage(const std::string &_raw)
@@ -61,7 +63,10 @@ int	HttpMessage::parsing(const std::string &raw, const std::size_t maxSize)
 				return (0);
 			line = _raw.substr(_readPos, endPos - _readPos);
 			if (isValidLine(line, _readPos == 0) == false)
+			{
+				_isBadFormat = true;
 				return (1);
+			}
 			if (_readPos == 0)
 				setFirstLine(line);
 			else
@@ -72,8 +77,8 @@ int	HttpMessage::parsing(const std::string &raw, const std::size_t maxSize)
 		_isHeaderEnd = true;
 		if (getHeader("content-length").empty() == false)
 			_contentLength = std::stoi(_headers["content-length"]);
-		else
-			_contentLength = 0;
+		if (getHeader("transfer-encoding") == "chunked")
+			_isChunked = true;
 		setBody(_raw.substr(_readPos));
 	}
 	else if (_isBodyEnd == false)
@@ -110,7 +115,7 @@ bool HttpMessage::isValidLine(const std::string &line, const bool isFirstLine) c
 void	HttpMessage::setBody(const std::string &addBody)
 {
 	// lengthが指定されている場合
-	if (_contentLength != 0)
+	if (_contentLength)
 	{
 		if (_body.empty())
 			_body.reserve(_contentLength);
@@ -124,22 +129,14 @@ void	HttpMessage::setBody(const std::string &addBody)
 		else
 			_readPos += addBody.length();
 	} // chunkedが指定されている場合
-	else if (getHeader("transfer-encoding") == "chunked")
+	else if (_isChunked)
 	{
 		_body += addBody;
 		_readPos += _body.length();
 		if (_body.find("\r\n0\r\n\r\n") != std::string::npos)
 		{
-			try
-			{
-				decodeChunked(_body);
-				_isBodyEnd = true;
-			}
-			catch (std::exception &e)
-			{
-				std::cout << "decodeChunked error: " << e.what() << std::endl;
-				return ;
-			}
+			_isBodyEnd = true;
+			decodeChunked(_body);
 		}
 	}
 	else
@@ -153,7 +150,7 @@ void	HttpMessage::setBody(const std::string &addBody)
  * @param body チャンク化された文字列
  * @return void
  */
-void    HttpMessage::decodeChunked(std::string &body)
+void	HttpMessage::decodeChunked(std::string &body)
 {
 	std::cout << "decodeChunked: body is [" << body << "]" << std::endl;
     size_t         readPos = 0;
@@ -166,12 +163,18 @@ void    HttpMessage::decodeChunked(std::string &body)
 		chunkSize = std::stoul(body.substr(readPos), NULL, 16);
         readPos += chunkSize / 16 + 1;
         if (body.at(readPos) != '\r' || body.at(readPos + 1) != '\n')
-            throw std::runtime_error("chunked body format error");
+		{
+			_isBadFormat = true;
+			return ;
+		}
         readPos += 2;
         dechunk += body.substr(readPos, chunkSize);
         readPos += chunkSize;
         if (body.at(readPos) != '\r' || body.at(readPos + 1) != '\n')
-            throw std::runtime_error("chunked body format error");
+        {
+			_isBadFormat = true;
+			return ;
+		}
         readPos += 2;
     }
     body = dechunk;
@@ -236,6 +239,11 @@ void	HttpMessage::printHeader() const
 bool	HttpMessage::getIsBadFormat() const
 {
 	return (_isBadFormat);
+}
+
+bool	HttpMessage::isInvalid() const
+{
+	return (_isBadFormat || _tooBigError);
 }
 
 bool	HttpMessage::isTooBigError() const

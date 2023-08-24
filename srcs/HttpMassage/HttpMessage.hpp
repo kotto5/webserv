@@ -18,6 +18,7 @@ protected:
 	bool								_isHeaderEnd;
 	bool								_isBodyEnd;
 	bool								_isBadFormat;
+	bool								_isChunked;
 	bool								_tooBigError;
 	static	std::string					_empty;
 
@@ -54,6 +55,8 @@ public:
 	const uint8_t				*getSendBuffer();
 	std::size_t					getContentLength() const;
 	std::size_t					getContentLengthRemain() const ;
+	bool						getIsBadFormat() const;
+	bool						isInvalid() const;
 	virtual	void				setFirstLine(const std::string &line) = 0;
 	static void					setHeader(std::map<std::string, std::string>& m, std::string first, std::string second);
 	static void					setHeaderFromLine(std::map<std::string, std::string>& m, const std::string& inputStr, const std::string& keyword);
