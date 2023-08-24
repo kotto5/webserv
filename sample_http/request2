@@ -1,3 +1,13 @@
-GET /resources/../ HTTP/1.1
+GET / HTTP/1.1
 Host: www.example.com
+Transfer-Encoding: chunked
+connection: close
+
+1
+a
+2
+bb
+3
+ccc
+0
 

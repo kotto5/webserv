@@ -96,7 +96,8 @@ int	Server::handleSockets(fd_set *read_fds, fd_set *write_fds, int activity)
 		if (FD_ISSET(sock->getFd(), read_fds))
 		{
 			bool is_cgi = cgi_client.count(sock);
-			if (recv(sock, Recvs[sock]) == 1 || Recvs[sock]->isEnd())
+			ssize_t ret = recv(sock, Recvs[sock]);
+			if (ret <= 0 || Recvs[sock]->isEnd() || Recvs[sock]->isInvalid())
 			{
 				finishRecv(sock, Recvs[sock], is_cgi);
 				recv_sockets.erase(tmp_socket);
@@ -139,20 +140,11 @@ int	Server::recv(Socket *sock, HttpMessage *message) {
 	ssize_t recv_ret;
 
 	static char buffer[BUFFER_LEN];
-	memset(buffer, 0, BUFFER_LEN);
+	sock->updateLastAccess();
 	recv_ret = ::recv(sock->getFd(), buffer, BUFFER_LEN, 0);
-	if (recv_ret >= 0)
-	{
-		std::cout << "recv_ret >= 0 recv is " << recv_ret << std::endl;
-		sock->updateLastAccess();
-	}
-	else
-		std::cout << "recv_ret < 0" << std::endl;
-	if (recv_ret == -1)
-		message->parsing((""), _limitClientMsgSize);
-	else
+	if (recv_ret >= 1)
 		message->parsing(std::string(buffer, (std::size_t)recv_ret), _limitClientMsgSize);
-	return ((std::size_t)recv_ret == 0);
+	return (recv_ret);
 }
 
 ssize_t		Server::send(Socket *sock, HttpMessage *message)
