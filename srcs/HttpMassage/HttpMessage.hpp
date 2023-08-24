@@ -57,11 +57,13 @@ public:
 	std::size_t					getContentLengthRemain() const ;
 	bool						getIsBadFormat() const;
 	bool						isInvalid() const;
+
 	virtual	void				setFirstLine(const std::string &line) = 0;
 	static void					setHeader(std::map<std::string, std::string>& m, std::string first, std::string second);
 	static void					setHeaderFromLine(std::map<std::string, std::string>& m, const std::string& inputStr, const std::string& keyword);
 	void						setContentLength();
 	void						setBody(const std::string &addBody);
+	void						setBodyEnd(bool isBodyEnd);
 };
 
 #endif

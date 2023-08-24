@@ -298,3 +298,5 @@ void	HttpMessage::addHeader(std::string key, std::string value)
 {
 	setHeader(_headers, key, value);
 }
+
+void	HttpMessage::setBodyEnd(bool isBodyEnd) { _isBodyEnd = isBodyEnd; }
