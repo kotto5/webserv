@@ -77,7 +77,7 @@ int	HttpMessage::parsing(const std::string &raw, const std::size_t maxSize)
 		setBody(_raw.substr(_readPos));
 	}
 	else if (_isBodyEnd == false)
-		setBody(raw.substr(_readPos));
+		setBody(raw); // 引数そのまま渡す
 	return (0);
 }
 
@@ -130,8 +130,16 @@ void	HttpMessage::setBody(const std::string &addBody)
 		_readPos += _body.length();
 		if (_body.find("\r\n0\r\n\r\n") != std::string::npos)
 		{
-			decodeChunked(_body);
-			_isBodyEnd = true;
+			try
+			{
+				decodeChunked(_body);
+				_isBodyEnd = true;
+			}
+			catch (std::exception &e)
+			{
+				std::cout << "decodeChunked error: " << e.what() << std::endl;
+				return ;
+			}
 		}
 	}
 	else
@@ -145,34 +153,29 @@ void	HttpMessage::setBody(const std::string &addBody)
  * @param body チャンク化された文字列
  * @return void
  */
-void	HttpMessage::decodeChunked(std::string &body)
+void    HttpMessage::decodeChunked(std::string &body)
 {
-	size_t 		readPos = 0;
-	size_t 		writePos = 0;
+	std::cout << "decodeChunked: body is [" << body << "]" << std::endl;
+    size_t         readPos = 0;
+    std::string    dechunk = "";
+    unsigned long chunkSize;
 
-	while (readPos < body.size())
-	{
-		size_t endPos = body.find("\r\n", readPos);
-		if (endPos == std::string::npos)
-		{
-			break;
-		}
-		// chunkサイズを取得
-		unsigned long chunkSize = std::stoul(body.substr(readPos, endPos - readPos), nullptr, 16);
-		readPos = endPos + 2; // サイズの次の行頭に進める
-		if (readPos + chunkSize <= body.size())
-		{
-			std::copy(body.begin() + readPos, body.begin() + readPos + chunkSize, body.begin() + writePos);
-			writePos += chunkSize;
-			readPos += chunkSize;
-		}
-		else
-		{
-			break;
-		}
-		readPos += 2; // CRLFの分をスキップ
-	}
-	body.erase(writePos);
+    chunkSize = 1;
+    while (chunkSize)
+    {
+		chunkSize = std::stoul(body.substr(readPos), NULL, 16);
+        readPos += chunkSize / 16 + 1;
+        if (body.at(readPos) != '\r' || body.at(readPos + 1) != '\n')
+            throw std::runtime_error("chunked body format error");
+        readPos += 2;
+        dechunk += body.substr(readPos, chunkSize);
+        readPos += chunkSize;
+        if (body.at(readPos) != '\r' || body.at(readPos + 1) != '\n')
+            throw std::runtime_error("chunked body format error");
+        readPos += 2;
+    }
+    body = dechunk;
+	std::cout << "decodeChunked: body is [" << body << "]" << std::endl;
 }
 
 std::string	HttpMessage::makeHeaderKeyLower(std::string key)
