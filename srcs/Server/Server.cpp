@@ -71,6 +71,28 @@ int	Server::createServerSocket(int port)
 	return (0);
 }
 
+bool	cgiConnectionClosed(int ret, int isCgi) { return (ret == 0 && isCgi); }
+bool	clientConnectionClosed(int ret, int isCgi) { return (ret == 0 && !isCgi); }
+
+void	Server::recvError(Socket *sock, bool is_cgi)
+{
+	if (is_cgi)
+	{
+		Socket	*clSocket = cgi_client[sock];
+		try
+		{
+			Sends[clSocket] = new Response("500");
+			setFd(TYPE_SEND, clSocket);
+		}
+		catch (const std::exception &e)
+		{
+			deleteSocket(TYPE_SEND, clSocket);
+		}
+		deleteSocket(TYPE_CGI, sock);
+	}
+	deleteSocket(TYPE_RECV, sock);
+}
+
 int	Server::handleSockets(fd_set *read_fds, fd_set *write_fds, int activity)
 {
 	std::list<Socket *>::iterator	itr;
@@ -93,17 +115,27 @@ int	Server::handleSockets(fd_set *read_fds, fd_set *write_fds, int activity)
 	{
 		tmp_socket = itr++;
 		sock = *tmp_socket;
-		if (FD_ISSET(sock->getFd(), read_fds))
+		if (!FD_ISSET(sock->getFd(), read_fds))
+			continue ;
+		bool is_cgi = cgi_client.count(sock);
+		try
 		{
-			bool is_cgi = cgi_client.count(sock);
 			ssize_t ret = recv(sock, Recvs[sock]);
-			if (ret <= 0 || Recvs[sock]->isEnd() || Recvs[sock]->isInvalid())
+			if (clientConnectionClosed(ret, is_cgi) || ret == -1)
+				throw std::runtime_error("recv");
+			else if (cgiConnectionClosed(ret, is_cgi))
+				Recvs[sock]->setBodyEnd(true);
+			if (Recvs[sock]->isEnd() || Recvs[sock]->isInvalid())
 			{
 				finishRecv(sock, Recvs[sock], is_cgi);
 				recv_sockets.erase(tmp_socket);
 			}
-			--activity;
 		}
+		catch (const std::exception &e)
+		{
+			recvError(sock, is_cgi);
+		}
+		--activity;
 	}
 	// クライアントソケット送信
 	for (itr = send_sockets.begin(); activity && itr != send_sockets.end();)
@@ -142,9 +174,15 @@ int	Server::recv(Socket *sock, HttpMessage *message) {
 	static char buffer[BUFFER_LEN];
 	sock->updateLastAccess();
 	recv_ret = ::recv(sock->getFd(), buffer, BUFFER_LEN, 0);
-	if (recv_ret >= 1)
+	if (recv_ret == -1)
+		return (-1);
+	try {
 		message->parsing(std::string(buffer, (std::size_t)recv_ret), _limitClientMsgSize);
-	return (recv_ret);
+		return (recv_ret);
+	}
+	catch (const std::exception &e) {
+		return (-1);
+	}
 }
 
 ssize_t		Server::send(Socket *sock, HttpMessage *message)
@@ -228,6 +266,33 @@ int	Server::setFd(int type, Socket *sock, Socket *client_sock)
 		cgi_client[sock] = client_sock;
 	else
 		return (1);
+	return (0);
+}
+
+int	Server::deleteSocket(int type, Socket *socket)
+{
+	if (type == TYPE_RECV)
+	{
+		recv_sockets.remove(socket);
+		delete (Recvs[socket]);
+		delete (socket);
+	}
+	else if (type == TYPE_SEND)
+	{
+		send_sockets.remove(socket);
+		delete (Sends[socket]);
+		delete (socket);
+	}
+	else if (type == TYPE_SERVER)
+	{
+		server_sockets.remove(socket);
+		delete (socket);
+	}
+	else if (type == TYPE_CGI)
+	{
+		cgi_client.erase(socket);
+		delete (socket);
+	}
 	return (0);
 }
 

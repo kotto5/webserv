@@ -61,7 +61,9 @@ private:
 	ssize_t			send(Socket *sock, HttpMessage *message);
 	void 			finishRecv(Socket *sock, HttpMessage *message, bool is_cgi);
 	void			finishSend(Socket *sock, HttpMessage *message);
+	void			recvError(Socket *sock, bool is_cgi);
 	int				setFd(int type, Socket *sock, Socket *client_sock = NULL);
+	int				deleteSocket(int type, Socket *socket);
 	bool			checkTimeout();
 	static int		set_fd_set(fd_set &set, std::list<Socket *> sockets, int &maxFd);
 	void			addKeepAliveHeader(Response *response, ClSocket *clientSock, HttpMessage *request);
