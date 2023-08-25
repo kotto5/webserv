@@ -47,5 +47,7 @@ HttpMessage	*CgiResHandler::handleMessage(const Response &response)
 	waitpid(-1, &wstatus, 0);
 	if (WEXITSTATUS(wstatus) == 1 || response.isInvalid())
 		return (new Response("500"));
-	return (new Response(response));
+	Response *res = new Response(response);
+	// local redirect ... other
+	return (res);
 }
