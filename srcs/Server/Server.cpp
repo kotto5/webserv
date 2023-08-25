@@ -125,7 +125,7 @@ int	Server::handleSockets(fd_set *read_fds, fd_set *write_fds, int activity)
 				throw std::runtime_error("recv");
 			else if (cgiConnectionClosed(ret, is_cgi))
 				Recvs[sock]->setBodyEnd(true);
-			if (Recvs[sock]->isEnd() || Recvs[sock]->isInvalid())
+			if (Recvs[sock]->isEnd() || Recvs[sock]->isInvalid() || cgiConnectionClosed(ret, is_cgi))
 			{
 				finishRecv(sock, Recvs[sock], is_cgi);
 				recv_sockets.erase(tmp_socket);
@@ -397,4 +397,22 @@ void	Server::addKeepAliveHeader(Response *response, ClSocket *clientSock, HttpMe
 		clientSock->decrementMaxRequest();
 	}
 	response->makeRowString();
+}
+
+void	Server::addSend(Socket *sock, HttpMessage *message)
+{
+	Sends[sock] = message;
+	setFd(TYPE_SEND, sock);
+}
+
+void	Server::addRecv(Socket *sock, HttpMessage *message)
+{
+	Recvs[sock] = message;
+	setFd(TYPE_RECV, sock);
+}
+
+void	Server::addCgi(Socket *sock, Socket *clientSocket)
+{
+	cgi_client[sock] = clientSocket;
+	setFd(TYPE_CGI, sock);
 }
