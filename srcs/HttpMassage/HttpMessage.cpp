@@ -77,7 +77,7 @@ int	HttpMessage::parsing(const std::string &raw, const std::size_t maxSize)
 		setBody(_raw.substr(_readPos));
 	}
 	else if (_isBodyEnd == false)
-		setBody(raw.substr(_readPos));
+		setBody(raw); // 引数そのまま渡す
 	return (0);
 }
 
@@ -109,7 +109,7 @@ bool HttpMessage::isValidLine(const std::string &line, const bool isFirstLine) c
  */
 void	HttpMessage::setBody(const std::string &addBody)
 {
-	// lengthがある
+	// lengthが指定されている場合
 	if (_contentLength != 0)
 	{
 		if (_body.empty())
@@ -123,19 +123,59 @@ void	HttpMessage::setBody(const std::string &addBody)
 		}
 		else
 			_readPos += addBody.length();
-	} // chunkedのとき
+	} // chunkedが指定されている場合
 	else if (getHeader("transfer-encoding") == "chunked")
 	{
 		_body += addBody;
 		_readPos += _body.length();
 		if (_body.find("\r\n0\r\n\r\n") != std::string::npos)
 		{
-			// TODO: body = decode_chunked(body);
-			_isBodyEnd = true;
+			try
+			{
+				decodeChunked(_body);
+				_isBodyEnd = true;
+			}
+			catch (std::exception &e)
+			{
+				std::cout << "decodeChunked error: " << e.what() << std::endl;
+				return ;
+			}
 		}
 	}
 	else
 		_isBodyEnd = true;
+}
+
+/**
+ * @brief チャンク化されたデータを復号する
+ *
+ * @detail この関数は副作用を持つ
+ * @param body チャンク化された文字列
+ * @return void
+ */
+void    HttpMessage::decodeChunked(std::string &body)
+{
+	std::cout << "decodeChunked: body is [" << body << "]" << std::endl;
+    size_t         readPos = 0;
+    std::string    dechunk = "";
+    unsigned long chunkSize;
+
+    chunkSize = 1;
+    while (chunkSize)
+    {
+		chunkSize = std::stoul(body.substr(readPos), NULL, 16);
+        readPos += chunkSize / 16 + 1;
+        if (body.at(readPos) != '\r' || body.at(readPos + 1) != '\n')
+            throw std::runtime_error("chunked body format error");
+        readPos += 2;
+        dechunk += body.substr(readPos, chunkSize);
+        readPos += chunkSize;
+        if (body.at(readPos) != '\r' || body.at(readPos + 1) != '\n')
+            throw std::runtime_error("chunked body format error");
+        readPos += 2;
+    }
+    body = dechunk;
+	std::cout << "decodeChunked: body is [" << body << "]" << std::endl;
 }
 
 std::string	HttpMessage::makeHeaderKeyLower(std::string key)
