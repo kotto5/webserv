@@ -62,8 +62,8 @@ private:
 	int				accept(Socket *serverSocket);
 	int				recv(Socket *sock, HttpMessage *message);
 	ssize_t			send(Socket *sock, HttpMessage *message);
-	void 			finishRecv(Socket *sock, HttpMessage *message, bool is_cgi);
-	void			finishSend(Socket *sock, HttpMessage *message);
+	void 			finishRecv(Socket *sock, HttpMessage *message, bool isCgi);
+	void			finishSend(Socket *sock, HttpMessage *message, bool isCgi);
 	void			recvError(Socket *sock, bool is_cgi);
 	int				setFd(int type, Socket *sock, Socket *client_sock = NULL);
 	int				deleteSocket(int type, Socket *socket);
