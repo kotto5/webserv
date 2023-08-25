@@ -256,17 +256,24 @@ void	Server::finishSend(Socket *sock, HttpMessage *message)
  */
 int	Server::setFd(int type, Socket *sock, Socket *client_sock)
 {
-	if (type == TYPE_RECV)
-		recv_sockets.push_back(sock);
-	else if (type == TYPE_SEND)
-		send_sockets.push_back(sock);
-	else if (type == TYPE_SERVER)
-		server_sockets.push_back(sock);
-	else if (type == TYPE_CGI)
-		cgi_client[sock] = client_sock;
-	else
+	try
+	{
+		if (type == TYPE_RECV)
+			recv_sockets.push_back(sock);
+		else if (type == TYPE_SEND)
+			send_sockets.push_back(sock);
+		else if (type == TYPE_SERVER)
+			server_sockets.push_back(sock);
+		else if (type == TYPE_CGI)
+			cgi_client[sock] = client_sock;
+		else
+			return (1);
+		return (0);
+	}
+	catch(const std::exception& e)
+	{
 		return (1);
-	return (0);
+	}
 }
 
 int	Server::deleteSocket(int type, Socket *socket)
