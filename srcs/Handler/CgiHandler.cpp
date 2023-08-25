@@ -129,47 +129,46 @@ int CgiHandler::runCgi(const Request &request, int pipes[2])
  */
 std::vector<char *> CgiHandler::createEnvs(const Request &request)
 {
+    const std::string &uri = request.getUri();
     std::vector<std::string> envs;
-
     envs.push_back("AUTH_TYPE=" + request.getHeader("auth-scheme"));
+    // requestBody の長さ
     envs.push_back("CONTENT_LENGTH=" + std::to_string(request.getBody().length()));
-    // envs.push_back("CONTENT_TYPE=" + request->getContentType());
+    // requestBody の content-type
+    envs.push_back("CONTENT_TYPE=" + request.getHeader("content-type"));
     envs.push_back("GATEWAY_INTERFACE=CGI/1.1");
 
-    // std::filesystem::path p{"../../docs"};
-    // if (std::filesystem::exists(p))
-    //     envs.push_back("PATH_TRANSLATED=" + std::filesystem::absolute(p).string());
-    envs.push_back("PATH_TRANSLATED=");
-
-    std::string uri = request.getUri();
-    // std::string filename = uri.substr(uri.find_last_of('/') + 1);
-    std::string filename = ".php";
-    std::string target = ".php"; // file name
-    size_t pos = uri.find(".php");
-    if (pos != std::string::npos)
-        envs.push_back("PATH_INFO=" + uri.substr(pos + target.size()));
-
-    envs.push_back("QUERY_STRING=" + (request.getUri().find('?') != std::string::npos
-		? request.getUri().substr(request.getUri().find('?') + 1)
-		: ""));
-    // envs.push_back("REMOTE_ADDR=" + request->getRemoteAddr()); // MUST
-    // envs.push_back("REMOTE_IDENT=" + request->getRemoteIdent()); // SHOULD
-    // envs.push_back("REMOTE_USER=" + request->getRemoteUser()); // SHOULD
+    std::string cgiExtention = ".php";
+    std::string::size_type  lastCgiExtention = uri.find_last_of(cgiExtention);
+    std::string pathInfo = uri.substr(lastCgiExtention + 1);
+    if (pathInfo.empty() == false)
+    {
+        envs.push_back("PATH_INFO=" + pathInfo);
+        // std::filesystem::path   absolutePath = std::filesystem::absolute(pathInfo);
+        // envs.push_back("PATH_TRANSLATED=" + absolutePath.string());
+        envs.push_back("PATH_TRANSLATED=" + pathInfo);
+    }
+    envs.push_back("QUERY_STRING=" + request.getQuery());
+    envs.push_back("REMOTE_ADDR=" + request.getRemoteAddr()); // MUST
     envs.push_back("REQUEST_METHOD=" + request.getMethod());
-    envs.push_back("REQUEST_URI=" + request.getUri());
-    envs.push_back("SCRIPT_NAME=" + filename);
-    // envs.push_back("SERVER_NAME=" + request->getServerName());
-    // envs.push_back("SERVER_PORT=" + std::to_string(request->getServerPort()));
+    std::string::size_type  startScriptName = uri.find_last_of("/", lastCgiExtention);
+    std::cout << "startScriptName: " << startScriptName << std::endl;
+    std::cout << "startScriptName: " << uri.substr(startScriptName + 1) << std::endl;
+    envs.push_back("SCRIPT_NAME=" + uri.substr(startScriptName + 1));
+    envs.push_back("SERVER_NAME=" + request.getServerName());
+    envs.push_back("SERVER_PORT=" + request.getServerPort());
     envs.push_back("SERVER_PROTOCOL=" + request.getProtocol());
-    // envs.push_back("SERVER_SOFTWARE=" + request->getServerSoftware());
-    envs.push_back("HTTP_ACCEPT=" + request.getHeader("Accept")); //////////
+    envs.push_back("SERVER_SOFTWARE=WakeWakame/1.0");
 
-	// char型に一括置換
-    std::vector<char *> cenvs;
+    envs.push_back("HTTP_ACCEPT=" + request.getHeader("accept"));
+    envs.push_back("HTTP_ACCEPT=" + request.getHeader("Host")); // not must
+    envs.push_back("HTTP_ACCEPT=" + request.getHeader("User-Agent")); // not must
+
+    std::vector<char*> cenvs;
     std::vector<std::string>::iterator it = envs.begin();
     for (; it != envs.end(); it++)
         cenvs.push_back(const_cast<char*>(it->c_str()));
-    cenvs.push_back(nullptr); // execveには最後にnullポインタが必要
+    cenvs.push_back(nullptr); // execveには最後にnullポインタが必要です
 
 	return cenvs;
 }
