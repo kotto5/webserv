@@ -17,7 +17,7 @@ class CgiHandler : public IHandler
 {
 public:
 	// Constructors
-	CgiHandler(Server *server, const LocationContext &locationContext);
+	CgiHandler();
 	CgiHandler(Socket clientSocket);
 	CgiHandler(const CgiHandler &other);
 
@@ -28,13 +28,14 @@ public:
 	CgiHandler &operator=(const CgiHandler &rhs);
 
 	// Member functions
+	void				init(Server &server, const LocationContext &lc);
 	virtual Response	*handleRequest(const Request &request);
 	void setClientSocket(Socket *clientSocket);
 
 private:
 	Server	*_server;
 	Socket	*_clientSocket;
-	LocationContext _locationContext;
+	const LocationContext *_locationContext;
 
 	int runCgi(const Request &request, int pipes[2]);
 	std::vector<char *> createEnvs(const Request &request);

@@ -6,7 +6,7 @@
 #include <filesystem>
 
 // Constructors
-CgiHandler::CgiHandler(Server *server, const LocationContext &lc): _server(server), _locationContext(lc)
+CgiHandler::CgiHandler()
 {
 	_status = "200";
 }
@@ -28,6 +28,12 @@ CgiHandler &CgiHandler::operator=(const CgiHandler &rhs)
 		_server = rhs._server;
 	}
 	return *this;
+}
+
+void	CgiHandler::init(Server &server, const LocationContext &lc)
+{
+	_server = &server;
+	_locationContext = &lc;
 }
 
 /**
@@ -101,7 +107,7 @@ int CgiHandler::runCgi(const Request &request, int pipes[2])
         std::string path = request.getActualUri();
 		std::string path_query = path;
 
-		char *cgi_pass = const_cast<char *>(_locationContext.getDirective("cgi_pass").c_str());
+		char *cgi_pass = const_cast<char *>(_locationContext->getDirective("cgi_pass").c_str());
 		char *argv[] = {cgi_pass, const_cast<char *>(path_query.c_str()), NULL};
 
 		// プログラム呼び出し
