@@ -1,6 +1,8 @@
 <?php
 echo ("HTTP/1.1 200 OK\r\n");
-echo ("Content-Type: text/html; charset=utf-8\r\n\r\n");
+echo ("Content-Type: text/html; charset=utf-8\r\n");
+echo ("content-length: 500\r\n");
+echo ("\r\n");
 ?>
 <!DOCTYPE html>
 <html lang="ja">
@@ -10,8 +12,9 @@ echo ("Content-Type: text/html; charset=utf-8\r\n\r\n");
 </head>
 <body>
 <?php
-echo $_SERVER["REQUEST_METHOD"] , "<br>";
-if ($_SERVER["REQUEST_METHOD"] == "POST")
+// echo $_SERVER["REQUEST_METHOD"] , "<br>";
+// if ($_SERVER["REQUEST_METHOD"] == "POST")
+if (true)
 {
     // 標準入力からデータを読み込む
     $stdin = fopen('php://stdin', 'r');

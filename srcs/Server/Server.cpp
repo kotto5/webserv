@@ -88,9 +88,11 @@ void	Server::recvError(Socket *sock, bool is_cgi)
 		{
 			deleteSocket(TYPE_SEND, clSocket);
 		}
-		deleteSocket(TYPE_CGI, sock);
+		cgi_client.erase(sock);
 	}
-	deleteSocket(TYPE_RECV, sock);
+	recv_sockets.remove(sock);
+	delete (Recvs[sock]);
+	delete (sock);
 }
 
 int	Server::handleSockets(fd_set *read_fds, fd_set *write_fds, int activity)
@@ -117,7 +119,7 @@ int	Server::handleSockets(fd_set *read_fds, fd_set *write_fds, int activity)
 		sock = *tmp_socket;
 		if (!FD_ISSET(sock->getFd(), read_fds))
 			continue ;
-		bool is_cgi = cgi_client.count(sock);
+		bool is_cgi = cgi_client.count(sock) != 0;
 		try
 		{
 			ssize_t ret = recv(sock, Recvs[sock]);
@@ -133,6 +135,7 @@ int	Server::handleSockets(fd_set *read_fds, fd_set *write_fds, int activity)
 		}
 		catch (const std::exception &e)
 		{
+			std::cout << e.what() << std::endl;
 			recvError(sock, is_cgi);
 		}
 		--activity;
@@ -144,12 +147,22 @@ int	Server::handleSockets(fd_set *read_fds, fd_set *write_fds, int activity)
 		sock = *tmp_socket;
 		if (!FD_ISSET(sock->getFd(), write_fds))
 			continue ;
-		send(sock, Sends[sock]);
+		bool is_cgi = cgi_client.count(sock);
+		if (send(sock, Sends[sock]) <= 0)
+		{
+			if (is_cgi)
+				ErrorfinishSendCgi(sock, cgi_client[sock]);
+			else
+			{
+				delete (Sends[sock]);
+				delete (sock);
+			}
+			send_sockets.erase(tmp_socket);
+		}
 		if (Sends[sock]->doesSendEnd())
 		{
-			bool is_cgi = cgi_client.count(sock);
-			finishSend(sock, Sends[sock], is_cgi);
 			send_sockets.erase(tmp_socket);
+			finishSend(sock, Sends[sock], is_cgi);
 		}
 		--activity;
 	}
@@ -175,7 +188,10 @@ int	Server::recv(Socket *sock, HttpMessage *message) {
 	sock->updateLastAccess();
 	recv_ret = ::recv(sock->getFd(), buffer, BUFFER_LEN, 0);
 	if (recv_ret == -1)
+	{
+		perror("recv::: ");
 		return (-1);
+	}
 	try {
 		message->parsing(std::string(buffer, (std::size_t)recv_ret), _limitClientMsgSize);
 		return (recv_ret);
@@ -192,8 +208,16 @@ ssize_t		Server::send(Socket *sock, HttpMessage *message)
 
 	sock->updateLastAccess();
 	buffer = message->getSendBuffer();
+	if (buffer == NULL)
+		return (-1);
 	ret = ::send(sock->getFd(), buffer, message->getContentLengthRemain(), 0);
-	message->addSendPos(ret);
+	if (ret == 0)
+	{
+		std::cout << "arienai to omotteta!" << std::endl;
+		exit(1);
+	}
+	else if (ret > 0)
+		message->addSendPos(ret);
 	return (ret);
 }
 
@@ -233,23 +257,55 @@ void Server::finishRecv(Socket *sock, HttpMessage *message, bool isCgi)
 	delete (message);
 }
 
+int	Server::setErrorResponse(Socket *clSock)
+{
+	Response *response;
+	try {
+		response = new Response("500");
+	}
+	catch (const std::exception &e)
+	{
+		return (-1);
+	}
+	if (addSend(clSock, response))
+	{
+		delete (response);
+		return (-1);
+	}
+	return (0);
+}
+
+void	Server::ErrorfinishSendCgi(Socket *cgiSock, Socket *clSock)
+{
+	if (setErrorResponse(clSock))
+		delete (clSock);
+	cgi_client.erase(cgiSock);
+	delete (cgiSock);
+}
+
+
 void	Server::finishSend(Socket *sock, HttpMessage *message, bool isCgi)
 {
 	Sends.erase(sock);
 	if (isCgi)
 	{
-		shutdown(sock->getFd(), SHUT_WR);
-		cgi_client.erase(sock);
-		addRecv(sock, new Response());
-		delete (message);
-		return ;
+		Socket	*clSocket = cgi_client[sock];
+		if (shutdown(sock->getFd(), SHUT_WR) == -1)
+			return (ErrorfinishSendCgi(sock, clSocket));
+		Response *response = new Response();
+		if (addRecv(sock, response))
+		{
+			delete (response);
+			return (ErrorfinishSendCgi(sock, clSocket));
+		}
 	}
-	if (message->getHeader("connection") == "close")
+	else if (message->getHeader("connection") == "close")
 		delete (sock);
 	else
 	{
-		Recvs[sock] = new Request((ClSocket *)sock);
-		setFd(TYPE_RECV, sock);
+		// Recvs[sock] = new Request((ClSocket *)sock);
+		// setFd(TYPE_RECV, sock);
+		addRecv(sock, new Request((ClSocket *)sock));
 	}
 	delete (message);
 }
@@ -388,19 +444,22 @@ void	Server::addKeepAliveHeader(Response *response, ClSocket *clientSock, HttpMe
 	response->makeRowString();
 }
 
-void	Server::addSend(Socket *sock, HttpMessage *message)
+int	Server::addSend(Socket *sock, HttpMessage *message)
 {
 	Sends[sock] = message;
 	setFd(TYPE_SEND, sock);
+	return (0);
 }
 
-void	Server::addRecv(Socket *sock, HttpMessage *message)
+int	Server::addRecv(Socket *sock, HttpMessage *message)
 {
 	Recvs[sock] = message;
 	setFd(TYPE_RECV, sock);
+	return (0);
 }
 
-void	Server::addCgi(Socket *sock, Socket *clientSocket)
+int	Server::addCgi(Socket *sock, Socket *clientSocket)
 {
 	setFd(TYPE_CGI, sock, clientSocket);
+	return (0);
 }
