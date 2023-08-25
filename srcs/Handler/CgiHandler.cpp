@@ -6,7 +6,7 @@
 #include <filesystem>
 
 // Constructors
-CgiHandler::CgiHandler(Server *server, const LocationContext &lc): _server(server), _locationContext(lc)
+CgiHandler::CgiHandler()
 {
 	_status = "200";
 }
@@ -28,6 +28,12 @@ CgiHandler &CgiHandler::operator=(const CgiHandler &rhs)
 		_server = rhs._server;
 	}
 	return *this;
+}
+
+void	CgiHandler::init(Server &server, const LocationContext &lc)
+{
+	_server = &server;
+	_locationContext = &lc;
 }
 
 /**
@@ -54,18 +60,22 @@ Response *CgiHandler::handleRequest(const Request &request)
 	close(socks[S_CHILD]);
 
 	set_non_blocking(socks[S_PARENT]);
-	if (request.getBody().size() != 0)
+	Socket *cgiSock = new Socket(socks[S_PARENT]);
+	_server->addCgi(cgiSock, _clientSocket);
+	if (request.getBody().size() > 0)
 	{
 		// リクエストボディがある場合はCGIに送信する
-		_server->createSocketForCgi(socks[S_PARENT], request.getBody());
+		Request *req = new Request(request.getBody());
+		_server->addSend(cgiSock, req);
 	}
 	else
 	{
 		// リクエストボディがない場合はEOFを送信する
-		shutdown(socks[S_PARENT], SHUT_WR);
+		shutdown(cgiSock->getFd(), SHUT_WR);
+		HttpMessage *res = new Response();
+		_server->addRecv(cgiSock, res);
 	}
 	// レスポンスを受信する
-	_server->createSocketForCgi(socks[S_PARENT], request.getBody(), _clientSocket);
 	return NULL;
 }
 
@@ -92,23 +102,21 @@ int CgiHandler::runCgi(const Request &request, int pipes[2])
 	{
         std::cout << "sockRecv: " << pipes[S_CHILD] << std::endl;
         std::cout << "sockSend: " << pipes[S_PARENT] << std::endl;
-        close(pipes[S_PARENT]);
-        if (dup2(pipes[S_CHILD], STDOUT_FILENO) == -1)
-		{
-			throw ServerException("dup2 send");
-		}
-        close(pipes[S_CHILD]);
+        if (close(pipes[S_PARENT]) ||
+			dup2(pipes[S_CHILD], STDOUT_FILENO) == -1 ||
+        	dup2(pipes[S_CHILD], STDIN_FILENO) == -1 ||
+	        close(pipes[S_CHILD]))
+			exit(1);
         std::string path = request.getActualUri();
 		std::string path_query = path;
 
-		char *cgi_pass = const_cast<char *>(_locationContext.getDirective("cgi_pass").c_str());
+		char *cgi_pass = const_cast<char *>(_locationContext->getDirective("cgi_pass").c_str());
 		char *argv[] = {cgi_pass, const_cast<char *>(path_query.c_str()), NULL};
 
 		// プログラム呼び出し
 		execve(cgi_pass, argv, (char* const*)(envs.data()));
         perror(path_query.c_str());
         exit(1);
-		throw ServerException("execve failed");
 	}
     return 0;
 }

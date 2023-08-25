@@ -67,11 +67,11 @@ HttpMessage *Router::routeHandler(HttpMessage &message, Socket *sock)
 			.getServerContext(request->getServerPort(), request->getHeader("host"));
 
 		if (request->isBadRequest())
-			return (new Response("400"));
+			return handleError(*request, "400");
 		if (request->isTooBigError())
-			return (new Response("401"));
+			return handleError(*request, "401");
 		if (request->getUri().find("..") != std::string::npos)
-			return (new Response("403")); // ディレクトリトラバーサルの場合
+			return handleError(*request, "403"); // ディレクトリトラバーサルの場合
 		if (isRedirect(*request))
 		{
 			std::map<std::string, std::string> headers;
@@ -79,7 +79,7 @@ HttpMessage *Router::routeHandler(HttpMessage &message, Socket *sock)
 			return new Response("301", headers, "");
 		}
 		if (isAllowedMethod(*request) == false)
-			return (new Response("405"));
+			return handleError(*request, "405");
 
 		// メソッドに対応するhandlerを呼び出し
 		try
@@ -87,13 +87,13 @@ HttpMessage *Router::routeHandler(HttpMessage &message, Socket *sock)
 			IHandler *handler = NULL;
 			if (isConnectionCgi(*request))
 			{
-				CgiHandler CHandler(_server, _serverContext->getLocationContext(request->getUri()));
-				CHandler.setClientSocket(sock);
-				handler = &CHandler;
+				_cgiHandler.init(*_server, _serverContext->getLocationContext(request->getUri()));
+				_cgiHandler.setClientSocket(sock);
+				handler = &_cgiHandler;
 			}
 			else
 				handler = _handlers.at(request->getMethod());
-			return handler->handleRequest(*request);
+			return (handler->handleRequest(*request));
 		}
 		catch (const RequestException &e)
 		{

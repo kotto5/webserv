@@ -10,6 +10,7 @@
 #include "ServerContext.hpp"
 #include <iostream>
 #include <string>
+#include "CgiHandler.hpp"
 
 class Router
 {
@@ -41,6 +42,7 @@ private:
 	GetHandler _getHandler;
 	PostHandler _postHandler;
 	DeleteHandler _deleteHandler;
+	CgiHandler _cgiHandler;
 
 	Server *_server;
 	const ServerContext *_serverContext;

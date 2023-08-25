@@ -3,18 +3,24 @@
 echo "HTTP/1.1 200 OK\r\n";
 // ヘッダー
 echo "Content-Type: text/html\r\n";
+echo "Content-Length: 411\r\n"; // not modify!!
 echo "\r\n";
-// ボディ
-echo '<!DOCTYPE html>
-<html>
-	<body>
-		<h2>Basic HTML Form</h2>
-			<form action="/cgi/welcome.php" method="post">
-  				Name: <input type="text" name="name"><br>
-  				Email: <input type="text" name="email"><br>
-  			<input type="submit">
-			</form>
-	</body>
-</html>
-';
 ?>
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>PHPテスト</title>
+</head>
+<body>
+	<b>PHPテスト</b>
+	<b>here is index.php.  It is $_SERVER list! <br/></b>
+	<h2>Basic HTML Form</h2>
+	<form action="/cgi/welcome.php" method="post">
+		Name: <input type="text" name="name"><br>
+		Email: <input type="text" name="email"><br>
+	<input type="submit">
+	</form>
+</body>
+</html>
