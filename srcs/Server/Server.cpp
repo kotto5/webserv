@@ -205,6 +205,8 @@ void Server::finishRecv(Socket *sock, HttpMessage *message, bool is_cgi)
 	Router router(*this);
 	// ルーティング
 	HttpMessage *newMessage = router.routeHandler(*message, sock);
+	Recvs.erase(sock);
+	delete (message);
 	if (newMessage)
 	{
 		if (is_cgi)
