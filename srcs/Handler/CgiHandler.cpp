@@ -62,7 +62,7 @@ Response *CgiHandler::handleRequest(const Request &request)
 	set_non_blocking(socks[S_PARENT]);
 	Socket *cgiSock = new Socket(socks[S_PARENT]);
 	_server->addCgi(cgiSock, _clientSocket);
-	if (request.getBody().size() != 0)
+	if (request.getBody().size() > 0)
 	{
 		// リクエストボディがある場合はCGIに送信する
 		Request *req = new Request(request.getBody());
@@ -71,7 +71,7 @@ Response *CgiHandler::handleRequest(const Request &request)
 	else
 	{
 		// リクエストボディがない場合はEOFを送信する
-		shutdown(socks[S_PARENT], SHUT_WR);
+		shutdown(cgiSock->getFd(), SHUT_WR);
 		HttpMessage *res = new Response();
 		_server->addRecv(cgiSock, res);
 	}
