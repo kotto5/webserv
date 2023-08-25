@@ -43,9 +43,9 @@ public:
 	int				setup();
 	int				run();
 	void			createSocketForCgi(int type, int fd, const std::string &body, Socket *sock = NULL);
-	void			addRecv(Socket *sock, HttpMessage *message);
-	void			addSend(Socket *sock, HttpMessage *message);
-	void			addCgi(Socket *sock, Socket *cgi);
+	int				addRecv(Socket *sock, HttpMessage *message);
+	int				addSend(Socket *sock, HttpMessage *message);
+	int				addCgi(Socket *sock, Socket *cgi);
 
 private:
 	std::list<Socket *>					server_sockets;
@@ -70,6 +70,8 @@ private:
 	bool			checkTimeout();
 	static int		set_fd_set(fd_set &set, std::list<Socket *> sockets, int &maxFd);
 	void			addKeepAliveHeader(Response *response, ClSocket *clientSock, HttpMessage *request);
+	int				setErrorResponse(Socket *clSock);
+	void			ErrorfinishSendCgi(Socket *cgiSock, Socket *clSock);
 };
 
 #endif
