@@ -216,7 +216,11 @@ const uint8_t	*HttpMessage::getSendBuffer()
 	{
 		std::cout << "getSendBuffer: _raw is[" << _raw << "]" << std::endl;
 		_sendBufferSize = _raw.length();
-		_sendBuffer = new uint8_t[_sendBufferSize];
+		try {
+			_sendBuffer = new  uint8_t[_sendBufferSize];
+		} catch (std::exception &e) {
+			return (NULL);
+		}
 		std::memcpy((void *)_sendBuffer, (void *)_raw.c_str(), _raw.length());
 	}
 	return (_sendBuffer);
