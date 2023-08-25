@@ -87,13 +87,13 @@ HttpMessage *Router::routeHandler(HttpMessage &message, Socket *sock)
 			IHandler *handler = NULL;
 			if (isConnectionCgi(*request))
 			{
-				CgiHandler CHandler(_server, _serverContext->getLocationContext(request->getUri()));
-				CHandler.setClientSocket(sock);
-				handler = &CHandler;
+				_cgiHandler.init(*_server, _serverContext->getLocationContext(request->getUri()));
+				_cgiHandler.setClientSocket(sock);
+				handler = &_cgiHandler;
 			}
 			else
 				handler = _handlers.at(request->getMethod());
-			return handler->handleRequest(*request);
+			return (handler->handleRequest(*request));
 		}
 		catch (const RequestException &e)
 		{
