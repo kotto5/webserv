@@ -200,13 +200,12 @@ ssize_t		Server::send(Socket *sock, HttpMessage *message)
 // bool じゃなくて dynamic_cast で判定したほうがいいかも
 void Server::finishRecv(Socket *sock, HttpMessage *message, bool isCgi)
 {
+	Recvs.erase(sock);
 	std::cout << "finishRecv [" << message->getRaw() << "]" << std::endl;
 
 	Router router(*this);
 	// ルーティング
 	HttpMessage *newMessage = router.routeHandler(*message, sock);
-	Recvs.erase(sock);
-	delete (message);
 	if (newMessage)
 	{
 		if (isCgi)
@@ -231,6 +230,7 @@ void Server::finishRecv(Socket *sock, HttpMessage *message, bool isCgi)
 			}
 		}
 	}
+	delete (message);
 }
 
 void	Server::finishSend(Socket *sock, HttpMessage *message, bool isCgi)
