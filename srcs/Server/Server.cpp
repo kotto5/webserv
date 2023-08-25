@@ -229,8 +229,6 @@ void Server::finishRecv(Socket *sock, HttpMessage *message, bool is_cgi)
 			}
 		}
 	}
-	Recvs.erase(sock);
-	delete (message);
 }
 
 void	Server::finishSend(Socket *sock, HttpMessage *message)
@@ -362,25 +360,6 @@ int	Server::set_fd_set(fd_set &set, std::list<Socket *> sockets, int &maxFd)
  * @detail delegateパターンを用いてCgiHandlerクラスに移譲する
  *
  */
-void Server::createSocketForCgi(int fd, const std::string &body, Socket *clientSocket)
-{
-	// CGI用のソケットを作成する
-	Socket *sock = new Socket(fd);
-
-	if (!clientSocket)
-	{
-		// 送信
-		setFd(TYPE_SEND, sock);
-		Sends[sock] = new Request(body);
-	}
-	else
-	{
-		// 受信
-		setFd(TYPE_RECV, sock);
-		setFd(TYPE_CGI, sock, clientSocket);
-		Recvs[sock] = new Response();
-	}
-}
 
 void	Server::addKeepAliveHeader(Response *response, ClSocket *clientSock, HttpMessage *request)
 {
@@ -413,6 +392,5 @@ void	Server::addRecv(Socket *sock, HttpMessage *message)
 
 void	Server::addCgi(Socket *sock, Socket *clientSocket)
 {
-	cgi_client[sock] = clientSocket;
-	setFd(TYPE_CGI, sock);
+	setFd(TYPE_CGI, sock, clientSocket);
 }
