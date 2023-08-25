@@ -82,17 +82,17 @@ HttpMessage *Router::routeHandler(HttpMessage &message, Socket *sock)
 			return (new Response("405"));
 
 		// メソッドに対応するhandlerを呼び出し
-		IHandler *handler = NULL;
-		if (isConnectionCgi(*request))
-		{
-			CgiHandler CHandler(_server, _serverContext->getLocationContext(request->getUri()));
-			CHandler.setClientSocket(sock);
-			handler = &CHandler;
-		}
-		else
-			handler = _handlers.at(request->getMethod());
 		try
 		{
+			IHandler *handler = NULL;
+			if (isConnectionCgi(*request))
+			{
+				CgiHandler CHandler(_server, _serverContext->getLocationContext(request->getUri()));
+				CHandler.setClientSocket(sock);
+				handler = &CHandler;
+			}
+			else
+				handler = _handlers.at(request->getMethod());
 			return handler->handleRequest(*request);
 		}
 		catch (const RequestException &e)
