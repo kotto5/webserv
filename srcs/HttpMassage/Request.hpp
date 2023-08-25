@@ -6,6 +6,7 @@
 #include <string>
 #include "Socket.hpp"
 #include "HttpMessage.hpp"
+#include "LocationContext.hpp"
 
 class Request : public HttpMessage
 {
@@ -25,6 +26,8 @@ public:
 
 	// Methods
 	static std::string	convertUriToPath(const std::string &uri, const std::string &port, const std::string &server_name);
+	static std::string	convertUriToPath(const std::string &uri, const LocationContext &location);
+	static const LocationContext	&getLocationContext(const std::string &uri, const std::string &port, const std::string &server_name);
 	bool				isBadRequest() const;
 	void				printAll() const;
 

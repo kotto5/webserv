@@ -35,7 +35,7 @@ Request::Request(const ClSocket *clientSocket)
 
 Request::Request(){}
 
-static std::string	getAliasOrRootDirective(LocationContext &Location)
+static std::string	getAliasOrRootDirective(const LocationContext &Location)
 {
 	std::string ret = Location.getDirective("alias");
 	if (ret.empty())
@@ -47,6 +47,13 @@ static std::string	getAliasOrRootDirective(LocationContext &Location)
 	return (ret);
 }
 
+const LocationContext	&Request::getLocationContext(const std::string &uri, const std::string &port, const std::string &server_name)
+{
+	return Config::instance()->getHTTPBlock()
+		.getServerContext(port, server_name)
+		.getLocationContext(uri);
+}
+
 /**
  * @brief URIを実体パスに変換する
  *
@@ -55,23 +62,24 @@ static std::string	getAliasOrRootDirective(LocationContext &Location)
  */
 std::string	Request::convertUriToPath(const std::string &uri, const std::string &port, const std::string &server_name)
 {
-	LocationContext	location;
-
-	std::string	ret = uri;
-	std::string alias = "";
-	std::string path = "";
-
 	try
 	{
-		location = Config::instance()->getHTTPBlock()
-			.getServerContext(port, server_name)
-			.getLocationContext(ret);
+		const LocationContext &loc = getLocationContext(uri, port, server_name);
+		return (convertUriToPath(uri, loc));
 	}
 	catch (const std::runtime_error &e)
 	{
 		std::cout << e.what() << std::endl;
 		return ("404");
 	}
+}
+
+std::string	Request::convertUriToPath(const std::string &uri, const LocationContext &location)
+{
+	std::string	ret = uri;
+	std::string alias = "";
+	std::string path = "";
+
 	path = location.getDirective("path");
 	// URI < PATH
 	if (ret.length() < path.length()) // path が /path/ に対し uri が /path だった場合の対応
