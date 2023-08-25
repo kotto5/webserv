@@ -69,6 +69,7 @@ int Socket::getFd() { return fd_; }
 ClSocket::ClSocket(int fd, const sockaddr *addr, socklen_t len, sockaddr *remoteAddr, socklen_t remoteLen):
     Socket(fd, addr, len), remoteAddr_(*(sockaddr_in *
 	)remoteAddr), remoteLen_(remoteLen), maxRequest_(MAX_REQUEST) {
+	std::cout << RED << "New connection, socket fd is " << fd_ << ", port is " << ntohs(remoteAddr_.sin_port) << DEF << std::endl;
 	}
 
 ClSocket::ClSocket(int fd, sockaddr *remoteAddr, socklen_t remoteLen): Socket(fd)
@@ -77,6 +78,7 @@ ClSocket::ClSocket(int fd, sockaddr *remoteAddr, socklen_t remoteLen): Socket(fd
     remoteAddr_ = *(sockaddr_in *)(remoteAddr);
     remoteLen_ = remoteLen;
 	maxRequest_ = MAX_REQUEST;
+	std::cout << RED << "New connection, socket fd is " << fd_ << ", port is " << ntohs(remoteAddr_.sin_port) << DEF << std::endl;
 }
 
 ClSocket::ClSocket(const ClSocket &other): Socket(other)
@@ -84,7 +86,9 @@ ClSocket::ClSocket(const ClSocket &other): Socket(other)
 	*this = other;
 }
 
-ClSocket::~ClSocket() {}
+ClSocket::~ClSocket() {
+	std::cout << BLUE << "Connection closed, socket fd is " << fd_ << ", port is " << ntohs(remoteAddr_.sin_port) << DEF << std::endl;
+}
 
 ClSocket &ClSocket::operator=(const ClSocket &other)
 {

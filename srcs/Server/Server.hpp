@@ -24,6 +24,7 @@
 #define MAX_CLIENTS 1024
 
 #define RED "\x1b[41m"
+#define BLUE "\x1b[44m"
 #define DEF "\x1b[49m"
 
 typedef enum e_type {
