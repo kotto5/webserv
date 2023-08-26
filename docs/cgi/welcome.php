@@ -12,9 +12,8 @@ echo ("\r\n");
 </head>
 <body>
 <?php
-// echo $_SERVER["REQUEST_METHOD"] , "<br>";
-// if ($_SERVER["REQUEST_METHOD"] == "POST")
-if (true)
+echo $_SERVER["REQUEST_METHOD"] , "<br>";
+if ($_SERVER["REQUEST_METHOD"] == "POST")
 {
     // 標準入力からデータを読み込む
     $stdin = fopen('php://stdin', 'r');
