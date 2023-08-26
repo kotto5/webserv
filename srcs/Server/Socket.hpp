@@ -62,7 +62,7 @@ public:
 class SvSocket : public Socket
 {
 private:
-	static int  createSvSocket(int port);
+	static int  createSvSocket(uint16_t port);
 public:
 	SvSocket(int port);
 	~SvSocket();
@@ -80,7 +80,7 @@ public:
 	CgiSocket(int fd, ClSocket *clSocket);
 	~CgiSocket();
 	ClSocket 	*moveClSocket();
-	ClSocket	*getClSocket() const { return clSocket_; }
+	ClSocket	*getClSocket() const;
 };
 
 #endif

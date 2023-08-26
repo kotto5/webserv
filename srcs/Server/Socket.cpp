@@ -102,7 +102,7 @@ ClSocket &ClSocket::operator=(const ClSocket &other)
 // ============ SvSocket class =================
 // =============================================
 
-int SvSocket::createSvSocket(int port)
+int SvSocket::createSvSocket(uint16_t port)
 {
 	int	new_sock;
 	new_sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -167,4 +167,4 @@ ClSocket *CgiSocket::moveClSocket(){
 	return (tmp);
 }
 
-ClSocket	*CgiSocket::getClSocket() { return (clSocket_); }
+ClSocket	*CgiSocket::getClSocket() const { return (clSocket_); }
