@@ -69,4 +69,18 @@ public:
 	ClSocket *dequeueSocket();
 };
 
+// =============================================
+
+
+class CgiSocket : public Socket
+{
+private:
+	ClSocket	*clSocket_;
+public:
+	CgiSocket(int fd, ClSocket *clSocket);
+	~CgiSocket();
+	ClSocket 	*moveClSocket();
+	ClSocket	*getClSocket() const { return clSocket_; }
+};
+
 #endif
