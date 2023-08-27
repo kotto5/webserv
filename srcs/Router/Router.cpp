@@ -88,7 +88,7 @@ HttpMessage *Router::routeHandler(HttpMessage &message, Socket *sock)
 			if (isConnectionCgi(*request))
 			{
 				_cgiHandler.init(*_server, _serverContext->getLocationContext(request->getUri()));
-				_cgiHandler.setClientSocket(sock);
+				_cgiHandler.setClientSocket(dynamic_cast<ClSocket *>(sock));
 				handler = &_cgiHandler;
 			}
 			else
