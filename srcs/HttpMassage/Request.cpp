@@ -123,6 +123,27 @@ void	Request::setFirstLine(const std::string &line)
 	_protocol = line.substr(uri_end + 1);
 }
 
+bool Request::isValidLine(const std::string &line, const bool isFirstLine) const
+{
+	if (isFirstLine)
+	{
+		long sp_count = std::count(line.begin(), line.end(), ' ');
+		if (sp_count != 2)
+			return (false);
+		std::string::size_type	sp1 = line.find(" ");
+		std::string::size_type	sp2 = line.find(" ", sp1 + 1);
+		if (sp1 == sp2 + 1 || sp2 == static_cast<std::string::size_type>(line.end() - line.begin() - 1))
+			return (false);
+	}
+	else
+	{
+		std::string::size_type	colon = line.find(": ");
+		if (colon == std::string::npos || colon == 0 || colon == line.length() - 2)
+			return (false);
+	}
+	return (true);
+}
+
 bool	Request::isBadRequest() const
 {
 	return (!isEnd());
