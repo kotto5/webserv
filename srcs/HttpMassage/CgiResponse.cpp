@@ -12,7 +12,7 @@ CgiResponse::~CgiResponse()
 bool    CgiResponse::isValidLine(const std::string &line, const bool isFirstLine) const
 {
 	if (isFirstLine)
-        return (isStatusLine(line) || 
+        return (isStartLine(line) || 
                 isHeaderLine(line));
 	else
         return (isHeaderLine(line));
@@ -30,7 +30,7 @@ void	CgiResponse::setStatusLine(const std::string &line)
 
 void	CgiResponse::setFirstLine(const std::string &line)
 {
-    if (isStatusLine(line))
+    if (isStartLine(line))
     {
         setStatusLine(line);
     }
