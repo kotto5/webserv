@@ -304,3 +304,23 @@ void	HttpMessage::addHeader(std::string key, std::string value)
 }
 
 void	HttpMessage::setBodyEnd(bool isBodyEnd) { _isBodyEnd = isBodyEnd; }
+
+bool    HttpMessage::isStatusLine(const std::string &line) const
+{
+    long sp_count = std::count(line.begin(), line.end(), ' ');
+    if (sp_count != 2)
+        return (false);
+    std::string::size_type	sp1 = line.find(" ");
+    std::string::size_type	sp2 = line.find(" ", sp1 + 1);
+    if (sp1 == sp2 + 1 || sp2 == static_cast<std::string::size_type>(line.end() - line.begin() - 1))
+        return (false);
+    return (true);
+}
+
+bool    HttpMessage::isHeaderLine(const std::string &line) const
+{
+    std::string::size_type	colon = line.find(": ");
+    if (colon == std::string::npos || colon == 0 || colon == line.length() - 2)
+        return (false);
+    return (true);
+}
