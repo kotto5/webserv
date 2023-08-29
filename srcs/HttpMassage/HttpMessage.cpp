@@ -305,7 +305,7 @@ void	HttpMessage::addHeader(std::string key, std::string value)
 
 void	HttpMessage::setBodyEnd(bool isBodyEnd) { _isBodyEnd = isBodyEnd; }
 
-bool    HttpMessage::isStatusLine(const std::string &line) const
+bool    HttpMessage::isStartLine(const std::string &line) const
 {
     long sp_count = std::count(line.begin(), line.end(), ' ');
     if (sp_count != 2)

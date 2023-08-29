@@ -64,7 +64,7 @@ public:
 	void						setContentLength();
 	void						setBody(const std::string &addBody);
 	void						setBodyEnd(bool isBodyEnd);
-	bool						isStatusLine(const std::string &line) const;
+	bool						isStartLine(const std::string &line) const;
 	bool						isHeaderLine(const std::string &line) const;
 };
 
