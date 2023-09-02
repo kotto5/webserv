@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <ctime>
 #include "ServerException.hpp"
+#include "CgiResponse.hpp"
 
 Server::Server() {}
 
@@ -287,7 +288,7 @@ void	Server::finishSend(Socket *sock, HttpMessage *message)
 	{
 		if (shutdown(sock->getFd(), SHUT_WR) == -1)
 			return (ErrorfinishSendCgi(cgiSock, cgiSock->moveClSocket()));
-		Response *response = new Response();
+		CgiResponse *response = new CgiResponse();
 		if (addRecv(sock, response))
 		{
 			delete (response);

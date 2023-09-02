@@ -4,6 +4,7 @@
 #include "Server.hpp"
 #include "Socket.hpp"
 #include <filesystem>
+#include "CgiResponse.hpp"
 
 // Constructors
 CgiHandler::CgiHandler()
@@ -71,7 +72,7 @@ Response *CgiHandler::handleRequest(const Request &request)
 	{
 		// リクエストボディがない場合はEOFを送信する
 		shutdown(cgiSock->getFd(), SHUT_WR);
-		HttpMessage *res = new Response();
+		HttpMessage *res = new CgiResponse();
 		_server->addRecv(cgiSock, res);
 	}
 	// レスポンスを受信する
