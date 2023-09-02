@@ -118,15 +118,15 @@ int	Server::handleSockets(fd_set *read_fds, fd_set *write_fds, int activity)
 		sock = *tmp_socket;
 		if (!FD_ISSET(sock->getFd(), read_fds))
 			continue ;
-		bool is_cgi = (dynamic_cast<CgiSocket *>(sock) != NULL);
+		bool isCgi = (dynamic_cast<CgiSocket *>(sock) != NULL);
 		try
 		{
 			ssize_t ret = recv(sock, Recvs[sock]);
-			if (clientConnectionClosed(ret, is_cgi) || ret == -1)
+			if (clientConnectionClosed(ret, isCgi) || ret == -1)
 				throw std::runtime_error("recv");
-			if (is_cgi)
-				Recvs[sock]->setBodyEnd(cgiConnectionClosed(ret, is_cgi));
-			if (Recvs[sock]->isEnd() || Recvs[sock]->isInvalid() || cgiConnectionClosed(ret, is_cgi))
+			if (isCgi)
+				Recvs[sock]->setBodyEnd(cgiConnectionClosed(ret, isCgi));
+			if (Recvs[sock]->isEnd() || Recvs[sock]->isInvalid() || cgiConnectionClosed(ret, isCgi))
 			{
 				finishRecv(sock, Recvs[sock]);
 				recv_sockets.erase(tmp_socket);
