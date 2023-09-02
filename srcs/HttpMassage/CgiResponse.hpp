@@ -9,10 +9,16 @@
 // document-response = Content-Type [ Status ] *other-field NL response-body
 // local-redir-response = local-Location NL
 // client-redir-response = client-Location *extension-field NL
-//  client-redirdoc-response = client-Location Status Content-Type *other-field NL response-body
+// client-redirdoc-response = client-Location Status Content-Type *other-field NL response-body
 
 // local-Location  = "Location:" local-pathquery NL
 // client-Location = "Location:" fragment-URI NL
+
+// client redir-doc は location status content-type body がある
+// client location は location があり、body がない
+// local-redir-response は location がある
+// client location と local-redir-response の違いは 
+
     // enum Type
     // {
     //     DocumentResponse,
