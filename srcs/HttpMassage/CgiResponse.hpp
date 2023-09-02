@@ -19,26 +19,28 @@
 // local-redir-response は location がある
 // client location と local-redir-response の違いは 
 
-    // enum Type
-    // {
-    //     DocumentResponse,
-    //     LocalRedirectResponse,
-    //     ClientRedirectResponse,
-    //     ClientRedirectResponseWithDocument
-    // };
-    // Type _type;
-
 
 class CgiResponse: public HttpMessage
 {
 private:
 	void	setFirstLine(const std::string &line);
 	bool	isValidLine(const std::string &line, const bool isFirstLine) const;
-    void	setStatusLine(const std::string &line);
-	std::string _protocol;
-	std::string _status;
-	std::string	_statusMessage;
+    bool    isLocalPathQuery(const std::string &location) const;
+    bool    isOtherField(const std::string &line) const;
+    bool    isCgiField(const std::string &line) const;
+    bool    isProtocolField(const std::string &line) const;
+    bool    isClientRedirectResponse() const;
+
 public:
+    enum Type
+    {
+        DocumentResponse,
+        LocalRedirectResponse,
+        ClientRedirectResponse,
+        ClientRedirectResponseWithDocument,
+        InvalidResponse
+    };
+    Type getType() const;
     CgiResponse(/* args */);
     ~CgiResponse();
 };
