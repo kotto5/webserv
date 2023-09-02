@@ -31,6 +31,7 @@ TEST_F(CgiResponseTest, DocumentResponse)
     EXPECT_TRUE(cgiResponse != NULL);
     std::string Response = "Content-Type: text/html\r\n\r\n12345678890\r\n";
     EXPECT_EQ(cgiResponse->parsing(Response, 0), 0);
+    EXPECT_EQ(cgiResponse->getType(), CgiResponse::DocumentResponse);
     delete cgiResponse;
 }
 
@@ -38,8 +39,9 @@ TEST_F(CgiResponseTest, DocumentResponseWithStatus)
 {
     CgiResponse *cgiResponse = new CgiResponse();
     EXPECT_TRUE(cgiResponse != NULL);
-    std::string Response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n12345678890\r\n";
+    std::string Response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n12345678890";
     EXPECT_EQ(cgiResponse->parsing(Response, 0), 0);
+    EXPECT_EQ(cgiResponse->getType(), CgiResponse::DocumentResponse);
     delete cgiResponse;
 }
 
@@ -54,6 +56,7 @@ TEST_F(CgiResponseTest, LocalRedirectResponse)
     EXPECT_TRUE(cgiResponse != NULL);
 
     EXPECT_EQ(cgiResponse->parsing(response, 0), 0);
+    EXPECT_EQ(cgiResponse->getType(), CgiResponse::LocalRedirectResponse);
     delete cgiResponse;
 }
 
@@ -69,10 +72,11 @@ TEST_F(CgiResponseTest, ClientRedirectResponse)
     EXPECT_TRUE(cgiResponse != NULL);
 
     EXPECT_EQ(cgiResponse->parsing(response, 0), 0);
+    EXPECT_EQ(cgiResponse->getType(), CgiResponse::ClientRedirectResponse);
     delete cgiResponse;
 }
 
-// //  client-redirdoc-response = client-Location Status Content-Type *other-field NL response-body
+// client-redir-doc-response = client-Location Status Content-Type *other-field NL response-body
 
 TEST_F(CgiResponseTest, ClientRedirectResponseWithDocument)
 {
@@ -84,6 +88,26 @@ TEST_F(CgiResponseTest, ClientRedirectResponseWithDocument)
     EXPECT_TRUE(cgiResponse != NULL);
 
     EXPECT_EQ(cgiResponse->parsing(response, 0), 0);
+    EXPECT_EQ(cgiResponse->getType(), CgiResponse::ClientRedirectResponseWithDocument);
+    delete cgiResponse;
+}
+
+TEST_F(CgiResponseTest, basicTest)
+{
+    std::string response = "Status: 200 OK\r\n"
+                            "Location: http://www.example.org/index.html\r\n"
+                            "Content-Type: text/html\r\n"
+                            "\r\n"
+                            "1234567890\r\n";
+
+    CgiResponse *cgiResponse = new CgiResponse();
+    EXPECT_TRUE(cgiResponse != NULL);
+
+    EXPECT_EQ(cgiResponse->parsing(response, 0), 0);
+    EXPECT_EQ(cgiResponse->getType(), CgiResponse::ClientRedirectResponseWithDocument);
+    EXPECT_EQ(cgiResponse->getHeader("Status"), "200 OK");
+    EXPECT_EQ(cgiResponse->getHeader("Location"), "http://www.example.org/index.html");
+    EXPECT_EQ(cgiResponse->getHeader("Content-Type"), "text/html");
     delete cgiResponse;
 }
 
