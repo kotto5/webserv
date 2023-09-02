@@ -176,7 +176,7 @@ bool Response::isValidLine(const std::string &line, const bool isFirstLine) cons
 	if (isFirstLine)
 		return (isStartLine(line));
 	else
-		return (isHeaderLine(line));
+		return (isHeaderField(line));
 }
 
 void	Response::makeRowString()

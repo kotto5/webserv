@@ -317,7 +317,7 @@ bool    HttpMessage::isStartLine(const std::string &line) const
     return (true);
 }
 
-bool    HttpMessage::isHeaderLine(const std::string &line) const
+bool    HttpMessage::isHeaderField(const std::string &line) const
 {
     std::string::size_type	colon = line.find(": ");
     if (colon == std::string::npos || colon == 0 || colon == line.length() - 2)

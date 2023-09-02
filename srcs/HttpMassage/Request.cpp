@@ -128,7 +128,7 @@ bool Request::isValidLine(const std::string &line, const bool isFirstLine) const
 	if (isFirstLine)
 		return (isStartLine(line));
 	else
-		return (isHeaderLine(line));
+		return (isHeaderField(line));
 }
 
 bool	Request::isBadRequest() const
