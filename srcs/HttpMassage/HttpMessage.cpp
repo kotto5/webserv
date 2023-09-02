@@ -139,6 +139,13 @@ void	HttpMessage::setBody(const std::string &addBody)
 			decodeChunked(_body);
 		}
 	}
+	////// クソコード　要検討
+	else if (addBody.length() > 0) // cgi の時の想定。。。 あんまダメかも client の時も影響受けるから。
+	{
+		_body += addBody;
+		_readPos += addBody.length();
+		_isBodyEnd = true;
+	}
 	else
 		_isBodyEnd = true;
 }
