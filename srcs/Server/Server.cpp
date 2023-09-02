@@ -124,8 +124,8 @@ int	Server::handleSockets(fd_set *read_fds, fd_set *write_fds, int activity)
 			ssize_t ret = recv(sock, Recvs[sock]);
 			if (clientConnectionClosed(ret, is_cgi) || ret == -1)
 				throw std::runtime_error("recv");
-			else if (cgiConnectionClosed(ret, is_cgi))
-				Recvs[sock]->setBodyEnd(true);
+			if (is_cgi)
+				Recvs[sock]->setBodyEnd(cgiConnectionClosed(ret, is_cgi));
 			if (Recvs[sock]->isEnd() || Recvs[sock]->isInvalid() || cgiConnectionClosed(ret, is_cgi))
 			{
 				finishRecv(sock, Recvs[sock]);
