@@ -45,7 +45,7 @@ public:
 	void						printHeader() const;
 	bool						isBadRequest() const;
 	bool						isTooBigError() const;
-	bool						isEnd() const;
+	bool						isCompleted() const;
 
 	const std::string  			&getRaw() const;
 	const std::string			&getProtocol() const;
