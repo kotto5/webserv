@@ -36,6 +36,23 @@ CgiResHandler &CgiResHandler::operator=(const CgiResHandler &rhs)
 	return *this;
 }
 
+// Status: 200 OK
+// Location: /path/to/redirect
+	// localLocation
+// Location: http://ejxample.com/path/to/redirect
+	// clientLocation
+// Content-Type: text/html
+
+    //   header-field    = CGI-field | other-field
+    //   CGI-field       = Content-Type | Location | Status
+    //   other-field     = protocol-field | extension-field
+    //   protocol-field  = generic-field
+    //   extension-field = generic-field
+    //   generic-field   = field-name ":" [ field-value ] NL
+    //   field-name      = token
+    //   field-value     = *( field-content | LWSP )
+    //   field-content   = *( token | separator | quoted-string )
+
 /**
  * @brief GETメソッドの処理を行う
  *
@@ -59,6 +76,11 @@ HttpMessage	*CgiResHandler::handleMessage(const CgiResponse &response)
 			return (new Response(status, headers, response.getBody()));
 		else
 			return (new Response("200", headers, response.getBody()));
+	}
+	else if (response.getType() == CgiResponse::ClientRedirectResponse)
+	{
+		headers["location"] = response.getHeader("Location");
+		return (new Response("302", headers, ""));
 	}
 	// else if (response.getType() == CgiResponse::LocalRedirectResponse)
 	// {

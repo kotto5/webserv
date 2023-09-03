@@ -87,64 +87,83 @@ TEST_F(CgiResHandlerTest, HandleDocumentResponseError1)
 // // local-redir-response = local-Location NL
 // // local-Location  = "Location:" local-pathquery NL
 
-TEST_F(CgiResHandlerTest, HandleLocalRedirectResponse)
-{
-    std::string cgiResponseMessage = "Location: /index.html\r\n"
-                            "\r\n";
-    CgiResponse *cgiResponse = new CgiResponse();
-    EXPECT_TRUE(cgiResponse != NULL);
-
-    EXPECT_EQ(cgiResponse->parsing(cgiResponseMessage, 0), 0);
-    EXPECT_EQ(cgiResponse->getType(), CgiResponse::LocalRedirectResponse);
-    delete cgiResponse;
-}
-
-TEST_F(CgiResHandlerTest, HandleLocalRedirectResponseError1)
-{
-    std::string cgiResponseMessage = "Location: /index.html\r\n"
-                            "Status: 200 OK\r\n"
-							"HogeHoge: fuga"
-                            "\r\n";
-    CgiResponse *cgiResponse = new CgiResponse();
-    EXPECT_TRUE(cgiResponse != NULL);
-
-    EXPECT_EQ(cgiResponse->parsing(cgiResponseMessage, 0), 0);
-    EXPECT_EQ(cgiResponse->getType(), CgiResponse::InvalidResponse);
-	EXPECT_EQ(cgiResponse->getHeader("HogeHoge"), "fuga");
-    delete cgiResponse;
-}
-
-// // ========================================================
-// // =================== ClientRedirectResponse =============
-// // ========================================================
-
-// // client-redir-response = client-Location *extension-field NL
-// // client-Location = "Location:" fragment-URI NL
-
-// TEST_F(CgiResHandlerTest, HandleClientRedirectResponse)
+// TEST_F(CgiResHandlerTest, HandleLocalRedirectResponse)
 // {
-//     std::string cgiResponseMessage =  "Location: http://www.example.org/index.html\r\n"
+//     std::string cgiResponseMessage = "Location: /index.html\r\n"
 //                             "\r\n";
 //     CgiResponse *cgiResponse = new CgiResponse();
 //     EXPECT_TRUE(cgiResponse != NULL);
 
 //     EXPECT_EQ(cgiResponse->parsing(cgiResponseMessage, 0), 0);
-//     EXPECT_EQ(cgiResponse->getType(), CgiResponse::ClientRedirectResponse);
+//     EXPECT_EQ(cgiResponse->getType(), CgiResponse::LocalRedirectResponse);
 //     delete cgiResponse;
 // }
 
-// TEST_F(CgiResHandlerTest, HandleClientRedirectResponseError1)
+// TEST_F(CgiResHandlerTest, HandleLocalRedirectResponseError1)
 // {
-//     std::string cgiResponseMessage =  "Location: http://www.example.org/index.html\r\n"
+//     std::string cgiResponseMessage = "Location: /index.html\r\n"
 //                             "Status: 200 OK\r\n"
+// 							"HogeHoge: fuga"
 //                             "\r\n";
 //     CgiResponse *cgiResponse = new CgiResponse();
 //     EXPECT_TRUE(cgiResponse != NULL);
 
 //     EXPECT_EQ(cgiResponse->parsing(cgiResponseMessage, 0), 0);
 //     EXPECT_EQ(cgiResponse->getType(), CgiResponse::InvalidResponse);
+// 	EXPECT_EQ(cgiResponse->getHeader("HogeHoge"), "fuga");
 //     delete cgiResponse;
 // }
+
+// // ========================================================
+// // =================== ClientRedirectResponse =============
+// // ========================================================
+
+// client-redir-response = client-Location *extension-field NL
+// client-Location = "Location:" fragment-URI NL
+
+TEST_F(CgiResHandlerTest, HandleClientRedirectResponse)
+{
+    std::string cgiResponseMessage =  "Location: http://www.example.org/index.html\r\n"
+                            "\r\n";
+    CgiResponse *cgiResponse = new CgiResponse();
+    EXPECT_TRUE(cgiResponse != NULL);
+
+    EXPECT_EQ(cgiResponse->parsing(cgiResponseMessage, 0), 0);
+    EXPECT_EQ(cgiResponse->getType(), CgiResponse::ClientRedirectResponse);
+
+    CgiResHandler cgiResHandler;
+    HttpMessage *message = cgiResHandler.handleMessage(*cgiResponse);
+    Response *response = dynamic_cast<Response *>(message);
+    if (response == NULL)
+        FAIL();
+
+    EXPECT_EQ(response->getStatus(), "302");
+	EXPECT_EQ(response->getHeader("Location"), "http://www.example.org/index.html");
+
+    delete cgiResponse;
+}
+
+TEST_F(CgiResHandlerTest, HandleClientRedirectResponseWithExt)
+{
+    std::string cgiResponseMessage =  "Location: http://www.example.org/index.html\r\n"
+							"X-CGI-TEST: hoge\r\n"
+                            "\r\n";
+    CgiResponse *cgiResponse = new CgiResponse();
+    EXPECT_TRUE(cgiResponse != NULL);
+
+    EXPECT_EQ(cgiResponse->parsing(cgiResponseMessage, 0), 0);
+
+	CgiResHandler cgiResHandler;
+	HttpMessage *message = cgiResHandler.handleMessage(*cgiResponse);
+	Response *response = dynamic_cast<Response *>(message);
+	if (response == NULL)
+		FAIL();
+
+    EXPECT_EQ(response->getStatus(), "302");
+	EXPECT_EQ(response->getHeader("Location"), "http://www.example.org/index.html");
+
+    delete cgiResponse;
+}
 
 // // ========================================================
 // // =================== ClientRedirectResponseWithDocument =
