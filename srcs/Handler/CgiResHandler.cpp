@@ -90,16 +90,19 @@ HttpMessage	*CgiResHandler::handleMessage(const CgiResponse &response)
 		headers["content-type"] = response.getHeader("Content-Type");
 		return (new Response(status, headers, response.getBody()));
 	}
-	// else if (response.getType() == CgiResponse::LocalRedirectResponse)
-	// {
-	// 	const std::string &location = response.getHeader("Location");
-	// }
-	// else if (response.getType() == CgiResponse::Type::ErrorResponse)
-	// {
-	// 	Response *res = new Response("500");
-	// 	res->setBody(response.getBody());
-	// 	return (res);
-	// }
+	else if (response.getType() == CgiResponse::LocalRedirectResponse)
+	{
+		// const std::string &location = response.getHeader("Location");
+		// if (location == "")
+			// return (new Response("500"));
+		return (new Response("500"));
+	}
+	else if (response.getType() == CgiResponse::InvalidResponse)
+	{
+		Response *res = new Response("500");
+		res->setBody(response.getBody());
+		return (res);
+	}
 	else
 		return (new Response("500"));
 }

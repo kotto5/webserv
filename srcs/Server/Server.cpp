@@ -113,25 +113,24 @@ int	Server::handleSockets(fd_set *read_fds, fd_set *write_fds, int activity)
 	for (itr = recv_sockets.begin(); activity && itr != recv_sockets.end();)
 	{
 		tmp_socket = itr++;
+		ssize_t	ret = 1;
 		sock = *tmp_socket;
-		if (!FD_ISSET(sock->getFd(), read_fds))
-			continue ;
-		try
+		if (FD_ISSET(sock->getFd(), read_fds))
+			ret = recv(sock, Recvs[sock]);
+		if (ret == -1)
+			recvError(sock);
+		if (ret == 0 ||
+			Recvs[sock]->isCompleted() || Recvs[sock]->isInvalid())
 		{
-			ssize_t ret = recv(sock, Recvs[sock]);
-			if (ret == -1)
-				recvError(sock);
-			if (ret == 0 || 
-				Recvs[sock]->isCompleted() || Recvs[sock]->isInvalid())
-			{
+			try {
 				finishRecv(sock, Recvs[sock]);
 				recv_sockets.erase(tmp_socket);
 			}
-		}
-		catch (const std::exception &e)
-		{
-			std::cout << e.what() << std::endl;
-			recvError(sock);
+			catch (const std::exception &e)
+			{
+				std::cout << e.what() << std::endl;
+				recvError(sock);
+			}
 		}
 		--activity;
 	}
