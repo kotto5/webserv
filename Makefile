@@ -110,6 +110,8 @@ $(TEST_OBJDIR)/%.o: tests/srcs/%.cpp
 ut: $(TEST_NAME)
 	@./$(TEST_NAME)
 
+u: $(TEST_NAME)
+
 ut_run: $(MAKE)
 	-@./$(NAME) ./conf/default.conf& echo $$! > ./tests/pid.log
 
