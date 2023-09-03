@@ -331,3 +331,5 @@ bool    HttpMessage::isHeaderField(const std::string &line) const
         return (false);
     return (true);
 }
+
+const std::map<std::string , std::string> &HttpMessage::getHeaders() const { return (_headers); }
