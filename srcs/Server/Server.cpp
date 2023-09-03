@@ -116,7 +116,10 @@ int	Server::handleSockets(fd_set *read_fds, fd_set *write_fds, int activity)
 		ssize_t	ret = 1;
 		sock = *tmp_socket;
 		if (FD_ISSET(sock->getFd(), read_fds))
+		{
 			ret = recv(sock, Recvs[sock]);
+			--activity;
+		}
 		if (ret == -1)
 			recvError(sock);
 		if (ret == 0 ||
@@ -132,7 +135,6 @@ int	Server::handleSockets(fd_set *read_fds, fd_set *write_fds, int activity)
 				recvError(sock);
 			}
 		}
-		--activity;
 	}
 	// クライアントソケット送信
 	for (itr = send_sockets.begin(); activity && itr != send_sockets.end();)
