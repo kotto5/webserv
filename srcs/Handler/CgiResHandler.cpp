@@ -9,6 +9,7 @@
 #include "Logger.hpp"
 #include "CgiResHandler.hpp"
 #include <sys/wait.h>
+#include "CgiResponse.hpp"
 
 // Constructors
 CgiResHandler::CgiResHandler()
@@ -41,13 +42,14 @@ CgiResHandler &CgiResHandler::operator=(const CgiResHandler &rhs)
  * @param request リクエスト
  * @return Response レスポンス
  */
-HttpMessage	*CgiResHandler::handleMessage(const Response &response)
+HttpMessage	*CgiResHandler::handleMessage(const CgiResponse &response)
 {
 	int	wstatus;
 	waitpid(-1, &wstatus, 0);
 	if (WEXITSTATUS(wstatus) == 1 || response.isInvalid())
 		return (new Response("500"));
-	Response *res = new Response(response);
+	// Response *res = new Response(response);
+	Response *res = new Response("200");
 	// local redirect ... other
 	return (res);
 }

@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <ctime>
 #include "ServerException.hpp"
+#include "CgiResponse.hpp"
 
 Server::Server() {}
 
@@ -118,15 +119,15 @@ int	Server::handleSockets(fd_set *read_fds, fd_set *write_fds, int activity)
 		sock = *tmp_socket;
 		if (!FD_ISSET(sock->getFd(), read_fds))
 			continue ;
-		bool is_cgi = (dynamic_cast<CgiSocket *>(sock) != NULL);
+		bool isCgi = (dynamic_cast<CgiSocket *>(sock) != NULL);
 		try
 		{
 			ssize_t ret = recv(sock, Recvs[sock]);
-			if (clientConnectionClosed(ret, is_cgi) || ret == -1)
+			if (clientConnectionClosed(ret, isCgi) || ret == -1)
 				throw std::runtime_error("recv");
-			else if (cgiConnectionClosed(ret, is_cgi))
-				Recvs[sock]->setBodyEnd(true);
-			if (Recvs[sock]->isEnd() || Recvs[sock]->isInvalid() || cgiConnectionClosed(ret, is_cgi))
+			if (isCgi)
+				Recvs[sock]->setBodyEnd(cgiConnectionClosed(ret, isCgi));
+			if (Recvs[sock]->isEnd() || Recvs[sock]->isInvalid() || cgiConnectionClosed(ret, isCgi))
 			{
 				finishRecv(sock, Recvs[sock]);
 				recv_sockets.erase(tmp_socket);
@@ -287,7 +288,7 @@ void	Server::finishSend(Socket *sock, HttpMessage *message)
 	{
 		if (shutdown(sock->getFd(), SHUT_WR) == -1)
 			return (ErrorfinishSendCgi(cgiSock, cgiSock->moveClSocket()));
-		Response *response = new Response();
+		CgiResponse *response = new CgiResponse();
 		if (addRecv(sock, response))
 		{
 			delete (response);

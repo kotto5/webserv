@@ -5,6 +5,7 @@
 #include "Response.hpp"
 #include <iostream>
 #include <string>
+#include "CgiResponse.hpp"
 
 class CgiResHandler
 {
@@ -22,7 +23,7 @@ public:
     CgiResHandler &operator=(const CgiResHandler &rhs);
 
     // Member functions
-    virtual HttpMessage	*handleMessage(const Response &response);
+    virtual HttpMessage	*handleMessage(const CgiResponse &response);
 };
 
 #endif

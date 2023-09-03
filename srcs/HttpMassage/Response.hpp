@@ -49,6 +49,7 @@ private:
 	void setServer();
 
 	void	setFirstLine(const std::string &line);
+	bool	isValidLine(const std::string &line, const bool isFirstLine) const;
 };
 
 #endif
