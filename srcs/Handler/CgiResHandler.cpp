@@ -103,11 +103,9 @@ HttpMessage	*CgiResHandler::handleMessage(const CgiResponse &response, Socket *s
 		Request *req = new Request("GET", response.getHeader("Location"), "HTTP/1.1", headers, "");
 		ClSocket *clSocket = cgiSock->getClSocket();
 		struct sockaddr_in addr = clSocket->getLocalAddr();
-		req->parsing("GET/ HTTP/1.1\r\nHost: "
-		+ std::string(inet_ntoa(addr.sin_addr))
-		+ ":"
-		+ std::to_string(ntohs(addr.sin_port))
-		+ "\r\n\r\n", 0);
+		req->parsing("GET/ HTTP/1.1\r\n"
+		"Host: " + std::string(inet_ntoa(addr.sin_addr)) + ":" + std::to_string(ntohs(addr.sin_port)) + "\r\n"
+		"\r\n", 0);
 		req->setAddr(clSocket);
 		req->setInfo();
 		return (req);
