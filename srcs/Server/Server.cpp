@@ -51,8 +51,8 @@ int	Server::run()
 		int	activity = select(max_fd + 1, &read_fds, &write_fds, NULL, &timeout);
 		if (activity == -1)
 			throw ServerException("select");
-		if (activity == 0 && checkTimeout())
-			continue ;
+		if (activity == 0)
+			checkTimeout();
 		handleSockets(&read_fds, &write_fds, activity);
 	}
 }
@@ -110,7 +110,7 @@ int	Server::handleSockets(fd_set *read_fds, fd_set *write_fds, int activity)
 		}
 	}
 	// クライアントソケット受信
-	for (itr = recv_sockets.begin(); activity && itr != recv_sockets.end();)
+	for (itr = recv_sockets.begin(); itr != recv_sockets.end();)
 	{
 		tmp_socket = itr++;
 		ssize_t	ret = 1;
