@@ -194,7 +194,7 @@ std::string	HttpMessage::makeHeaderKeyLower(std::string key)
 	return (key);
 }
 
-bool	HttpMessage::isEnd() const
+bool	HttpMessage::isCompleted() const
 {
 	return (_isHeaderEnd && _isBodyEnd);
 }
