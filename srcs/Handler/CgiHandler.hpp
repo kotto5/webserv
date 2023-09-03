@@ -30,11 +30,11 @@ public:
 	// Member functions
 	void				init(Server &server, const LocationContext &lc);
 	virtual Response	*handleRequest(const Request &request);
-	void setClientSocket(Socket *clientSocket);
+	void setClientSocket(ClSocket *clientSocket);
 
 private:
 	Server	*_server;
-	Socket	*_clientSocket;
+	ClSocket	*_clientSocket;
 	const LocationContext *_locationContext;
 
 	int runCgi(const Request &request, int pipes[2]);

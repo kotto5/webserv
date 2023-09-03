@@ -47,6 +47,7 @@ public:
 
 private:
 	virtual	void		setFirstLine(const std::string &line);
+	bool	isValidLine(const std::string &line, const bool isFirstLine) const;
 
 	std::string _method;
 	std::string _uriAndQuery;

@@ -123,6 +123,14 @@ void	Request::setFirstLine(const std::string &line)
 	_protocol = line.substr(uri_end + 1);
 }
 
+bool Request::isValidLine(const std::string &line, const bool isFirstLine) const
+{
+	if (isFirstLine)
+		return (isStartLine(line));
+	else
+		return (isHeaderField(line));
+}
+
 void	Request::printAll(void) const
 {
 	std::cout << "method: [" << _method << "]" << std::endl;

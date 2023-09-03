@@ -139,6 +139,13 @@ void	HttpMessage::setBody(const std::string &addBody)
 			decodeChunked(_body);
 		}
 	}
+	////// クソコード　要検討
+	else if (addBody.length() > 0) // cgi の時の想定。。。 あんまダメかも client の時も影響受けるから。
+	{
+		_body += addBody;
+		_readPos += addBody.length();
+		_isBodyEnd = true;
+	}
 	else
 		_isBodyEnd = true;
 }
@@ -304,3 +311,23 @@ void	HttpMessage::addHeader(std::string key, std::string value)
 }
 
 void	HttpMessage::setBodyEnd(bool isBodyEnd) { _isBodyEnd = isBodyEnd; }
+
+bool    HttpMessage::isStartLine(const std::string &line) const
+{
+    long sp_count = std::count(line.begin(), line.end(), ' ');
+    if (sp_count != 2)
+        return (false);
+    std::string::size_type	sp1 = line.find(" ");
+    std::string::size_type	sp2 = line.find(" ", sp1 + 1);
+    if (sp1 == sp2 + 1 || sp2 == static_cast<std::string::size_type>(line.end() - line.begin() - 1))
+        return (false);
+    return (true);
+}
+
+bool    HttpMessage::isHeaderField(const std::string &line) const
+{
+    std::string::size_type	colon = line.find(": ");
+    if (colon == std::string::npos || colon == 0 || colon == line.length() - 2)
+        return (false);
+    return (true);
+}

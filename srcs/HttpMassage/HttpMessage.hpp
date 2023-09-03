@@ -30,7 +30,7 @@ protected:
 
 	std::string::size_type				_contentLength;
 
-	bool						isValidLine(const std::string &line, const bool isFirstLine) const;
+	virtual bool				isValidLine(const std::string &line, const bool isFirstLine) const = 0;
 	static std::string			makeHeaderKeyLower(std::string key);
 	void						decodeChunked(std::string &body);
 
@@ -63,6 +63,8 @@ public:
 	void						setContentLength();
 	void						setBody(const std::string &addBody);
 	void						setBodyEnd(bool isBodyEnd);
+	bool						isStartLine(const std::string &line) const;
+	bool						isHeaderField(const std::string &line) const;
 };
 
 #endif

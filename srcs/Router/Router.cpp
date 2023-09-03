@@ -15,6 +15,7 @@
 #include <cstdio>
 #include <filesystem>
 #include <sstream>
+#include "CgiResponse.hpp"
 
 // Constructors
 Router::Router(Server &server)
@@ -54,7 +55,7 @@ Router &Router::operator=(const Router &rhs)
  */
 HttpMessage *Router::routeHandler(HttpMessage &message, Socket *sock)
 {
-	if (Response *response = dynamic_cast<Response *>(&message))
+	if (CgiResponse *response = dynamic_cast<CgiResponse *>(&message))
 	{
 		CgiResHandler handler;
 		return handler.handleMessage(*response);
@@ -88,7 +89,7 @@ HttpMessage *Router::routeHandler(HttpMessage &message, Socket *sock)
 			if (isConnectionCgi(*request))
 			{
 				_cgiHandler.init(*_server, _serverContext->getLocationContext(request->getUri()));
-				_cgiHandler.setClientSocket(sock);
+				_cgiHandler.setClientSocket(dynamic_cast<ClSocket *>(sock));
 				handler = &_cgiHandler;
 			}
 			else
