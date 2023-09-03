@@ -106,3 +106,13 @@ CgiResponse::Type    CgiResponse::getType() const
     }
 }
 
+std::map<std::string, std::string> CgiResponse::getOtherFields() const{
+    std::map<std::string, std::string> otherFields;
+    std::map<std::string, std::string>::const_iterator it = _headers.begin();
+    for (; it != _headers.end(); ++it)
+    {
+        if (isOtherField(it->first) == true)
+            otherFields[it->first] = it->second;
+    }
+    return (otherFields);
+}
