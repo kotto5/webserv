@@ -131,11 +131,6 @@ bool Request::isValidLine(const std::string &line, const bool isFirstLine) const
 		return (isHeaderField(line));
 }
 
-bool	Request::isBadRequest() const
-{
-	return (!isEnd());
-}
-
 void	Request::printAll(void) const
 {
 	std::cout << "method: [" << _method << "]" << std::endl;

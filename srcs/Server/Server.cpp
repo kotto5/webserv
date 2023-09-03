@@ -72,9 +72,6 @@ int	Server::createServerSocket(int port)
 	return (0);
 }
 
-bool	cgiConnectionClosed(int ret, int isCgi) { return (ret == 0 && isCgi); }
-bool	clientConnectionClosed(int ret, int isCgi) { return (ret == 0 && !isCgi); }
-
 void	Server::recvError(Socket *sock)
 {
 	if (CgiSocket *cgiSock = dynamic_cast<CgiSocket *>(sock))
@@ -119,15 +116,13 @@ int	Server::handleSockets(fd_set *read_fds, fd_set *write_fds, int activity)
 		sock = *tmp_socket;
 		if (!FD_ISSET(sock->getFd(), read_fds))
 			continue ;
-		bool isCgi = (dynamic_cast<CgiSocket *>(sock) != NULL);
 		try
 		{
 			ssize_t ret = recv(sock, Recvs[sock]);
-			if (clientConnectionClosed(ret, isCgi) || ret == -1)
-				throw std::runtime_error("recv");
-			if (isCgi)
-				Recvs[sock]->setBodyEnd(cgiConnectionClosed(ret, isCgi));
-			if (Recvs[sock]->isEnd() || Recvs[sock]->isInvalid() || cgiConnectionClosed(ret, isCgi))
+			if (ret == -1)
+				recvError(sock);
+			if (ret == 0 || 
+				Recvs[sock]->isCompleted() || Recvs[sock]->isInvalid())
 			{
 				finishRecv(sock, Recvs[sock]);
 				recv_sockets.erase(tmp_socket);
@@ -147,8 +142,7 @@ int	Server::handleSockets(fd_set *read_fds, fd_set *write_fds, int activity)
 		sock = *tmp_socket;
 		if (!FD_ISSET(sock->getFd(), write_fds))
 			continue ;
-		// bool is_cgi = (dynamic_cast<CgiSocket *>(sock) != NULL);
-		if (send(sock, Sends[sock]) <= 0)
+		if (send(sock, Sends[sock]) == -1)
 		{
 			if (CgiSocket *cgiSock = dynamic_cast<CgiSocket *>(sock))
 				ErrorfinishSendCgi(cgiSock, cgiSock->moveClSocket());
@@ -210,12 +204,7 @@ ssize_t		Server::send(Socket *sock, HttpMessage *message)
 	if (buffer == NULL)
 		return (-1);
 	ret = ::send(sock->getFd(), buffer, message->getContentLengthRemain(), 0);
-	if (ret == 0)
-	{
-		std::cout << "arienai to omotteta!" << std::endl;
-		exit(1);
-	}
-	else if (ret > 0)
+	if (ret > 0)
 		message->addSendPos(ret);
 	return (ret);
 }
