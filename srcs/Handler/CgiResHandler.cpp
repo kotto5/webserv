@@ -51,8 +51,8 @@ HttpMessage	*CgiResHandler::handleMessage(const CgiResponse &response)
 	std::map<std::string, std::string> headers;
 	if (response.getType() == CgiResponse::DocumentResponse)
 	{
+		headers = response.getOtherFields();
 		headers["content-type"] = response.getHeader("Content-Type");
-		// other header copy?
 
 		std::string status = response.getHeader("Status");
 		if (status != "")

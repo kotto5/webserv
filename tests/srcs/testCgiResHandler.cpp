@@ -103,12 +103,14 @@ TEST_F(CgiResHandlerTest, HandleLocalRedirectResponseError1)
 {
     std::string cgiResponseMessage = "Location: /index.html\r\n"
                             "Status: 200 OK\r\n"
+							"HogeHoge: fuga"
                             "\r\n";
     CgiResponse *cgiResponse = new CgiResponse();
     EXPECT_TRUE(cgiResponse != NULL);
 
     EXPECT_EQ(cgiResponse->parsing(cgiResponseMessage, 0), 0);
     EXPECT_EQ(cgiResponse->getType(), CgiResponse::InvalidResponse);
+	EXPECT_EQ(cgiResponse->getHeader("HogeHoge"), "fuga");
     delete cgiResponse;
 }
 
