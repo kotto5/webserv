@@ -144,7 +144,7 @@ void	HttpMessage::setBody(const std::string &addBody)
 	{
 		_body += addBody;
 		_readPos += addBody.length();
-		_isBodyEnd = true;
+		_isBodyEnd = false;
 	}
 	else
 		_isBodyEnd = true;
