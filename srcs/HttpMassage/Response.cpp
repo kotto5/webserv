@@ -9,8 +9,18 @@ Response::Response() {
 
 Response::Response(const std::string &status, std::map<std::string, std::string> headers,
 				   const std::string &body)
-	: _status(status)
 {
+	std::string::size_type pos = status.find(' ');
+	if (pos != std::string::npos)
+	{
+		_status = status.substr(0, pos);
+		_statusMessage = status.substr(pos + 1);
+	}
+	else
+	{
+		_status = status;
+		_statusMessage = getStatusMessage(status);
+	}
 	_headers = headers;
 	_body = body;
 	// ヘッダーに日付を追加
@@ -84,7 +94,7 @@ std::string Response::toString() const
 
 	// ステータス行を平文に変換
 	response += "HTTP/1.1 " + this->_status + " " +
-				getStatusMessage(this->_status) + "\r\n";
+				_statusMessage + "\r\n";
 
 	// ヘッダーを平文に変換
 	std::map<std::string, std::string>::const_iterator iter;
@@ -183,3 +193,5 @@ void	Response::makeRowString()
 {
 	_raw = toString();
 }
+
+const std::string	&Response::getStatusMessage() const { return _statusMessage; }

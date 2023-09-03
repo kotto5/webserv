@@ -24,6 +24,7 @@ public:
 	void	makeRowString();
 	std::string toString() const;
 	static std::string getMimeType(const std::string &filename);
+	const std::string	&getStatusMessage() const;
 
 	// Getters/setters
 	const std::string	&getStatus() const;
