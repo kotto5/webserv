@@ -82,6 +82,14 @@ HttpMessage	*CgiResHandler::handleMessage(const CgiResponse &response)
 		headers["location"] = response.getHeader("Location");
 		return (new Response("302", headers, ""));
 	}
+	else if (response.getType() == CgiResponse::ClientRedirectResponseWithDocument)
+	{
+		std::string status = response.getHeader("Status");
+		headers = response.getOtherFields();
+		headers["location"] = response.getHeader("Location");
+		headers["content-type"] = response.getHeader("Content-Type");
+		return (new Response(status, headers, response.getBody()));
+	}
 	// else if (response.getType() == CgiResponse::LocalRedirectResponse)
 	// {
 	// 	const std::string &location = response.getHeader("Location");

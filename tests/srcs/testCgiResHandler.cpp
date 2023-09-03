@@ -165,45 +165,37 @@ TEST_F(CgiResHandlerTest, HandleClientRedirectResponseWithExt)
     delete cgiResponse;
 }
 
-// // ========================================================
-// // =================== ClientRedirectResponseWithDocument =
-// // ========================================================
+// ========================================================
+// =================== ClientRedirectResponseWithDocument =
+// ========================================================
 
-// // client-redir-doc-response = client-Location Status Content-Type *other-field NL response-body
+// client-redir-doc-response = client-Location Status Content-Type *other-field NL response-body
 
-// TEST_F(CgiResHandlerTest, HandleClientRedirectResponseWithDocument)
-// {
-//     std::string cgiResponseMessage = "Status: 200 OK\r\n"
-//                             "Location: http://www.example.org/index.html\r\n"
-//                             "Content-Type: text/html\r\n"
-//                             "\r\n"
-//                             "1234567890\r\n";
-//     CgiResponse *cgiResponse = new CgiResponse();
-//     EXPECT_TRUE(cgiResponse != NULL);
+TEST_F(CgiResHandlerTest, HandleClientRedirectResponseWithDocument)
+{
+    std::string cgiResponseMessage = "Status: 200 OK\r\n"
+                            "Location: http://www.example.org/index.html\r\n"
+                            "Content-Type: text/html\r\n"
+							"X-CGI-TEST: hoge\r\n"
+                            "\r\n"
+                            "1234567890\r\n";
+    CgiResponse *cgiResponse = new CgiResponse();
+    EXPECT_TRUE(cgiResponse != NULL);
 
-//     EXPECT_EQ(cgiResponse->parsing(cgiResponseMessage, 0), 0);
-//     EXPECT_EQ(cgiResponse->getType(), CgiResponse::ClientRedirectResponseWithDocument);
-//     delete cgiResponse;
-// }
+    EXPECT_EQ(cgiResponse->parsing(cgiResponseMessage, 0), 0);
 
-// TEST_F(CgiResHandlerTest, HandlebasicTest)
-// {
-//     std::string cgiResponseMessage = "Status: 200 OK\r\n"
-//                             "Location: http://www.example.org/index.html\r\n"
-//                             "Content-Type: text/html\r\n"
-//                             "\r\n"
-//                             "1234567890\r\n";
+	CgiResHandler cgiResHandler;
+	HttpMessage *message = cgiResHandler.handleMessage(*cgiResponse);
+	Response *response = dynamic_cast<Response *>(message);
+	if (response == NULL)
+		FAIL();
 
-//     CgiResponse *cgiResponse = new CgiResponse();
-//     EXPECT_TRUE(cgiResponse != NULL);
+	EXPECT_EQ(cgiResponse->getHeader("Status"), "200 OK");
+	EXPECT_EQ(cgiResponse->getHeader("Location"), "http://www.example.org/index.html");
+	EXPECT_EQ(cgiResponse->getHeader("Content-Type"), "text/html");
+	EXPECT_EQ(cgiResponse->getHeader("X-CGI-TEST"), "hoge");
+	EXPECT_EQ(cgiResponse->getBody(), "1234567890\r\n");
 
-//     EXPECT_EQ(cgiResponse->parsing(cgiResponseMessage, 0), 0);
-//     EXPECT_EQ(cgiResponse->getType(), CgiResponse::ClientRedirectResponseWithDocument);
-//     EXPECT_EQ(cgiResponse->getHeader("Status"), "200 OK");
-//     EXPECT_EQ(cgiResponse->getHeader("Location"), "http://www.example.org/index.html");
-//     EXPECT_EQ(cgiResponse->getHeader("Content-Type"), "text/html");
-//     EXPECT_EQ(cgiResponse->getBody(), "1234567890\r\n");
-//     delete cgiResponse;
-// }
-
+	delete cgiResponse;
+}
 }
