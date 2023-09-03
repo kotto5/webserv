@@ -23,7 +23,7 @@ public:
     CgiResHandler &operator=(const CgiResHandler &rhs);
 
     // Member functions
-    virtual HttpMessage	*handleMessage(const CgiResponse &response);
+    virtual HttpMessage	*handleMessage(const CgiResponse &response, Socket *sock = NULL);
 };
 
 #endif

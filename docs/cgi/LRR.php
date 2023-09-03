@@ -1,4 +1,4 @@
 <?php
-echo ("Location: /index.html\r\n");
+echo ("Location: /cgi/inddex.php\r\n");
 echo ("\r\n");
 ?>

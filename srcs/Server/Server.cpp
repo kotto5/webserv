@@ -212,7 +212,7 @@ ssize_t		Server::send(Socket *sock, HttpMessage *message)
 void Server::finishRecv(Socket *sock, HttpMessage *message)
 {
 	Recvs.erase(sock);
-	#ifdef
+	#ifdef TEST
 		std::cout << "finishRecv [" << message->getRaw() << "]" << std::endl;
 	#endif
 
@@ -221,13 +221,25 @@ void Server::finishRecv(Socket *sock, HttpMessage *message)
 	HttpMessage *newMessage = router.routeHandler(*message, sock);
 	if (newMessage)
 	{
+		// from cgi
 		if (CgiSocket *cgiSock = dynamic_cast<CgiSocket *>(sock))
 		{
 			Socket	*clSocket = cgiSock->moveClSocket();
-			Sends[clSocket] = newMessage;
-			setFd(TYPE_SEND, clSocket);
+			if (Response *res = dynamic_cast<Response *>(newMessage))
+			{
+				Sends[clSocket] = newMessage;
+				setFd(TYPE_SEND, clSocket);
+			}
+			else if (Request *req = dynamic_cast<Request *>(newMessage))
+			{
+				Recvs[clSocket] = newMessage;
+				setFd(TYPE_RECV, clSocket);
+			}
+			else
+				delete (newMessage);
 			delete (sock);
 		}
+		// from client
 		else
 		{
 			// レスポンスを送信用ソケットに追加　

@@ -10,6 +10,10 @@
 #include "CgiResHandler.hpp"
 #include <sys/wait.h>
 #include "CgiResponse.hpp"
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+
 
 // Constructors
 CgiResHandler::CgiResHandler()
@@ -59,13 +63,14 @@ CgiResHandler &CgiResHandler::operator=(const CgiResHandler &rhs)
  * @param request リクエスト
  * @return Response レスポンス
  */
-HttpMessage	*CgiResHandler::handleMessage(const CgiResponse &response)
+HttpMessage	*CgiResHandler::handleMessage(const CgiResponse &response, Socket *sock)
 {
 	int	wstatus;
 	waitpid(-1, &wstatus, 0);
 	if (WEXITSTATUS(wstatus) == 1 || response.isInvalid())
 		return (new Response("500"));
 	std::map<std::string, std::string> headers;
+	std::cout << "type: " << response.getType() << std::endl;
 	if (response.getType() == CgiResponse::DocumentResponse)
 	{
 		headers = response.getOtherFields();
@@ -92,10 +97,20 @@ HttpMessage	*CgiResHandler::handleMessage(const CgiResponse &response)
 	}
 	else if (response.getType() == CgiResponse::LocalRedirectResponse)
 	{
-		// const std::string &location = response.getHeader("Location");
-		// if (location == "")
-			// return (new Response("500"));
-		return (new Response("500"));
+		CgiSocket *cgiSock = dynamic_cast<CgiSocket *>(sock);
+		if (cgiSock == NULL)
+			return (new Response("500"));
+		Request *req = new Request("GET", response.getHeader("Location"), "HTTP/1.1", headers, "");
+		ClSocket *clSocket = cgiSock->getClSocket();
+		struct sockaddr_in addr = clSocket->getLocalAddr();
+		req->parsing("GET/ HTTP/1.1\r\nHost: "
+		+ std::string(inet_ntoa(addr.sin_addr))
+		+ ":"
+		+ std::to_string(ntohs(addr.sin_port))
+		+ "\r\n\r\n", 0);
+		req->setAddr(clSocket);
+		req->setInfo();
+		return (req);
 	}
 	else if (response.getType() == CgiResponse::InvalidResponse)
 	{

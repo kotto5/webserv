@@ -102,7 +102,7 @@ TEST_F(SocketTest, CgiSocket1)
     ClSocket *clSock = svSocket->dequeueSocket();
     if (clSock == NULL || clSock->getFd() == -1)
         throw std::runtime_error("dequeueSocket error" + std::string(strerror(errno)));
-    
+
     int cgiSockFd = socket(AF_INET, SOCK_STREAM, 0);
     if (cgiSockFd == -1)
         throw std::runtime_error("socket error" + std::string(strerror(errno)));
@@ -124,7 +124,7 @@ TEST_F(SocketTest, CgiSocket2)
     ClSocket *clSock = svSocket->dequeueSocket();
     if (clSock == NULL || clSock->getFd() == -1)
         throw std::runtime_error("dequeueSocket error" + std::string(strerror(errno)));
-    
+
     int cgiSockFd = socket(AF_INET, SOCK_STREAM, 0);
     if (cgiSockFd == -1)
         throw std::runtime_error("socket error" + std::string(strerror(errno)));

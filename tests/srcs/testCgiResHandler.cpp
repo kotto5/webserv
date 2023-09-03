@@ -87,32 +87,39 @@ TEST_F(CgiResHandlerTest, HandleDocumentResponseError1)
 // // local-redir-response = local-Location NL
 // // local-Location  = "Location:" local-pathquery NL
 
-// TEST_F(CgiResHandlerTest, HandleLocalRedirectResponse)
-// {
-//     std::string cgiResponseMessage = "Location: /index.html\r\n"
-//                             "\r\n";
-//     CgiResponse *cgiResponse = new CgiResponse();
-//     EXPECT_TRUE(cgiResponse != NULL);
+TEST_F(CgiResHandlerTest, HandleLocalRedirectResponse)
+{
+    std::string cgiResponseMessage = "Location: /index.html\r\n"
+                            "\r\n";
+    CgiResponse *cgiResponse = new CgiResponse();
+    EXPECT_TRUE(cgiResponse != NULL);
 
-//     EXPECT_EQ(cgiResponse->parsing(cgiResponseMessage, 0), 0);
-//     EXPECT_EQ(cgiResponse->getType(), CgiResponse::LocalRedirectResponse);
-//     delete cgiResponse;
-// }
+    EXPECT_EQ(cgiResponse->parsing(cgiResponseMessage, 0), 0);
+    EXPECT_EQ(cgiResponse->getType(), CgiResponse::LocalRedirectResponse);
 
-// TEST_F(CgiResHandlerTest, HandleLocalRedirectResponseError1)
-// {
-//     std::string cgiResponseMessage = "Location: /index.html\r\n"
-//                             "Status: 200 OK\r\n"
-// 							"HogeHoge: fuga"
-//                             "\r\n";
-//     CgiResponse *cgiResponse = new CgiResponse();
-//     EXPECT_TRUE(cgiResponse != NULL);
+    CgiResHandler cgiResHandler;
+	CgiSocket *cgiSocket = new CgiSocket(50, env->socket);
+    HttpMessage *message = cgiResHandler.handleMessage(*cgiResponse, cgiSocket);
+	if (message == NULL)
+	{
+		std::cout << "fjdsaiiosjeaw" << std::endl;
+		FAIL();
+	}
+    Request *request = dynamic_cast<Request *>(message);
+    if (request == NULL)
+    {
+		std::cout << "test1" << std::endl;
+		FAIL();
+	}
+	EXPECT_EQ(request->getUri(), "/index.html");
+	EXPECT_EQ(request->getMethod(), "GET");
+	EXPECT_EQ(request->getProtocol(), "HTTP/1.1");
 
-//     EXPECT_EQ(cgiResponse->parsing(cgiResponseMessage, 0), 0);
-//     EXPECT_EQ(cgiResponse->getType(), CgiResponse::InvalidResponse);
-// 	EXPECT_EQ(cgiResponse->getHeader("HogeHoge"), "fuga");
-//     delete cgiResponse;
-// }
+
+
+
+    delete cgiResponse;
+}
 
 // // ========================================================
 // // =================== ClientRedirectResponse =============
