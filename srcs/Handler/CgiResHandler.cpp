@@ -100,14 +100,13 @@ HttpMessage	*CgiResHandler::handleMessage(const CgiResponse &response, Socket *s
 		CgiSocket *cgiSock = dynamic_cast<CgiSocket *>(sock);
 		if (cgiSock == NULL)
 			return (new Response("500"));
-		Request *req = new Request("GET", response.getHeader("Location"), "HTTP/1.1", headers, "");
+		Request *req = new Request();
 		ClSocket *clSocket = cgiSock->getClSocket();
 		struct sockaddr_in addr = clSocket->getLocalAddr();
-		req->parsing("GET/ HTTP/1.1\r\n"
+		req->parsing("GET " + response.getHeader("Location") + " HTTP/1.1\r\n"
 		"Host: " + std::string(inet_ntoa(addr.sin_addr)) + ":" + std::to_string(ntohs(addr.sin_port)) + "\r\n"
 		"\r\n", 0);
 		req->setAddr(clSocket);
-		req->setInfo();
 		return (req);
 	}
 	else if (response.getType() == CgiResponse::InvalidResponse)
