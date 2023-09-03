@@ -212,7 +212,9 @@ ssize_t		Server::send(Socket *sock, HttpMessage *message)
 void Server::finishRecv(Socket *sock, HttpMessage *message)
 {
 	Recvs.erase(sock);
-	std::cout << "finishRecv [" << message->getRaw() << "]" << std::endl;
+	#ifdef
+		std::cout << "finishRecv [" << message->getRaw() << "]" << std::endl;
+	#endif
 
 	Router router(*this);
 	// ルーティング
