@@ -43,7 +43,6 @@ public:
 	bool						doesSendEnd() const;
 	void						addSendPos(std::size_t pos);
 	void						printHeader() const;
-	bool						isBadRequest() const;
 	bool						isTooBigError() const;
 	bool						isCompleted() const;
 

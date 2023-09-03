@@ -66,7 +66,7 @@ HttpMessage *Router::routeHandler(HttpMessage &message, Socket *sock)
 		_serverContext = &Config::instance()->getHTTPBlock()
 			.getServerContext(request->getServerPort(), request->getHeader("host"));
 
-		if (request->isBadRequest())
+		if (request->isInvalid())
 			return handleError(*request, "400");
 		if (request->isTooBigError())
 			return handleError(*request, "401");
