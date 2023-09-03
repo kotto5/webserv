@@ -164,11 +164,19 @@ std::string Response::getMimeType(const std::string &filename)
 
 void	Response::setFirstLine(const std::string &line)
 {
-	std::string::size_type	method_end = line.find(" ");
-	std::string::size_type	uri_end = line.find(" ", method_end + 1);
-	_protocol = line.substr(0, method_end);
-	_status = line.substr(method_end + 1, uri_end - method_end - 1);
-	_statusMessage = line.substr(uri_end + 1);
+	std::string::size_type	protocol_end = line.find(" ");
+	std::string::size_type	status_end = line.find(" ", protocol_end + 1);
+	_protocol = line.substr(0, protocol_end);
+	_status = line.substr(protocol_end + 1, status_end - protocol_end - 1);
+	_statusMessage = line.substr(status_end + 1);
+}
+
+bool Response::isValidLine(const std::string &line, const bool isFirstLine) const
+{
+	if (isFirstLine)
+		return (isStartLine(line));
+	else
+		return (isHeaderField(line));
 }
 
 void	Response::makeRowString()

@@ -69,6 +69,7 @@ int Socket::getFd() { return fd_; }
 ClSocket::ClSocket(int fd, const sockaddr *addr, socklen_t len, sockaddr *remoteAddr, socklen_t remoteLen):
     Socket(fd, addr, len), remoteAddr_(*(sockaddr_in *
 	)remoteAddr), remoteLen_(remoteLen), maxRequest_(MAX_REQUEST) {
+	std::cout << RED << "New connection, socket fd is " << fd_ << ", port is " << ntohs(remoteAddr_.sin_port) << DEF << std::endl;
 	}
 
 ClSocket::ClSocket(int fd, sockaddr *remoteAddr, socklen_t remoteLen): Socket(fd)
@@ -77,6 +78,7 @@ ClSocket::ClSocket(int fd, sockaddr *remoteAddr, socklen_t remoteLen): Socket(fd
     remoteAddr_ = *(sockaddr_in *)(remoteAddr);
     remoteLen_ = remoteLen;
 	maxRequest_ = MAX_REQUEST;
+	std::cout << RED << "New connection, socket fd is " << fd_ << ", port is " << ntohs(remoteAddr_.sin_port) << DEF << std::endl;
 }
 
 ClSocket::ClSocket(const ClSocket &other): Socket(other)
@@ -84,7 +86,9 @@ ClSocket::ClSocket(const ClSocket &other): Socket(other)
 	*this = other;
 }
 
-ClSocket::~ClSocket() {}
+ClSocket::~ClSocket() {
+	std::cout << BLUE << "Connection closed, socket fd is " << fd_ << ", port is " << ntohs(remoteAddr_.sin_port) << DEF << std::endl;
+}
 
 ClSocket &ClSocket::operator=(const ClSocket &other)
 {
@@ -98,7 +102,7 @@ ClSocket &ClSocket::operator=(const ClSocket &other)
 // ============ SvSocket class =================
 // =============================================
 
-int SvSocket::createSvSocket(int port)
+int SvSocket::createSvSocket(uint16_t port)
 {
 	int	new_sock;
 	new_sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -144,3 +148,23 @@ ClSocket    *SvSocket::dequeueSocket()
 
     return (new ClSocket(clientFd, (sockaddr *)&this->localAddr_, this->localLen_, (sockaddr *)&remote_addr, remote_len));
 }
+
+// =============================================
+
+CgiSocket::CgiSocket(int fd, ClSocket *clSocket): Socket(fd), clSocket_(clSocket) {
+	std::cout << "CgiSocket::CgiSocket(int fd =" << fd << ")" << std::endl;
+}
+
+CgiSocket::~CgiSocket() {
+	std::cout << "CgiSocket::~CgiSocket()" << std::endl;
+	if (clSocket_)
+		delete clSocket_;
+}
+
+ClSocket *CgiSocket::moveClSocket(){ 
+	ClSocket *tmp = clSocket_;
+	clSocket_ = NULL;
+	return (tmp);
+}
+
+ClSocket	*CgiSocket::getClSocket() const { return (clSocket_); }

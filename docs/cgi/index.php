@@ -1,9 +1,7 @@
 <?php
 // ステータス行
-echo "HTTP/1.1 200 OK\r\n";
-// ヘッダー
 echo "Content-Type: text/html\r\n";
-echo "Content-Length: 411\r\n"; // not modify!!
+echo "Status: 200 OK\r\n";
 echo "\r\n";
 ?>
 

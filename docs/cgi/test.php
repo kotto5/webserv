@@ -1,3 +1,9 @@
+<?php
+echo ("HTTP/1.1 200 OK\r\n");
+echo ("Content-Type: text/html; charset=utf-8\r\n");
+echo ("content-length: 500\r\n");
+echo ("\r\n");
+?>
 <!DOCTYPE html>
 <html lang="ja">
 <head>

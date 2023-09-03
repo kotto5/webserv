@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <ctime>
 #include "ServerException.hpp"
+#include "CgiResponse.hpp"
 
 Server::Server() {}
 
@@ -74,11 +75,11 @@ int	Server::createServerSocket(int port)
 bool	cgiConnectionClosed(int ret, int isCgi) { return (ret == 0 && isCgi); }
 bool	clientConnectionClosed(int ret, int isCgi) { return (ret == 0 && !isCgi); }
 
-void	Server::recvError(Socket *sock, bool is_cgi)
+void	Server::recvError(Socket *sock)
 {
-	if (is_cgi)
+	if (CgiSocket *cgiSock = dynamic_cast<CgiSocket *>(sock))
 	{
-		Socket	*clSocket = cgi_client[sock];
+		ClSocket *clSocket = cgiSock->moveClSocket();
 		try
 		{
 			Sends[clSocket] = new Response("500");
@@ -88,9 +89,10 @@ void	Server::recvError(Socket *sock, bool is_cgi)
 		{
 			deleteSocket(TYPE_SEND, clSocket);
 		}
-		deleteSocket(TYPE_CGI, sock);
 	}
-	deleteSocket(TYPE_RECV, sock);
+	recv_sockets.remove(sock);
+	delete (Recvs[sock]);
+	delete (sock);
 }
 
 int	Server::handleSockets(fd_set *read_fds, fd_set *write_fds, int activity)
@@ -117,23 +119,24 @@ int	Server::handleSockets(fd_set *read_fds, fd_set *write_fds, int activity)
 		sock = *tmp_socket;
 		if (!FD_ISSET(sock->getFd(), read_fds))
 			continue ;
-		bool is_cgi = cgi_client.count(sock);
+		bool isCgi = (dynamic_cast<CgiSocket *>(sock) != NULL);
 		try
 		{
 			ssize_t ret = recv(sock, Recvs[sock]);
-			if (clientConnectionClosed(ret, is_cgi) || ret == -1)
+			if (clientConnectionClosed(ret, isCgi) || ret == -1)
 				throw std::runtime_error("recv");
-			else if (cgiConnectionClosed(ret, is_cgi))
-				Recvs[sock]->setBodyEnd(true);
-			if (Recvs[sock]->isEnd() || Recvs[sock]->isInvalid() || cgiConnectionClosed(ret, is_cgi))
+			if (isCgi)
+				Recvs[sock]->setBodyEnd(cgiConnectionClosed(ret, isCgi));
+			if (Recvs[sock]->isEnd() || Recvs[sock]->isInvalid() || cgiConnectionClosed(ret, isCgi))
 			{
-				finishRecv(sock, Recvs[sock], is_cgi);
+				finishRecv(sock, Recvs[sock]);
 				recv_sockets.erase(tmp_socket);
 			}
 		}
 		catch (const std::exception &e)
 		{
-			recvError(sock, is_cgi);
+			std::cout << e.what() << std::endl;
+			recvError(sock);
 		}
 		--activity;
 	}
@@ -144,12 +147,22 @@ int	Server::handleSockets(fd_set *read_fds, fd_set *write_fds, int activity)
 		sock = *tmp_socket;
 		if (!FD_ISSET(sock->getFd(), write_fds))
 			continue ;
-		send(sock, Sends[sock]);
+		// bool is_cgi = (dynamic_cast<CgiSocket *>(sock) != NULL);
+		if (send(sock, Sends[sock]) <= 0)
+		{
+			if (CgiSocket *cgiSock = dynamic_cast<CgiSocket *>(sock))
+				ErrorfinishSendCgi(cgiSock, cgiSock->moveClSocket());
+			else
+			{
+				delete (Sends[sock]);
+				delete (sock);
+			}
+			send_sockets.erase(tmp_socket);
+		}
 		if (Sends[sock]->doesSendEnd())
 		{
-			bool is_cgi = cgi_client.count(sock);
-			finishSend(sock, Sends[sock], is_cgi);
 			send_sockets.erase(tmp_socket);
+			finishSend(sock, Sends[sock]);
 		}
 		--activity;
 	}
@@ -164,7 +177,6 @@ int	Server::accept(Socket *serverSock)
 		return (0);
 	setFd(TYPE_RECV, newClSock);
 	Recvs[newClSock] = new Request(newClSock);
-	std::cout << RED << "New connection, socket fd is " << newClSock->getFd() << ", port is " << ntohs(newClSock->getRemoteAddr().sin_port) << "time " << newClSock->getLastAccess() << DEF << std::endl;
 	return (0);
 }
 
@@ -175,7 +187,10 @@ int	Server::recv(Socket *sock, HttpMessage *message) {
 	sock->updateLastAccess();
 	recv_ret = ::recv(sock->getFd(), buffer, BUFFER_LEN, 0);
 	if (recv_ret == -1)
+	{
+		perror("recv::: ");
 		return (-1);
+	}
 	try {
 		message->parsing(std::string(buffer, (std::size_t)recv_ret), _limitClientMsgSize);
 		return (recv_ret);
@@ -192,13 +207,21 @@ ssize_t		Server::send(Socket *sock, HttpMessage *message)
 
 	sock->updateLastAccess();
 	buffer = message->getSendBuffer();
+	if (buffer == NULL)
+		return (-1);
 	ret = ::send(sock->getFd(), buffer, message->getContentLengthRemain(), 0);
-	message->addSendPos(ret);
+	if (ret == 0)
+	{
+		std::cout << "arienai to omotteta!" << std::endl;
+		exit(1);
+	}
+	else if (ret > 0)
+		message->addSendPos(ret);
 	return (ret);
 }
 
 // bool じゃなくて dynamic_cast で判定したほうがいいかも
-void Server::finishRecv(Socket *sock, HttpMessage *message, bool isCgi)
+void Server::finishRecv(Socket *sock, HttpMessage *message)
 {
 	Recvs.erase(sock);
 	std::cout << "finishRecv [" << message->getRaw() << "]" << std::endl;
@@ -208,12 +231,11 @@ void Server::finishRecv(Socket *sock, HttpMessage *message, bool isCgi)
 	HttpMessage *newMessage = router.routeHandler(*message, sock);
 	if (newMessage)
 	{
-		if (isCgi)
+		if (CgiSocket *cgiSock = dynamic_cast<CgiSocket *>(sock))
 		{
-			Socket	*clSocket = cgi_client[sock];
+			Socket	*clSocket = cgiSock->moveClSocket();
 			Sends[clSocket] = newMessage;
 			setFd(TYPE_SEND, clSocket);
-			cgi_client.erase(sock);
 			delete (sock);
 		}
 		else
@@ -233,23 +255,53 @@ void Server::finishRecv(Socket *sock, HttpMessage *message, bool isCgi)
 	delete (message);
 }
 
-void	Server::finishSend(Socket *sock, HttpMessage *message, bool isCgi)
+int	Server::setErrorResponse(Socket *clSock)
+{
+	Response *response;
+	try {
+		response = new Response("500");
+	}
+	catch (const std::exception &e)
+	{
+		return (-1);
+	}
+	if (addSend(clSock, response))
+	{
+		delete (response);
+		return (-1);
+	}
+	return (0);
+}
+
+void	Server::ErrorfinishSendCgi(CgiSocket *cgiSock, Socket *clSock)
+{
+	if (setErrorResponse(clSock))
+		delete (clSock);
+	delete (cgiSock);
+}
+
+
+void	Server::finishSend(Socket *sock, HttpMessage *message)
 {
 	Sends.erase(sock);
-	if (isCgi)
+	if (CgiSocket *cgiSock = dynamic_cast<CgiSocket *>(sock))
 	{
-		shutdown(sock->getFd(), SHUT_WR);
-		cgi_client.erase(sock);
-		addRecv(sock, new Response());
-		delete (message);
-		return ;
+		if (shutdown(sock->getFd(), SHUT_WR) == -1)
+			return (ErrorfinishSendCgi(cgiSock, cgiSock->moveClSocket()));
+		CgiResponse *response = new CgiResponse();
+		if (addRecv(sock, response))
+		{
+			delete (response);
+			return (ErrorfinishSendCgi(cgiSock, cgiSock->moveClSocket()));
+		}
 	}
-	if (message->getHeader("connection") == "close")
+	else if (message->getHeader("connection") == "close")
 		delete (sock);
 	else
 	{
-		Recvs[sock] = new Request((ClSocket *)sock);
-		setFd(TYPE_RECV, sock);
+		// Recvs[sock] = new Request((ClSocket *)sock);
+		// setFd(TYPE_RECV, sock);
+		addRecv(sock, new Request((ClSocket *)sock));
 	}
 	delete (message);
 }
@@ -262,7 +314,7 @@ void	Server::finishSend(Socket *sock, HttpMessage *message, bool isCgi)
  * @param client_sock
  * @return int
  */
-int	Server::setFd(int type, Socket *sock, Socket *client_sock)
+int	Server::setFd(int type, Socket *sock)
 {
 	try
 	{
@@ -272,8 +324,6 @@ int	Server::setFd(int type, Socket *sock, Socket *client_sock)
 			send_sockets.push_back(sock);
 		else if (type == TYPE_SERVER)
 			server_sockets.push_back(sock);
-		else if (type == TYPE_CGI)
-			cgi_client[sock] = client_sock;
 		else
 			return (1);
 		return (0);
@@ -301,11 +351,6 @@ int	Server::deleteSocket(int type, Socket *socket)
 	else if (type == TYPE_SERVER)
 	{
 		server_sockets.remove(socket);
-		delete (socket);
-	}
-	else if (type == TYPE_CGI)
-	{
-		cgi_client.erase(socket);
 		delete (socket);
 	}
 	return (0);
@@ -388,19 +433,16 @@ void	Server::addKeepAliveHeader(Response *response, ClSocket *clientSock, HttpMe
 	response->makeRowString();
 }
 
-void	Server::addSend(Socket *sock, HttpMessage *message)
+int	Server::addSend(Socket *sock, HttpMessage *message)
 {
 	Sends[sock] = message;
 	setFd(TYPE_SEND, sock);
+	return (0);
 }
 
-void	Server::addRecv(Socket *sock, HttpMessage *message)
+int	Server::addRecv(Socket *sock, HttpMessage *message)
 {
 	Recvs[sock] = message;
 	setFd(TYPE_RECV, sock);
-}
-
-void	Server::addCgi(Socket *sock, Socket *clientSocket)
-{
-	setFd(TYPE_CGI, sock, clientSocket);
+	return (0);
 }

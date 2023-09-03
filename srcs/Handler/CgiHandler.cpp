@@ -4,6 +4,7 @@
 #include "Server.hpp"
 #include "Socket.hpp"
 #include <filesystem>
+#include "CgiResponse.hpp"
 
 // Constructors
 CgiHandler::CgiHandler()
@@ -60,8 +61,7 @@ Response *CgiHandler::handleRequest(const Request &request)
 	close(socks[S_CHILD]);
 
 	set_non_blocking(socks[S_PARENT]);
-	Socket *cgiSock = new Socket(socks[S_PARENT]);
-	_server->addCgi(cgiSock, _clientSocket);
+	CgiSocket *cgiSock = new CgiSocket(socks[S_PARENT], _clientSocket);
 	if (request.getBody().size() > 0)
 	{
 		// リクエストボディがある場合はCGIに送信する
@@ -72,7 +72,7 @@ Response *CgiHandler::handleRequest(const Request &request)
 	{
 		// リクエストボディがない場合はEOFを送信する
 		shutdown(cgiSock->getFd(), SHUT_WR);
-		HttpMessage *res = new Response();
+		HttpMessage *res = new CgiResponse();
 		_server->addRecv(cgiSock, res);
 	}
 	// レスポンスを受信する
@@ -173,7 +173,7 @@ std::vector<char *> CgiHandler::createEnvs(const Request &request)
 	return cenvs;
 }
 
-void CgiHandler::setClientSocket(Socket *clientSocket)
+void CgiHandler::setClientSocket(ClSocket *clientSocket)
 {
 	_clientSocket = clientSocket;
 }
