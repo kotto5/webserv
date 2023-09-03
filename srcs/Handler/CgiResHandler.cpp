@@ -48,8 +48,28 @@ HttpMessage	*CgiResHandler::handleMessage(const CgiResponse &response)
 	waitpid(-1, &wstatus, 0);
 	if (WEXITSTATUS(wstatus) == 1 || response.isInvalid())
 		return (new Response("500"));
-	// Response *res = new Response(response);
-	Response *res = new Response("200");
-	// local redirect ... other
-	return (res);
+	std::map<std::string, std::string> headers;
+	if (response.getType() == CgiResponse::DocumentResponse)
+	{
+		headers["content-type"] = response.getHeader("Content-Type");
+		// other header copy?
+
+		std::string status = response.getHeader("Status");
+		if (status != "")
+			return (new Response(status, headers, response.getBody()));
+		else
+			return (new Response("200", headers, response.getBody()));
+	}
+	// else if (response.getType() == CgiResponse::LocalRedirectResponse)
+	// {
+	// 	const std::string &location = response.getHeader("Location");
+	// }
+	// else if (response.getType() == CgiResponse::Type::ErrorResponse)
+	// {
+	// 	Response *res = new Response("500");
+	// 	res->setBody(response.getBody());
+	// 	return (res);
+	// }
+	else
+		return (new Response("500"));
 }
