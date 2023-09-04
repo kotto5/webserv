@@ -47,6 +47,20 @@ Router &Router::operator=(const Router &rhs)
 	return *this;
 }
 
+int	Router::getRequestError(const Request *request, const LocationContext &locationContext)
+{
+	if (request->isInvalid())
+		return (400);
+	if (request->isTooBigError())
+		return (413);
+	if (request->getUri().find("..") != std::string::npos)
+		return (403);
+	if (isAllowedMethod(request->getMethod(), locationContext) == false && 
+		locationContext.getDirective("redirect") == "")
+		return (405);
+	return (0);
+}
+
 /**
  * @brief リクエストに基づきハンドラーの固有処理を呼び出す
  *
@@ -62,56 +76,60 @@ HttpMessage *Router::routeHandler(HttpMessage &message, Socket *sock)
 	}
 	else if (Request *request = dynamic_cast<Request *>(&message))
 	{
+		ClSocket *clSock = dynamic_cast<ClSocket *>(sock);
+		if (request->getHeader("connection") == "close")
+			clSock->setMaxRequest(0);
+		else
+			clSock->decrementMaxRequest();
 		request->setInfo();
+
 		//　リクエストに応じたServerコンテキストを取得
 		_serverContext = &Config::instance()->getHTTPBlock()
 			.getServerContext(request->getServerPort(), request->getHeader("host"));
 
-		if (request->isInvalid())
-			return handleError(*request, "400");
-		if (request->isTooBigError())
-			return handleError(*request, "401");
-		if (request->getUri().find("..") != std::string::npos)
-			return handleError(*request, "403"); // ディレクトリトラバーサルの場合
-		if (isRedirect(*request))
+		const LocationContext &locationContext = _serverContext->getLocationContext(request->getUri());
+		if (int ErrorStatus = getRequestError(request, locationContext))
+			return handleError(std::to_string(ErrorStatus), locationContext);
+
+		const std::string &redirect = locationContext.getDirective("redirect");
+		if (redirect.empty() == false)
 		{
 			std::map<std::string, std::string> headers;
-			headers["Location"] = _serverContext->getLocationContext(request->getUri()).getDirective("redirect");
+			headers["Location"] = redirect;
 			return new Response("301", headers, "");
 		}
-		if (isAllowedMethod(*request) == false)
-			return handleError(*request, "405");
-
 		// メソッドに対応するhandlerを呼び出し
 		try
 		{
-			IHandler *handler = NULL;
 			if (isConnectionCgi(*request))
 			{
+				// CgiSocket *cgiSock = _cgiHandler.createCgiSocket();
 				_cgiHandler.init(*_server, _serverContext->getLocationContext(request->getUri()));
-				_cgiHandler.setClientSocket(dynamic_cast<ClSocket *>(sock));
-				handler = &_cgiHandler;
+				_cgiHandler.setClientSocket(clSock);
+				return _cgiHandler.handleRequest(*request);
 			}
 			else
-				handler = _handlers.at(request->getMethod());
-			return (handler->handleRequest(*request));
+			{
+				IHandler *handler = _handlers.at(request->getMethod());
+				return (handler->handleRequest(*request));
+			}
 		}
 		catch (const RequestException &e)
 		{
 			// ハンドラー固有の処理に失敗した場合
-			return handleError(*request, e.getStatus());
+			return handleError(e.getStatus(), locationContext);
 		}
 		catch (const ServerException &e)
 		{
 			// サーバー固有の処理に失敗した場合
 			Logger::instance()->writeErrorLog(ErrorCode::SYSTEM_CALL, e.what(), request);
-			return handleError(*request, "500");
+			return handleError("500", locationContext);
 		}
 		catch (const std::out_of_range& e)
 		{
 			Logger::instance()->writeErrorLog(ErrorCode::NOT_METHOD, NULL, request);
 			// 対応するメソッドがない場合は405を返す
-			return handleError(*request, "405");
+			return handleError("405", locationContext);
 		}
 	}
 	else
@@ -140,12 +158,12 @@ bool	Router::isRedirect(const Request &request) const
  * @return true
  * @return false
  */
-bool	Router::isAllowedMethod(const Request& request) const
+bool	Router::isAllowedMethod(const std::string &method, const LocationContext &locationContext)
 {
-	std::vector<std::string> allowedMethods = _serverContext->getLocationContext(request.getUri()).getAllowedMethods();
+	std::vector<std::string> allowedMethods = locationContext.getAllowedMethods();
 	for (std::vector<std::string>::iterator it = allowedMethods.begin(); it != allowedMethods.end(); it++)
 	{
-		if (*it == request.getMethod())
+		if (*it == method)
 			return true;
 	}
 	return false;
@@ -172,7 +190,7 @@ bool	Router::isConnectionCgi(const Request &request)
  * @return Response レスポンス
  */
 
-Response *Router::handleError(const Request &request, const std::string &status)
+Response *Router::handleError(const std::string &status, const LocationContext &locationContext)
 {
 	// エラーページのパスを取得
 	std::string error_path = _serverContext->getErrorPage(status);
@@ -182,7 +200,7 @@ Response *Router::handleError(const Request &request, const std::string &status)
 		return (new Response(status, std::map<std::string, std::string>(), generateDefaultErrorPage()));
 	}
 	// 実体パスに変換
-	std::string actual_path = Request::convertUriToPath(error_path, request.getServerPort(), request.getHeader("host"));
+	std::string actual_path = Request::convertUriToPath(error_path, locationContext);
 
 	//　エラーページが参照できない場合はデフォルトの内容を返す
 	if (!pathExist(actual_path.c_str()))
