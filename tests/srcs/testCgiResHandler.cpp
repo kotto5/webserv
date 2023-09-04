@@ -109,7 +109,6 @@ TEST_F(CgiResHandlerTest, HandleLocalRedirectResponse)
     request->setInfo();
     if (request == NULL)
     {
-		std::cout << "test1" << std::endl;
 		FAIL();
 	}
 	EXPECT_EQ(request->getUri(), "/index.html");
