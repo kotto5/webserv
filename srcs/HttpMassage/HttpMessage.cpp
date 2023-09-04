@@ -213,6 +213,7 @@ bool	HttpMessage::doesSendEnd() const
 {
 	return (_doesSendEnd);
 }
+#define TEST
 
 const uint8_t	*HttpMessage::getSendBuffer()
 {
