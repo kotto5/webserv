@@ -58,7 +58,7 @@ HttpMessage *Router::routeHandler(HttpMessage &message, Socket *sock)
 	if (CgiResponse *response = dynamic_cast<CgiResponse *>(&message))
 	{
 		CgiResHandler handler;
-		return handler.handleMessage(*response);
+		return handler.handleMessage(*response, sock);
 	}
 	else if (Request *request = dynamic_cast<Request *>(&message))
 	{
@@ -67,7 +67,7 @@ HttpMessage *Router::routeHandler(HttpMessage &message, Socket *sock)
 		_serverContext = &Config::instance()->getHTTPBlock()
 			.getServerContext(request->getServerPort(), request->getHeader("host"));
 
-		if (request->isBadRequest())
+		if (request->isInvalid())
 			return handleError(*request, "400");
 		if (request->isTooBigError())
 			return handleError(*request, "401");

@@ -40,16 +40,18 @@ HttpMessage::~HttpMessage() {
 int	HttpMessage::parsing(const std::string &raw, const std::size_t maxSize)
 {
 	_raw += raw;
-	std::cout << "--------" << std::endl;
-	std::cout << raw << std::endl;
-	std::cout << maxSize <<std::endl;
 	// 最大サイズを超えたらエラー
 	if (maxSize != 0 && _raw.length() > maxSize)
 	{
 		_tooBigError = true;
 		return (1);
 	}
-	std::cout << "parsing raw length: [" << _raw.length() << "]" << std::endl;
+	#ifdef TEST
+		std::cout << "--------" << std::endl;
+		std::cout << raw << std::endl;
+		std::cout << maxSize <<std::endl;
+		std::cout << "parsing raw length: [" << _raw.length() << "]" << std::endl;
+	#endif
 
 	std::string	line;
 	std::string::size_type endPos;
@@ -119,7 +121,6 @@ void	HttpMessage::setBody(const std::string &addBody)
 	{
 		if (_body.empty())
 			_body.reserve(_contentLength);
-		std::cout << _readPos << ":" << _contentLength << ":" << addBody.length() << std::endl;
 		_body += addBody;
 		if (_body.length() >= _contentLength)
 		{
@@ -144,7 +145,7 @@ void	HttpMessage::setBody(const std::string &addBody)
 	{
 		_body += addBody;
 		_readPos += addBody.length();
-		_isBodyEnd = true;
+		_isBodyEnd = false;
 	}
 	else
 		_isBodyEnd = true;
@@ -159,7 +160,6 @@ void	HttpMessage::setBody(const std::string &addBody)
  */
 void	HttpMessage::decodeChunked(std::string &body)
 {
-	std::cout << "decodeChunked: body is [" << body << "]" << std::endl;
     size_t         readPos = 0;
     std::string    dechunk = "";
     unsigned long chunkSize;
@@ -185,7 +185,6 @@ void	HttpMessage::decodeChunked(std::string &body)
         readPos += 2;
     }
     body = dechunk;
-	std::cout << "decodeChunked: body is [" << body << "]" << std::endl;
 }
 
 std::string	HttpMessage::makeHeaderKeyLower(std::string key)
@@ -194,7 +193,7 @@ std::string	HttpMessage::makeHeaderKeyLower(std::string key)
 	return (key);
 }
 
-bool	HttpMessage::isEnd() const
+bool	HttpMessage::isCompleted() const
 {
 	return (_isHeaderEnd && _isBodyEnd);
 }
@@ -221,7 +220,9 @@ const uint8_t	*HttpMessage::getSendBuffer()
 		return (NULL);
 	if (_sendBuffer == NULL)
 	{
-		std::cout << "getSendBuffer: _raw is[" << _raw << "]" << std::endl;
+		#ifdef TEST
+			std::cout << "getSendBuffer: _raw is[" << _raw << "]" << std::endl;
+		#endif
 		_sendBufferSize = _raw.length();
 		try {
 			_sendBuffer = new  uint8_t[_sendBufferSize];

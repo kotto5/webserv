@@ -100,8 +100,6 @@ int CgiHandler::runCgi(const Request &request, int pipes[2])
 	}
 	else if (pid == 0)
 	{
-        std::cout << "sockRecv: " << pipes[S_CHILD] << std::endl;
-        std::cout << "sockSend: " << pipes[S_PARENT] << std::endl;
         if (close(pipes[S_PARENT]) ||
 			dup2(pipes[S_CHILD], STDOUT_FILENO) == -1 ||
         	dup2(pipes[S_CHILD], STDIN_FILENO) == -1 ||
@@ -152,8 +150,10 @@ std::vector<char *> CgiHandler::createEnvs(const Request &request)
     envs.push_back("REMOTE_ADDR=" + request.getRemoteAddr()); // MUST
     envs.push_back("REQUEST_METHOD=" + request.getMethod());
     std::string::size_type  startScriptName = uri.find_last_of("/", lastCgiExtention);
-    std::cout << "startScriptName: " << startScriptName << std::endl;
-    std::cout << "startScriptName: " << uri.substr(startScriptName + 1) << std::endl;
+	#ifdef TEST
+		std::cout << "startScriptName: " << startScriptName << std::endl;
+		std::cout << "startScriptName: " << uri.substr(startScriptName + 1) << std::endl;
+	#endif
     envs.push_back("SCRIPT_NAME=" + uri.substr(startScriptName + 1));
     envs.push_back("SERVER_NAME=" + request.getServerName());
     envs.push_back("SERVER_PORT=" + request.getServerPort());
