@@ -45,7 +45,14 @@ void	CgiHandler::init(Server &server, const LocationContext &lc)
  */
 Response *CgiHandler::handleRequest(const Request &request)
 {
-	// ソケットペアを作成
+	CgiSocket *cgiSock = createCgiSocket(request);
+	Request *req = new Request(request.getBody());
+	_server->addSend(cgiSock, req);
+	return NULL;
+}
+
+CgiSocket *CgiHandler::createCgiSocket(const Request &request)
+{
 	int	socks[2];
 
 	if (socketpair(AF_UNIX, SOCK_STREAM, 0, socks) == -1)
@@ -62,21 +69,7 @@ Response *CgiHandler::handleRequest(const Request &request)
 
 	set_non_blocking(socks[S_PARENT]);
 	CgiSocket *cgiSock = new CgiSocket(socks[S_PARENT], _clientSocket);
-	if (request.getBody().size() > 0)
-	{
-		// リクエストボディがある場合はCGIに送信する
-		Request *req = new Request(request.getBody());
-		_server->addSend(cgiSock, req);
-	}
-	else
-	{
-		// リクエストボディがない場合はEOFを送信する
-		shutdown(cgiSock->getFd(), SHUT_WR);
-		HttpMessage *res = new CgiResponse();
-		_server->addRecv(cgiSock, res);
-	}
-	// レスポンスを受信する
-	return NULL;
+	return (cgiSock);
 }
 
 /**
