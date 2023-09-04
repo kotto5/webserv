@@ -70,7 +70,7 @@ private:
 	int				deleteSocket(int type, Socket *socket);
 	bool			checkTimeout();
 	static int		set_fd_set(fd_set &set, std::list<Socket *> sockets, int &maxFd);
-	void			addKeepAliveHeader(Response *response, ClSocket *clientSock, HttpMessage *request);
+	void			addKeepAliveHeader(Response *response, ClSocket *clientSock);
 	int				setErrorResponse(Socket *clSock);
 	void			ErrorfinishSendCgi(CgiSocket *cgiSock, Socket *clSock);
 };

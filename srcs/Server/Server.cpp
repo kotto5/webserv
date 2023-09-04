@@ -122,7 +122,7 @@ int	Server::handleSockets(fd_set *read_fds, fd_set *write_fds, int activity)
 		}
 		if (ret == -1)
 			recvError(sock);
-		if (ret == 0 ||
+		else if (ret == 0 ||
 			Recvs[sock]->isCompleted() || Recvs[sock]->isInvalid())
 		{
 			try {
@@ -143,21 +143,19 @@ int	Server::handleSockets(fd_set *read_fds, fd_set *write_fds, int activity)
 		sock = *tmp_socket;
 		if (!FD_ISSET(sock->getFd(), write_fds))
 			continue ;
-		if (send(sock, Sends[sock]) == -1)
+		bool		isCgi = (dynamic_cast<CgiSocket *>(sock) != NULL);
+		ssize_t		ret = send(sock, Sends[sock]);
+		if (isCgi == false && ret == -1)
 		{
-			if (CgiSocket *cgiSock = dynamic_cast<CgiSocket *>(sock))
-				ErrorfinishSendCgi(cgiSock, cgiSock->moveClSocket());
-			else
-			{
-				delete (Sends[sock]);
-				delete (sock);
-			}
+			delete (Sends[sock]);
+			delete (sock);
 			send_sockets.erase(tmp_socket);
 		}
-		if (Sends[sock]->doesSendEnd())
+		else if (Sends[sock]->doesSendEnd() || ret == -1)
 		{
 			send_sockets.erase(tmp_socket);
 			finishSend(sock, Sends[sock]);
+			delete (Sends[sock]);
 		}
 		--activity;
 	}
@@ -205,7 +203,7 @@ ssize_t		Server::send(Socket *sock, HttpMessage *message)
 	if (buffer == NULL)
 		return (-1);
 	ret = ::send(sock->getFd(), buffer, message->getContentLengthRemain(), 0);
-	if (ret > 0)
+	if (ret >= 0) // 0 も含んでるのはcgiのために超大事
 		message->addSendPos(ret);
 	return (ret);
 }
@@ -252,7 +250,7 @@ void Server::finishRecv(Socket *sock, HttpMessage *message)
 			if (response)
 			{
 				Logger::instance()->writeAccessLog(*(Request *)message, *response);
-				addKeepAliveHeader(response, (ClSocket *)sock, message);
+				addKeepAliveHeader(response, (ClSocket *)sock);
 			}
 		}
 	}
@@ -291,7 +289,12 @@ void	Server::finishSend(Socket *sock, HttpMessage *message)
 	if (CgiSocket *cgiSock = dynamic_cast<CgiSocket *>(sock))
 	{
 		if (shutdown(sock->getFd(), SHUT_WR) == -1)
+		{
+			perror("=================================\nshutdown: ");
+			std::cout << "shutdown error" << std::endl;
+			std::cout << "=====================================" << std::endl;
 			return (ErrorfinishSendCgi(cgiSock, cgiSock->moveClSocket()));
+		}
 		CgiResponse *response = new CgiResponse();
 		if (addRecv(sock, response))
 		{
@@ -299,15 +302,15 @@ void	Server::finishSend(Socket *sock, HttpMessage *message)
 			return (ErrorfinishSendCgi(cgiSock, cgiSock->moveClSocket()));
 		}
 	}
-	else if (message->getHeader("connection") == "close")
-		delete (sock);
-	else
+	else if (ClSocket *clSock = dynamic_cast<ClSocket *>(sock))
 	{
-		// Recvs[sock] = new Request((ClSocket *)sock);
-		// setFd(TYPE_RECV, sock);
-		addRecv(sock, new Request((ClSocket *)sock));
+		if (clSock->getMaxRequest() == 0)
+			delete (clSock);
+		else
+			addRecv(sock, new Request((ClSocket *)sock));
 	}
-	delete (message);
+	// delete (message);
+	(void)message;
 }
 
 /**
@@ -420,9 +423,9 @@ int	Server::set_fd_set(fd_set &set, std::list<Socket *> sockets, int &maxFd)
  *
  */
 
-void	Server::addKeepAliveHeader(Response *response, ClSocket *clientSock, HttpMessage *request)
+void	Server::addKeepAliveHeader(Response *response, ClSocket *clientSock)
 {
-	if (request->getHeader("connection") == "close" || clientSock->getMaxRequest() == 0)
+	if (clientSock->getMaxRequest() == 0)
 		response->addHeader("connection", "close");
 	else
 	{
@@ -432,7 +435,6 @@ void	Server::addKeepAliveHeader(Response *response, ClSocket *clientSock, HttpMe
 		keepAliveValue += ", max=";
 		keepAliveValue += std::to_string(clientSock->getMaxRequest());
 		response->addHeader("keep-alive", keepAliveValue);
-		clientSock->decrementMaxRequest();
 	}
 	response->makeRowString();
 }
