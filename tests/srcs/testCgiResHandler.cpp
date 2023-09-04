@@ -106,6 +106,7 @@ TEST_F(CgiResHandlerTest, HandleLocalRedirectResponse)
 		FAIL();
 	}
     Request *request = dynamic_cast<Request *>(message);
+    request->setInfo();
     if (request == NULL)
     {
 		std::cout << "test1" << std::endl;
