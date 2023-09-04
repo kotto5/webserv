@@ -22,6 +22,7 @@
 
 #define BUFFER_LEN 10000
 #define MAX_CLIENTS 1024
+#define TEST
 
 #define RED "\x1b[41m"
 #define BLUE "\x1b[44m"

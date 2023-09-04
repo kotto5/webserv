@@ -49,6 +49,7 @@ public:
 	const std::string  			&getRaw() const;
 	const std::string			&getProtocol() const;
 	const std::string  			&getHeader(std::string key) const;
+	const std::map<std::string, std::string> &getHeaders() const;
 	void						addHeader(std::string key, std::string value);
 	const std::string			&getBody() const;
 	const uint8_t				*getSendBuffer();

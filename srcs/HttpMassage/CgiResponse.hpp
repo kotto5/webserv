@@ -41,6 +41,7 @@ public:
         InvalidResponse
     };
     Type getType() const;
+    std::map<std::string, std::string> getOtherFields() const;
     CgiResponse(/* args */);
     ~CgiResponse();
 };

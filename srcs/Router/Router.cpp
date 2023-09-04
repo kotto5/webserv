@@ -58,7 +58,7 @@ HttpMessage *Router::routeHandler(HttpMessage &message, Socket *sock)
 	if (CgiResponse *response = dynamic_cast<CgiResponse *>(&message))
 	{
 		CgiResHandler handler;
-		return handler.handleMessage(*response);
+		return handler.handleMessage(*response, sock);
 	}
 	else if (Request *request = dynamic_cast<Request *>(&message))
 	{

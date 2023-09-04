@@ -27,10 +27,6 @@ Request::Request(const std::string &row): HttpMessage(row) {}
 Request::Request(const ClSocket *clientSocket)
 {
 	this->setAddr(clientSocket);
-	std::cout << "port: " << _server_port << std::endl;
-	std::cout << "server name: " << _server_name << std::endl;
-	std::cout << "remote addr: " << _remote_addr << std::endl;
-	std::cout << "remote host: " << _remote_host << std::endl;
 }
 
 Request::Request(){}
