@@ -47,6 +47,8 @@ public:
 	void			createSocketForCgi(int type, int fd, const std::string &body, Socket *sock = NULL);
 	int				addRecv(Socket *sock, HttpMessage *message);
 	int				addSend(Socket *sock, HttpMessage *message);
+	int				deleteSend(Socket *sock);
+	int				deleteRecv(Socket *sock);
 	int				addCgi(Socket *sock, Socket *cgi);
 
 private:
@@ -64,7 +66,7 @@ private:
 	int				recv(Socket *sock, HttpMessage *message);
 	ssize_t			send(Socket *sock, HttpMessage *message);
 	void 			finishRecv(Socket *sock, HttpMessage *message);
-	void			finishSend(Socket *sock, HttpMessage *message);
+	void			finishSend(Socket *sock);
 	void			recvError(Socket *sock);
 	int				setFd(int type, Socket *sock);
 	int				deleteSocket(int type, Socket *socket);

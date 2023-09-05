@@ -16,7 +16,21 @@
 
 Server::Server() {}
 
-Server::~Server() {}
+Server::~Server() {
+	// std::map<Socket *, HttpMessage *>::iterator	itr1;
+	// for (itr1 = Recvs.begin(); itr1 != Recvs.end(); itr1++)
+	// 	delete (itr1->second);
+	// for (itr1 = Sends.begin(); itr1 != Sends.end(); itr1++)
+	// 	delete (itr1->second);
+
+	std::list<Socket *>::iterator	itr2;
+	for (itr2 = server_sockets.begin(); itr2 != server_sockets.end(); itr2++)
+		delete (*itr2);
+	for (itr2 = recv_sockets.begin(); itr2 != recv_sockets.end(); itr2++)
+		delete (*itr2);
+	for (itr2 = send_sockets.begin(); itr2 != send_sockets.end(); itr2++)
+		delete (*itr2);
+}
 
 int	Server::setup()
 {
@@ -79,16 +93,14 @@ void	Server::recvError(Socket *sock)
 		ClSocket *clSocket = cgiSock->moveClSocket();
 		try
 		{
-			Sends[clSocket] = new Response("500");
-			setFd(TYPE_SEND, clSocket);
+			addSend(clSocket, new Response("500"));
 		}
 		catch (const std::exception &e)
 		{
 			deleteSocket(TYPE_SEND, clSocket);
 		}
 	}
-	recv_sockets.remove(sock);
-	delete (Recvs[sock]);
+	deleteRecv(sock);
 	delete (sock);
 }
 
@@ -147,15 +159,15 @@ int	Server::handleSockets(fd_set *read_fds, fd_set *write_fds, int activity)
 		ssize_t		ret = send(sock, Sends[sock]);
 		if (isCgi == false && ret == -1)
 		{
-			delete (Sends[sock]);
+			deleteSend(sock);
 			delete (sock);
 			send_sockets.erase(tmp_socket);
 		}
 		else if (Sends[sock]->doesSendEnd() || ret == -1)
 		{
 			send_sockets.erase(tmp_socket);
-			finishSend(sock, Sends[sock]);
-			delete (Sends[sock]);
+			finishSend(sock);
+			deleteSend(sock);
 		}
 		--activity;
 	}
@@ -168,8 +180,7 @@ int	Server::accept(Socket *serverSock)
 	ClSocket *newClSock = svSock->dequeueSocket();
 	if (newClSock == NULL)
 		return (0);
-	setFd(TYPE_RECV, newClSock);
-	Recvs[newClSock] = new Request(newClSock);
+	addRecv(newClSock, new Request(newClSock));
 	return (0);
 }
 
@@ -211,7 +222,6 @@ ssize_t		Server::send(Socket *sock, HttpMessage *message)
 // bool じゃなくて dynamic_cast で判定したほうがいいかも
 void Server::finishRecv(Socket *sock, HttpMessage *message)
 {
-	Recvs.erase(sock);
 	#ifdef TEST
 		std::cout << "finishRecv [" << message->getRaw() << "]" << std::endl;
 	#endif
@@ -225,26 +235,21 @@ void Server::finishRecv(Socket *sock, HttpMessage *message)
 		if (CgiSocket *cgiSock = dynamic_cast<CgiSocket *>(sock))
 		{
 			Socket	*clSocket = cgiSock->moveClSocket();
-			if (Response *res = dynamic_cast<Response *>(newMessage))
+			if (dynamic_cast<Response *>(newMessage))
 			{
-				Sends[clSocket] = newMessage;
-				setFd(TYPE_SEND, clSocket);
+				addSend(clSocket, newMessage);
 			}
-			else if (Request *req = dynamic_cast<Request *>(newMessage))
+			else if (dynamic_cast<Request *>(newMessage))
 			{
-				Recvs[clSocket] = newMessage;
-				setFd(TYPE_RECV, clSocket);
+				addRecv(clSocket, newMessage);
 			}
-			else
-				delete (newMessage);
 			delete (sock);
 		}
 		// from client
 		else
 		{
 			// レスポンスを送信用ソケットに追加　
-			Sends[sock] = newMessage;
-			setFd(TYPE_SEND, sock);
+			addSend(sock, newMessage);
 			// アクセスログを書き込む
 			Response *response = dynamic_cast<Response *>(newMessage);
 			if (response)
@@ -254,7 +259,7 @@ void Server::finishRecv(Socket *sock, HttpMessage *message)
 			}
 		}
 	}
-	delete (message);
+	deleteRecv(sock);
 }
 
 int	Server::setErrorResponse(Socket *clSock)
@@ -283,12 +288,13 @@ void	Server::ErrorfinishSendCgi(CgiSocket *cgiSock, Socket *clSock)
 }
 
 
-void	Server::finishSend(Socket *sock, HttpMessage *message)
+void	Server::finishSend(Socket *sock)
 {
-	Sends.erase(sock);
 	if (CgiSocket *cgiSock = dynamic_cast<CgiSocket *>(sock))
 	{
 		if (shutdown(sock->getFd(), SHUT_WR) == -1)
+		// if (shutdown(sock->getFd(), SHUT_WR) == -1 &&
+		// 	errno != ENOTCONN)
 		{
 			perror("=================================\nshutdown: ");
 			std::cout << "shutdown error" << std::endl;
@@ -309,8 +315,6 @@ void	Server::finishSend(Socket *sock, HttpMessage *message)
 		else
 			addRecv(sock, new Request((ClSocket *)sock));
 	}
-	// delete (message);
-	(void)message;
 }
 
 /**
@@ -345,14 +349,12 @@ int	Server::deleteSocket(int type, Socket *socket)
 {
 	if (type == TYPE_RECV)
 	{
-		recv_sockets.remove(socket);
-		delete (Recvs[socket]);
+		deleteRecv(socket);
 		delete (socket);
 	}
 	else if (type == TYPE_SEND)
 	{
-		send_sockets.remove(socket);
-		delete (Sends[socket]);
+		deleteSend(socket);
 		delete (socket);
 	}
 	else if (type == TYPE_SERVER)
@@ -379,8 +381,7 @@ bool	Server::checkTimeout()
 		if (sock->isTimeout(current_time))
 		{
 			Logger::instance()->writeErrorLog(ErrorCode::RECV_TIMEOUT);
-			recv_sockets.erase(tmp);
-			delete (Recvs[sock]);
+			deleteRecv(sock);
 			delete (sock);
 			timeoutOccurred = true;
 		}
@@ -392,8 +393,7 @@ bool	Server::checkTimeout()
 		if (sock->isTimeout(current_time))
 		{
 			Logger::instance()->writeErrorLog(ErrorCode::SEND_TIMEOUT);
-			send_sockets.erase(tmp);
-			delete (Sends[sock]);
+			deleteSend(sock);
 			delete (sock);
 			timeoutOccurred = true;
 		}
@@ -450,5 +450,19 @@ int	Server::addRecv(Socket *sock, HttpMessage *message)
 {
 	Recvs[sock] = message;
 	setFd(TYPE_RECV, sock);
+	return (0);
+}
+
+int	Server::deleteSend(Socket *sock)
+{
+	delete (Sends[sock]);
+	Sends.erase(sock);
+	return (0);
+}
+
+int	Server::deleteRecv(Socket *sock)
+{
+	delete (Recvs[sock]);
+	Recvs.erase(sock);
 	return (0);
 }
