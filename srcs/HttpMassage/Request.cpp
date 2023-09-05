@@ -92,24 +92,6 @@ std::string	Request::convertUriToPath(const std::string &uri, const ServerContex
 	return (alias + ret.substr(path.length()));
 }
 
-std::string	Request::convertUriToPath(const std::string &uri, const LocationContext &location)
-{
-	std::string	ret = uri;
-	std::string alias = "";
-	std::string path = "";
-
-	path = location.getDirective("path");
-	// URI < PATH
-	if (ret.length() < path.length()) // path が /path/ に対し uri が /path だった場合の対応
-		ret = path;
-	alias = getAliasOrRootDirective(location);
-	if (alias == "")
-		return (ret);
-	if (path == ret)
-		return (alias + location.getDirective("index"));
-	return (alias + ret.substr(path.length()));
-}
-
 Request::Request(const Request &other): HttpMessage()
 {
 	*this = other;
@@ -221,13 +203,16 @@ Request &Request::setAddr(const ClSocket *clientSocket)
 	struct sockaddr_in	addr;
 	// socklen_t			addr_size = sizeof(struct sockaddr_in);
 
+	printf("setAddr\n");
 	addr = clientSocket->getLocalAddr();
 	// addr_size = clientSocket->getLocalLen();
 	int	port = ntohs(addr.sin_port);
 
+	printf("setAddr\n");
 	_server_name = inet_ntoa(addr.sin_addr);
 	_server_port = std::to_string(port);
 
+	printf("setAddr\n");
 	addr = clientSocket->getRemoteAddr();
 	// addr_size = clientSocket->getRemoteLen();
 
