@@ -82,6 +82,7 @@ HttpMessage *Router::routeHandler(HttpMessage &message, Socket *sock)
 		else
 			clSock->decrementMaxRequest();
 		request->setInfo();
+		Logger::instance()->writeAccessLog(*request, *clSock);
 
 		//　リクエストに応じたServerコンテキストを取得
 		_serverContext = &Config::instance()->getHTTPBlock()
