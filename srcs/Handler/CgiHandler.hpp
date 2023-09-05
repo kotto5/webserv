@@ -39,7 +39,7 @@ private:
 	const LocationContext *_locationContext;
 
 	int runCgi(const Request &request, int pipes[2]);
-	std::vector<char *> createEnvs(const Request &request);
+	std::vector<char *> *createEnvs(const Request &request);
 };
 
 #endif

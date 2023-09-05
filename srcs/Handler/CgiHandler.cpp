@@ -84,7 +84,6 @@ int CgiHandler::runCgi(const Request &request, int pipes[2])
 	// スクリプトのURIを取得
     std::string script = request.getUri();
 	// 環境変数を整形
-	std::vector<char *> envs = createEnvs(request);
 
 	int pid = fork();
 	if (pid == -1)
@@ -93,6 +92,9 @@ int CgiHandler::runCgi(const Request &request, int pipes[2])
 	}
 	else if (pid == 0)
 	{
+		try
+		{
+		std::vector<char *> *envs = createEnvs(request);
         if (close(pipes[S_PARENT]) ||
 			dup2(pipes[S_CHILD], STDOUT_FILENO) == -1 ||
         	dup2(pipes[S_CHILD], STDIN_FILENO) == -1 ||
@@ -103,11 +105,16 @@ int CgiHandler::runCgi(const Request &request, int pipes[2])
 
 		char *cgi_pass = const_cast<char *>(_locationContext->getDirective("cgi_pass").c_str());
 		char *argv[] = {cgi_pass, const_cast<char *>(path_query.c_str()), NULL};
-
-		// プログラム呼び出し
-		execve(cgi_pass, argv, (char* const*)(envs.data()));
+		char * const *env = envs->data();
+		execve(cgi_pass, argv, env);
         perror(path_query.c_str());
         exit(1);
+		}
+		catch(const std::exception& e)
+		{
+			perror(e.what());
+			exit(1);
+		}
 	}
     return 0;
 }
@@ -118,7 +125,7 @@ int CgiHandler::runCgi(const Request &request, int pipes[2])
  * @param request
  * @return std::vector<char *>
  */
-std::vector<char *> CgiHandler::createEnvs(const Request &request)
+std::vector<char *> *CgiHandler::createEnvs(const Request &request)
 {
     const std::string &uri = request.getUri();
     std::vector<std::string> envs;
@@ -157,13 +164,17 @@ std::vector<char *> CgiHandler::createEnvs(const Request &request)
     envs.push_back("HTTP_ACCEPT=" + request.getHeader("Host")); // not must
     envs.push_back("HTTP_ACCEPT=" + request.getHeader("User-Agent")); // not must
 
-    std::vector<char*> cenvs;
+    std::vector<char*> *environVector = new std::vector<char*>();
     std::vector<std::string>::iterator it = envs.begin();
     for (; it != envs.end(); it++)
-        cenvs.push_back(const_cast<char*>(it->c_str()));
-    cenvs.push_back(nullptr); // execveには最後にnullポインタが必要です
+	{
+		char *node = new char[it->length() + 1];
+		strcpy(node, it->c_str());
+		environVector->push_back(node);
+	}
+    environVector->push_back(NULL); // execveには最後にnullポインタが必要です
 
-	return cenvs;
+	return environVector;
 }
 
 void CgiHandler::setClientSocket(ClSocket *clientSocket)
