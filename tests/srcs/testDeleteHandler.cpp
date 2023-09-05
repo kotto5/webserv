@@ -40,7 +40,7 @@ TEST_F(DeleteHandlerTest, deleteTextFile)
 
 	DeleteHandler handler;
 	Request req(method, "/resources/unit_test/sample_delete.txt", protocol, headers, body);
-	req.setAddr(env->socket).setInfo();
+	req.setAddr(env->_test_clientSocket).setInfo();
 	Response *res = handler.handleRequest(req);
 
 	//　レスポンスが正しいか

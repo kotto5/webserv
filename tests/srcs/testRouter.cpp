@@ -19,13 +19,13 @@ protected:
 	virtual void SetUp()
 	{
 		reqGet = new Request("GET", "/index.html", "HTTP/1.1", std::map<std::string, std::string>(), "");
-		reqGet->setAddr(env->socket).setInfo().parsing("\r\n\r\n", 0);
+		reqGet->setAddr(env->_test_clientSocket).setInfo().parsing("\r\n\r\n", 0);
 		reqPost = new Request("POST", "/storage/unit_test/router_test.txt", "HTTP/1.1", std::map<std::string, std::string>(), "");
-		reqPost->setAddr(env->socket).setInfo().parsing("\r\n\r\n", 0);
+		reqPost->setAddr(env->_test_clientSocket).setInfo().parsing("\r\n\r\n", 0);
 		reqDelete = new Request("DELETE", "/index.html", "HTTP/1.1", std::map<std::string, std::string>(), "");
-		reqDelete->setAddr(env->socket).setInfo().parsing("\r\n\r\n", 0);
+		reqDelete->setAddr(env->_test_clientSocket).setInfo().parsing("\r\n\r\n", 0);
 		reqNotFound = new Request("NONE", "/index.html", "HTTP/1.1", std::map<std::string, std::string>(), "");
-		reqNotFound->setAddr(env->socket).setInfo().parsing("\r\n\r\n", 0);
+		reqNotFound->setAddr(env->_test_clientSocket).setInfo().parsing("\r\n\r\n", 0);
 	}
 };
 
@@ -35,7 +35,7 @@ TEST_F(RouterTest, createGetRequest)
 	// インスタンスの生成
 	Router router;
 	// テストデータの検証
-	Response *response = (Response *)router.routeHandler(*reqGet);
+	Response *response = (Response *)router.routeHandler(*reqGet, env->_test_clientSocket);
 	EXPECT_EQ(response->getStatus(), "200");
 }
 
@@ -45,7 +45,7 @@ TEST_F(RouterTest, notRequest)
 	// インスタンスの生成
 	Router router;
 	// テストデータの検証
-	Response *response = (Response *)router.routeHandler(*reqNotFound);
+	Response *response = (Response *)router.routeHandler(*reqNotFound, env->_test_clientSocket);
 	EXPECT_EQ(response->getStatus(), "405");
 }
 
@@ -55,11 +55,11 @@ TEST_F(RouterTest, allowedMethod)
 	// インスタンスの生成
 	Router router;
 	// テストデータの検証
-	Response *res1 = (Response *)router.routeHandler(*reqGet);
+	Response *res1 = (Response *)router.routeHandler(*reqGet, env->_test_clientSocket);
 	EXPECT_EQ(res1->getStatus(), "200");
-	Response *res2 = (Response *)router.routeHandler(*reqPost);
+	Response *res2 = (Response *)router.routeHandler(*reqPost, env->_test_clientSocket);
 	EXPECT_EQ(res2->getStatus(), "201");
-	Response *res3 = (Response *)router.routeHandler(*reqDelete);
+	Response *res3 = (Response *)router.routeHandler(*reqDelete, env->_test_clientSocket);
 	EXPECT_EQ(res3->getStatus(), "405");
 }
 };

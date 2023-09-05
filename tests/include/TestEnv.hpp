@@ -1,3 +1,6 @@
+#ifndef TESTENV_HPP
+#define TESTENV_HPP
+
 #pragma once
 
 #include <gtest/gtest.h>
@@ -7,11 +10,14 @@
 #include "Socket.hpp"
 #include <string.h>
 
+#define TEST_SERVER_PORT 2000
+
 class TestEnv: public testing::Environment{
 public:
 	virtual ~TestEnv() {}
-	ClSocket *socket = NULL;
-	struct sockaddr_in address;
+	SvSocket *_test_svSocket = NULL;
+	ClSocket *_test_clientSocket = NULL;
+	int	_test_clientFd;
 
 	virtual void SetUp()
 	{
@@ -25,14 +31,27 @@ public:
 		std::system((command + " " + path).c_str());
 
 		// クライアントソケットをモック化
-		memset(&address, 0, sizeof(address));
-		address.sin_family = AF_INET;
-		inet_pton(AF_INET, "127.0.0.1", &address.sin_addr);
-		address.sin_port = htons(80);
-
-		socket = new ClSocket(42, (struct sockaddr *)&address, sizeof(address), (struct sockaddr *)&address, sizeof(address));
+		_test_svSocket = new SvSocket(TEST_SERVER_PORT);
+		sockaddr_in address = _test_svSocket->getLocalAddr();
+		{
+			sockaddr_in *addr = &address;
+			socklen_t len = sizeof(*addr);
+			int connectFd = socket(AF_INET, SOCK_STREAM, 0);
+			if (connectFd == -1)
+			{
+				throw std::runtime_error("socket error" + std::string(strerror(errno)));
+			}
+			if (connect(connectFd, (struct sockaddr *)addr, len) == -1)
+			{
+				throw std::runtime_error("connect error: " + std::string(strerror(errno)));
+			}
+			_test_clientFd = connectFd;
+		}
+		_test_clientSocket = _test_svSocket->dequeueSocket();
 	}
 	virtual void TearDown() {}
 };
 
 extern TestEnv *env;
+
+#endif

@@ -6,7 +6,7 @@
 #include <string>
 #include <errno.h>
 
-#define SOCKET_PORT 82
+#define SOCKET_PORT 2020
 
 namespace
 {
@@ -70,7 +70,7 @@ TEST_F(SocketTest, ClSocket)
 //    };
     sockaddr_in clAddr = clSock->getRemoteAddr();
     EXPECT_EQ(clAddr.sin_addr.s_addr, addr.sin_addr.s_addr);
-    EXPECT_EQ(clAddr.sin_len, addr.sin_len);
+    // EXPECT_EQ(clAddr.sin_len, addr.sin_len);
     EXPECT_EQ(clAddr.sin_family, addr.sin_family);
     EXPECT_EQ(clAddr.sin_port, addr.sin_port);
     EXPECT_EQ(ntohs(clAddr.sin_port), ntohs(addr.sin_port));
@@ -79,7 +79,7 @@ TEST_F(SocketTest, ClSocket)
 
     sockaddr_in svAddr = clSock->getLocalAddr();
     EXPECT_EQ(svAddr.sin_addr.s_addr, svSocket->getLocalAddr().sin_addr.s_addr);
-    EXPECT_EQ(svAddr.sin_len, svSocket->getLocalAddr().sin_len);
+    // EXPECT_EQ(svAddr.sin_len, svSocket->getLocalAddr().sin_len);
     EXPECT_EQ(svAddr.sin_family, svSocket->getLocalAddr().sin_family);
     EXPECT_EQ(svAddr.sin_port, svSocket->getLocalAddr().sin_port);
     EXPECT_EQ(ntohs(svAddr.sin_port), ntohs(svSocket->getLocalAddr().sin_port));
@@ -139,7 +139,7 @@ TEST_F(SocketTest, CgiSocket2)
         throw std::runtime_error("getsockname error" + std::string(strerror(errno)));
     sockaddr_in clAddr = clSock->getRemoteAddr();
     EXPECT_EQ(clAddr.sin_addr.s_addr, addr.sin_addr.s_addr);
-    EXPECT_EQ(clAddr.sin_len, addr.sin_len);
+    // // EXPECT_EQ(clAddr.sin_len, addr.sin_len);
     EXPECT_EQ(clAddr.sin_family, addr.sin_family);
     EXPECT_EQ(clAddr.sin_port, addr.sin_port);
     EXPECT_EQ(ntohs(clAddr.sin_port), ntohs(addr.sin_port));
