@@ -107,14 +107,14 @@ void	Server::recvError(Socket *sock)
 int	Server::handleSockets(fd_set *read_fds, fd_set *write_fds, int activity)
 {
 	std::list<Socket *>::iterator	itr;
-	std::list<Socket *>::iterator	tmp_socket;
+	std::list<Socket *>::iterator	sockNode;
 	Socket							*sock;
 
 	// サーバーソケット受信
 	for (itr = server_sockets.begin(); activity && itr != server_sockets.end();)
 	{
-		tmp_socket = itr++;
-		sock = *tmp_socket;
+		sockNode = itr++;
+		sock = *sockNode;
 		if (FD_ISSET(((sock)->getFd()), read_fds))
 		{
 			accept(sock);
@@ -124,9 +124,9 @@ int	Server::handleSockets(fd_set *read_fds, fd_set *write_fds, int activity)
 	// クライアントソケット受信
 	for (itr = recv_sockets.begin(); itr != recv_sockets.end();)
 	{
-		tmp_socket = itr++;
+		sockNode = itr++;
 		ssize_t	ret = 1;
-		sock = *tmp_socket;
+		sock = *sockNode;
 		if (FD_ISSET(sock->getFd(), read_fds))
 		{
 			ret = recv(sock, Recvs[sock]);
@@ -139,7 +139,7 @@ int	Server::handleSockets(fd_set *read_fds, fd_set *write_fds, int activity)
 		{
 			try {
 				finishRecv(sock, Recvs[sock]);
-				recv_sockets.erase(tmp_socket);
+				recv_sockets.erase(sockNode);
 			}
 			catch (const std::exception &e)
 			{
@@ -151,8 +151,8 @@ int	Server::handleSockets(fd_set *read_fds, fd_set *write_fds, int activity)
 	// クライアントソケット送信
 	for (itr = send_sockets.begin(); activity && itr != send_sockets.end();)
 	{
-		tmp_socket = itr++;
-		sock = *tmp_socket;
+		sockNode = itr++;
+		sock = *sockNode;
 		if (!FD_ISSET(sock->getFd(), write_fds))
 			continue ;
 		bool		isCgi = (dynamic_cast<CgiSocket *>(sock) != NULL);
@@ -161,11 +161,11 @@ int	Server::handleSockets(fd_set *read_fds, fd_set *write_fds, int activity)
 		{
 			deleteSend(sock);
 			delete (sock);
-			send_sockets.erase(tmp_socket);
+			send_sockets.erase(sockNode);
 		}
 		else if (Sends[sock]->doesSendEnd() || ret == -1)
 		{
-			send_sockets.erase(tmp_socket);
+			send_sockets.erase(sockNode);
 			finishSend(sock);
 			deleteSend(sock);
 		}
