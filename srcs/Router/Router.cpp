@@ -98,42 +98,22 @@ HttpMessage *Router::routeHandler(HttpMessage &message, Socket *sock)
 			return new Response("301", headers, "");
 		}
 		// メソッドに対応するhandlerを呼び出し
-		try
+		if (isConnectionCgi(*request))
 		{
-			if (isConnectionCgi(*request))
-			{
-				// CgiSocket *cgiSock = _cgiHandler.createCgiSocket();
-				_cgiHandler.init(*_server, serverContext.getLocationContext(request->getUri()));
-				_cgiHandler.setClientSocket(clSock);
-				return _cgiHandler.handleRequest(*request, serverContext);
-			}
+			// CgiSocket *cgiSock = _cgiHandler.createCgiSocket();
+			_cgiHandler.init(*_server, serverContext.getLocationContext(request->getUri()));
+			_cgiHandler.setClientSocket(clSock);
+			return _cgiHandler.handleRequest(*request, serverContext);
+		}
+		else
+		{
+			if (_handlers.count(request->getMethod()) == 0)
+				return handleError("405", serverContext);
 			else
 			{
-				if (_handlers.count(request->getMethod()) == 0)
-					return handleError("405", serverContext);
-				else
-				{
-					IHandler *handler = _handlers.at(request->getMethod());
-					return (handler->handleRequest(*request, serverContext));
-				}
+				IHandler *handler = _handlers.at(request->getMethod());
+				return (handler->handleRequest(*request, serverContext));
 			}
-		}
-		catch (const RequestException &e)
-		{
-			// ハンドラー固有の処理に失敗した場合
-			return handleError(e.getStatus(), serverContext);
-		}
-		catch (const ServerException &e)
-		{
-			// サーバー固有の処理に失敗した場合
-			Logger::instance()->writeErrorLog(ErrorCode::SYSTEM_CALL, e.what(), request);
-			return handleError("500", serverContext);
-		}
-		catch (const std::out_of_range& e)
-		{
-			Logger::instance()->writeErrorLog(ErrorCode::NOT_METHOD, NULL, request);
-			// 対応するメソッドがない場合は405を返す
-			return handleError("405", serverContext);
 		}
 	}
 	else
