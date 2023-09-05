@@ -34,46 +34,46 @@ TEST_F(GetHandlerTest, getHtmlFile)
 {
 	// テストデータの検証
 	GetHandler handler;
-	Response *res = handler.handleRequest(*reqGetHtml);
+	Response *res = dynamic_cast<Response *>(handler.handleRequest(*reqGetHtml, *env->_test_serverContext));
 
-	// EXPECT_EQ(res->getStatus(), "200");
-	// EXPECT_EQ(res->getBody(), expected);
-	// EXPECT_EQ(res->getHeader("Content-Type"), "text/html; charset=utf-8");
+	EXPECT_EQ(res->getStatus(), "200");
+	EXPECT_EQ(res->getBody(), expected);
+	EXPECT_EQ(res->getHeader("Content-Type"), "text/html; charset=utf-8");
 	delete res;
 }
 
-// // 2. PNGファイルを正しく取得できるか
-// TEST_F(GetHandlerTest, getPngFile)
-// {
-// 	// テストデータの検証
-// 	GetHandler handler;
-// 	Response *res = handler.handleRequest(*reqGetPng);
+// 2. PNGファイルを正しく取得できるか
+TEST_F(GetHandlerTest, getPngFile)
+{
+	// テストデータの検証
+	GetHandler handler;
+	Response *res = dynamic_cast<Response *>(handler.handleRequest(*reqGetPng, *env->_test_serverContext));
 
-// 	EXPECT_EQ(res->getStatus(), "200");
-// 	EXPECT_EQ(res->getHeader("Content-Type"), "image/png");
-// 	delete res;
-// }
+	EXPECT_EQ(res->getStatus(), "200");
+	EXPECT_EQ(res->getHeader("Content-Type"), "image/png");
+	delete res;
+}
 
-// // 2. ファイルが存在しない場合、404が返されるか
-// TEST_F(GetHandlerTest, notRequest)
-// {
-// 	// インスタンスの生成
-// 	GetHandler handler;
+// 2. ファイルが存在しない場合、404が返されるか
+TEST_F(GetHandlerTest, notRequest)
+{
+	// インスタンスの生成
+	GetHandler handler;
 
-// 	// テストデータの検証
-// 	try
-// 	{
-// 		handler.handleRequest(*reqNotFound);
-// 		FAIL() << "Expected RequestException";
-// 	}
-// 	catch(const RequestException& e)
-// 	{
-// 		EXPECT_EQ(e.getStatus(), "404");
-// 	}
-// 	catch(...)
-// 	{
-// 		FAIL() << "Expected specific exception type";
-// 	}
-// };
+	// テストデータの検証
+	try
+	{
+		handler.handleRequest(*reqNotFound, *env->_test_serverContext);
+		FAIL() << "Expected RequestException";
+	}
+	catch(const RequestException& e)
+	{
+		EXPECT_EQ(e.getStatus(), "404");
+	}
+	catch(...)
+	{
+		FAIL() << "Expected specific exception type";
+	}
+};
 
 };

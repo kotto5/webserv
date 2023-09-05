@@ -48,7 +48,7 @@ TEST_F(PostHandlerTest, createTextFile)
 	std::string body = readFile("./docs/pages/test.html");
 	Request req(method, "/resources/unit_test/sample.html", protocol, headers, body);
 	req.setAddr(env->_test_clientSocket).setInfo();
-	Response *res = handler.handleRequest(req);
+	Response *res = dynamic_cast<Response *>(handler.handleRequest(req, *env->_test_serverContext));
 
 	std::string file_data = readFile("./docs/storage/unit_test/sample.html");
 
@@ -67,7 +67,7 @@ TEST_F(PostHandlerTest, createPngFile)
 	std::string body = readFile("./docs/test.png");
 	Request req(method, "/resources/unit_test/sample.png", protocol, headers, body);
 	req.setAddr(env->_test_clientSocket).setInfo();
-	Response *res = handler.handleRequest(req);
+	Response *res = dynamic_cast<Response *>(handler.handleRequest(req, *env->_test_serverContext));
 
 	std::string file_data = readFile("./docs/storage/unit_test/sample_post.png");
 
@@ -86,9 +86,9 @@ TEST_F(PostHandlerTest, createMultiFile)
 	std::string body = readFile("./docs/test.txt");
 	Request req(method, "/resources/unit_test/sample_multi.txt", protocol, headers, body);
 	req.setAddr(env->_test_clientSocket).setInfo();
-	Response *res_0 = handler.handleRequest(req); // 1回目
-	Response *res_1 = handler.handleRequest(req); // 2回目
-	Response *res_2 = handler.handleRequest(req); // 3回目
+	Response *res_0 = dynamic_cast<Response *>(handler.handleRequest(req, *env->_test_serverContext)); // 1回目
+	Response *res_1 = dynamic_cast<Response *>(handler.handleRequest(req, *env->_test_serverContext)); // 2回目
+	Response *res_2 = dynamic_cast<Response *>(handler.handleRequest(req, *env->_test_serverContext)); // 3回目
 
 	std::string file_data_0 = readFile("./docs/storage/unit_test/sample_multi.txt");
 	std::string file_data_1 = readFile("./docs/storage/unit_test/0sample_multi.txt");
@@ -132,7 +132,7 @@ TEST_F(PostHandlerTest, createFileWithInvalidPath)
 	// テストデータの検証
 	try
 	{
-		handler.handleRequest(req);
+		handler.handleRequest(req, *env->_test_serverContext);
 		FAIL() << "Expected RequestException";
 	}
 	catch (const RequestException &e)
@@ -158,7 +158,7 @@ TEST_F(PostHandlerTest, createFileFailed)
 	// テストデータの検証
 	try
 	{
-		handler.handleRequest(req);
+		handler.handleRequest(req, *env->_test_serverContext);
 		FAIL() << "Expected RequestException";
 	}
 	catch (const RequestException &e)

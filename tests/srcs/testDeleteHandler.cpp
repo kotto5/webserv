@@ -6,6 +6,7 @@
 #include <fstream>
 #include <streambuf>
 #include "TestEnv.hpp"
+#include "ServerContext.hpp"
 
 namespace
 {
@@ -41,7 +42,7 @@ TEST_F(DeleteHandlerTest, deleteTextFile)
 	DeleteHandler handler;
 	Request req(method, "/resources/unit_test/sample_delete.txt", protocol, headers, body);
 	req.setAddr(env->_test_clientSocket).setInfo();
-	Response *res = handler.handleRequest(req);
+	Response *res = dynamic_cast<Response *>(handler.handleRequest(req, *env->_test_serverContext));
 
 	//　レスポンスが正しいか
 	EXPECT_EQ(res->getStatus(), "204");
@@ -63,10 +64,10 @@ TEST_F(DeleteHandlerTest, deleteFileWithInvalidPath)
 	Request req(method, "/resources/unit_test/invalid_path/sample.txt", protocol, headers, body);
 
 	// テストデータの検証
-	Response *res;
+	HttpMessage *res;
 	try
 	{
-		res = handler.handleRequest(req);
+		res = handler.handleRequest(req, *env->_test_serverContext);
 		delete res;
 		FAIL() << "Expected RequestException";
 	}
@@ -96,7 +97,7 @@ TEST_F(DeleteHandlerTest, deleteFileFailed)
 	// テストデータの検証
 	try
 	{
-		handler.handleRequest(req);
+		handler.handleRequest(req, *env->_test_serverContext);
 		FAIL() << "Expected RequestException";
 	}
 	catch (const RequestException &e)

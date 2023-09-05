@@ -9,14 +9,17 @@
 #include "Logger.hpp"
 #include "Socket.hpp"
 #include <string.h>
+#include "ServerContext.hpp"
 
-#define TEST_SERVER_PORT 2000
+#define TEST_SERVER_PORT 1011
 
 class TestEnv: public testing::Environment{
 public:
 	virtual ~TestEnv() {}
 	SvSocket *_test_svSocket = NULL;
 	ClSocket *_test_clientSocket = NULL;
+	const ServerContext *_test_serverContext = NULL;
+
 	int	_test_clientFd;
 
 	virtual void SetUp()
@@ -24,6 +27,7 @@ public:
 		// 設定ファイルの読み込み
 		Config::initialize("./conf/testConfig/defaultTest.conf");
 		Logger::initialize("./logs/ut_access.log", "./logs/ut_error.log");
+		_test_serverContext = &Config::instance()->getHTTPBlock().getServerContext(std::to_string(TEST_SERVER_PORT), "webserve1");
 
 		// テスト用ディレクトリを作成
 		std::string command = "./tests/scripts/clean.sh";
