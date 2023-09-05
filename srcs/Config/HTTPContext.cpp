@@ -130,6 +130,6 @@ const ServerContext& HTTPContext::getServerContext(const std::string& port, cons
     catch (std::out_of_range& e)
     {
         // 一致するポート番号がない場合は上位に投げる
-        throw std::runtime_error("port not found!");
+        throw std::runtime_error("port not found!" + port);
     }
 }

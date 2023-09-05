@@ -27,9 +27,15 @@ Server::~Server() {
 	for (itr2 = server_sockets.begin(); itr2 != server_sockets.end(); itr2++)
 		delete (*itr2);
 	for (itr2 = recv_sockets.begin(); itr2 != recv_sockets.end(); itr2++)
+	{
+		delete Recvs[*itr2];
 		delete (*itr2);
+	}
 	for (itr2 = send_sockets.begin(); itr2 != send_sockets.end(); itr2++)
+	{
+		delete Sends[*itr2];
 		delete (*itr2);
+	}
 }
 
 int	Server::setup()
@@ -104,6 +110,13 @@ void	Server::recvError(Socket *sock)
 	delete (sock);
 }
 
+bool	ClientClosedConnection(ssize_t ret, Socket *sock, HttpMessage *message)
+{
+	return (ret == 0 && dynamic_cast<ClSocket *>(sock) && 
+		(shutdown(sock->getFd(), SHUT_RD) == -1 || message->isCompleted() == false)
+		);
+}
+
 int	Server::handleSockets(fd_set *read_fds, fd_set *write_fds, int activity)
 {
 	std::list<Socket *>::iterator	itr;
@@ -134,6 +147,12 @@ int	Server::handleSockets(fd_set *read_fds, fd_set *write_fds, int activity)
 		}
 		if (ret == -1)
 			recvError(sock);
+		else if (ClientClosedConnection(ret, sock, Recvs[sock]))
+		{
+			std::cout << "ClientClosedConnection!!!" << std::endl;
+			deleteSocket(TYPE_RECV, sock);
+			recv_sockets.erase(sockNode);
+		}
 		else if (ret == 0 ||
 			Recvs[sock]->isCompleted() || Recvs[sock]->isInvalid())
 		{
@@ -219,6 +238,18 @@ ssize_t		Server::send(Socket *sock, HttpMessage *message)
 	return (ret);
 }
 
+Socket	*getHandleSock(Socket *sock)
+{
+	if (CgiSocket *cgiSock = dynamic_cast<CgiSocket *>(sock))
+	{
+		ClSocket *clSocket = cgiSock->moveClSocket();
+		delete (cgiSock);
+		return (clSocket);
+	}
+	else
+		return (sock);
+}
+
 // bool じゃなくて dynamic_cast で判定したほうがいいかも
 void Server::finishRecv(Socket *sock, HttpMessage *message)
 {
@@ -229,37 +260,20 @@ void Server::finishRecv(Socket *sock, HttpMessage *message)
 	Router router(*this);
 	// ルーティング
 	HttpMessage *newMessage = router.routeHandler(*message, sock);
+	deleteRecv(sock);
+	Socket *handleSock = getHandleSock(sock);
 	if (newMessage)
 	{
-		// from cgi
-		if (CgiSocket *cgiSock = dynamic_cast<CgiSocket *>(sock))
+		if (Response *response = dynamic_cast<Response *>(newMessage))
 		{
-			Socket	*clSocket = cgiSock->moveClSocket();
-			if (dynamic_cast<Response *>(newMessage))
-			{
-				addSend(clSocket, newMessage);
-			}
-			else if (dynamic_cast<Request *>(newMessage))
-			{
-				addRecv(clSocket, newMessage);
-			}
-			delete (sock);
+			addSend(handleSock, response);
+			ClSocket *clSock = dynamic_cast<ClSocket *>(handleSock);
+			Logger::instance()->writeAccessLog(*response, *clSock);
+			addKeepAliveHeader(response, clSock);
 		}
-		// from client
-		else
-		{
-			// レスポンスを送信用ソケットに追加　
-			addSend(sock, newMessage);
-			// アクセスログを書き込む
-			Response *response = dynamic_cast<Response *>(newMessage);
-			if (response)
-			{
-				Logger::instance()->writeAccessLog(*(Request *)message, *response);
-				addKeepAliveHeader(response, (ClSocket *)sock);
-			}
-		}
+		else if (dynamic_cast<Request *>(newMessage)) // callCgi
+			addRecv(handleSock, newMessage);
 	}
-	deleteRecv(sock);
 }
 
 int	Server::setErrorResponse(Socket *clSock)

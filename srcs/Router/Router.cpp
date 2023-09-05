@@ -24,7 +24,6 @@ Router::Router(Server &server)
 	_handlers["POST"] = &_postHandler;
 	_handlers["DELETE"] = &_deleteHandler;
 	_server = &server;
-	_serverContext = NULL;
 }
 
 Router::Router(const Router &other)
@@ -42,7 +41,6 @@ Router &Router::operator=(const Router &rhs)
 	{
 		this->_handlers = rhs._handlers;
 		this->_server = rhs._server;
-		this->_serverContext = rhs._serverContext;
 	}
 	return *this;
 }
@@ -85,12 +83,12 @@ HttpMessage *Router::routeHandler(HttpMessage &message, Socket *sock)
 		Logger::instance()->writeAccessLog(*request, *clSock);
 
 		//　リクエストに応じたServerコンテキストを取得
-		_serverContext = &Config::instance()->getHTTPBlock()
-			.getServerContext(request->getServerPort(), request->getHeader("host"));
+		const ServerContext &serverContext = Config::instance()->getHTTPBlock()
+			.getServerContext(std::to_string(clSock->getLocalPort()), request->getHeader("host"));
 
-		const LocationContext &locationContext = _serverContext->getLocationContext(request->getUri());
+		const LocationContext &locationContext = serverContext.getLocationContext(request->getUri());
 		if (int ErrorStatus = getRequestError(request, locationContext))
-			return handleError(std::to_string(ErrorStatus), locationContext);
+			return handleError(std::to_string(ErrorStatus), serverContext);
 
 		const std::string &redirect = locationContext.getDirective("redirect");
 		if (redirect.empty() == false)
@@ -105,51 +103,36 @@ HttpMessage *Router::routeHandler(HttpMessage &message, Socket *sock)
 			if (isConnectionCgi(*request))
 			{
 				// CgiSocket *cgiSock = _cgiHandler.createCgiSocket();
-				_cgiHandler.init(*_server, _serverContext->getLocationContext(request->getUri()));
+				_cgiHandler.init(*_server, serverContext.getLocationContext(request->getUri()));
 				_cgiHandler.setClientSocket(clSock);
-				return _cgiHandler.handleRequest(*request);
+				return _cgiHandler.handleRequest(*request, serverContext);
 			}
 			else
 			{
 				IHandler *handler = _handlers.at(request->getMethod());
-				return (handler->handleRequest(*request));
+				return (handler->handleRequest(*request, serverContext));
 			}
 		}
 		catch (const RequestException &e)
 		{
 			// ハンドラー固有の処理に失敗した場合
-			return handleError(e.getStatus(), locationContext);
+			return handleError(e.getStatus(), serverContext);
 		}
 		catch (const ServerException &e)
 		{
 			// サーバー固有の処理に失敗した場合
 			Logger::instance()->writeErrorLog(ErrorCode::SYSTEM_CALL, e.what(), request);
-			return handleError("500", locationContext);
+			return handleError("500", serverContext);
 		}
 		catch (const std::out_of_range& e)
 		{
 			Logger::instance()->writeErrorLog(ErrorCode::NOT_METHOD, NULL, request);
 			// 対応するメソッドがない場合は405を返す
-			return handleError("405", locationContext);
+			return handleError("405", serverContext);
 		}
 	}
 	else
 		return (NULL);
-}
-
-/**
- * @brief リダイレクトであるかどうかを判定する
- *
- * @param request
- * @return true
- * @return false
- */
-bool	Router::isRedirect(const Request &request) const
-{
-	std::string dest = _serverContext->getLocationContext(request.getUri()).getDirective("redirect");
-	if (dest.empty())
-		return (false);
-	return (true);
 }
 
 /**
@@ -191,17 +174,17 @@ bool	Router::isConnectionCgi(const Request &request)
  * @return Response レスポンス
  */
 
-Response *Router::handleError(const std::string &status, const LocationContext &locationContext)
+Response *Router::handleError(const std::string &status, const ServerContext &serverContext)
 {
 	// エラーページのパスを取得
-	std::string error_path = _serverContext->getErrorPage(status);
+	std::string error_path = serverContext.getErrorPage(status);
 
 	if (error_path == "")
 	{
 		return (new Response(status, std::map<std::string, std::string>(), generateDefaultErrorPage()));
 	}
 	// 実体パスに変換
-	std::string actual_path = Request::convertUriToPath(error_path, locationContext);
+	std::string actual_path = Request::convertUriToPath(error_path, serverContext);
 
 	//　エラーページが参照できない場合はデフォルトの内容を返す
 	if (!pathExist(actual_path.c_str()))
@@ -250,6 +233,5 @@ Router::Router()
 	_handlers["GET"] = &_getHandler;
 	_handlers["POST"] = &_postHandler;
 	_handlers["DELETE"] = &_deleteHandler;
-	_serverContext = NULL;
 }
 

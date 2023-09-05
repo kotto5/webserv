@@ -2,8 +2,6 @@
 #include "ErrorCode.hpp"
 #include "Config.hpp"
 #include "ConfigException.hpp"
-#include "LocationContext.hpp"
-#include "ServerContext.hpp"
 #include "Socket.hpp"
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -50,6 +48,12 @@ const LocationContext	&Request::getLocationContext(const std::string &uri, const
 		.getLocationContext(uri);
 }
 
+const	ServerContext	&Request::getServerContext(const std::string &port, const std::string &server_name)
+{
+	return Config::instance()->getHTTPBlock()
+		.getServerContext(port, server_name);
+}
+
 /**
  * @brief URIを実体パスに変換する
  *
@@ -60,14 +64,32 @@ std::string	Request::convertUriToPath(const std::string &uri, const std::string 
 {
 	try
 	{
-		const LocationContext &loc = getLocationContext(uri, port, server_name);
-		return (convertUriToPath(uri, loc));
+		const ServerContext &svc = getServerContext(port, server_name);
+		return (convertUriToPath(uri, svc));
 	}
 	catch (const std::runtime_error &e)
 	{
 		std::cout << e.what() << std::endl;
 		return ("404");
 	}
+}
+
+std::string	Request::convertUriToPath(const std::string &uri, const ServerContext &serverContext)
+{
+	std::string	ret = uri;
+	std::string alias = "";
+	std::string path = "";
+	const LocationContext &location = serverContext.getLocationContext(uri);
+
+	path = location.getDirective("path");
+	if (ret.length() < path.length()) // path が /path/ に対し uri が /path だった場合の対応
+		ret = path;
+	alias = getAliasOrRootDirective(location);
+	if (alias == "")
+		return (ret);
+	if (path == ret)
+		return (alias + location.getDirective("index"));
+	return (alias + ret.substr(path.length()));
 }
 
 std::string	Request::convertUriToPath(const std::string &uri, const LocationContext &location)
