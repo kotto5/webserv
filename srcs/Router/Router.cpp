@@ -88,7 +88,7 @@ HttpMessage *Router::routeHandler(HttpMessage &message, Socket *sock)
 
 		const LocationContext &locationContext = serverContext.getLocationContext(request->getUri());
 		if (int ErrorStatus = getRequestError(request, locationContext))
-			return handleError(std::to_string(ErrorStatus), serverContext);
+			return IHandler::handleError(std::to_string(ErrorStatus), serverContext);
 
 		const std::string &redirect = locationContext.getDirective("redirect");
 		if (redirect.empty() == false)
@@ -108,7 +108,7 @@ HttpMessage *Router::routeHandler(HttpMessage &message, Socket *sock)
 		else
 		{
 			if (_handlers.count(request->getMethod()) == 0)
-				return handleError("405", serverContext);
+				return IHandler::handleError("405", serverContext);
 			else
 			{
 				IHandler *handler = _handlers.at(request->getMethod());
@@ -116,8 +116,7 @@ HttpMessage *Router::routeHandler(HttpMessage &message, Socket *sock)
 			}
 		}
 	}
-	else
-		return (NULL);
+	return (NULL);
 }
 
 /**
@@ -150,54 +149,6 @@ bool	Router::isConnectionCgi(const Request &request)
 	if (request.getActualUri().find(".php") != std::string::npos)
 		return (true);
 	return (false);
-}
-
-/**
- * @brief ステータスコードに応じたエラーページを呼び出す
- *
- * @param request リクエスト
- * @return Response レスポンス
- */
-
-Response *Router::handleError(const std::string &status, const ServerContext &serverContext)
-{
-	// エラーページのパスを取得
-	std::string error_path = serverContext.getErrorPage(status);
-
-	if (error_path == "")
-	{
-		return (new Response(status, std::map<std::string, std::string>(), generateDefaultErrorPage()));
-	}
-	// 実体パスに変換
-	std::string actual_path = Request::convertUriToPath(error_path, serverContext);
-
-	//　エラーページが参照できない場合はデフォルトの内容を返す
-	if (!pathExist(actual_path.c_str()))
-	{
-		std::string body = generateDefaultErrorPage();
-		std::map<std::string, std::string> headers;
-		headers["content-type"] = "text/html";
-		return new Response(status, headers, body);
-	}
-
-	// ファイルを開く
-	std::ifstream htmlFile(actual_path.c_str());
-	if (!htmlFile.is_open())
-	{
-		std::string body = generateDefaultErrorPage();
-		std::map<std::string, std::string> headers;
-		headers["content-type"] = "text/html";
-		return new Response(status, headers, body);
-	}
-
-	std::stringstream buffer;
-	buffer << htmlFile.rdbuf();
-	htmlFile.close();
-
-	// レスポンスを作成して返す
-	std::map<std::string, std::string> headers;
-	headers["content-type"] = "text/html";
-	return new Response(status, headers, buffer.str());
 }
 
 /**

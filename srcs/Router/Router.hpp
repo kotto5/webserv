@@ -28,7 +28,6 @@ public:
 
 	// Member functions
 	HttpMessage *routeHandler(HttpMessage &request, Socket *sock);
-	Response *handleError(const Request &request, const std::string &status);
 
 private:
 	static bool	isAllowedMethod(const std::string &method, const LocationContext &locationContext);
