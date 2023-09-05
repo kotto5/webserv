@@ -27,7 +27,7 @@ public:
 	Router &operator=(const Router &rhs);
 
 	// Member functions
-	HttpMessage *routeHandler(HttpMessage &request, Socket *sock = NULL);
+	HttpMessage *routeHandler(HttpMessage &request, Socket *sock);
 	Response *handleError(const Request &request, const std::string &status);
 
 private:
