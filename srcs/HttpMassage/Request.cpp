@@ -203,16 +203,13 @@ Request &Request::setAddr(const ClSocket *clientSocket)
 	struct sockaddr_in	addr;
 	// socklen_t			addr_size = sizeof(struct sockaddr_in);
 
-	printf("setAddr\n");
 	addr = clientSocket->getLocalAddr();
 	// addr_size = clientSocket->getLocalLen();
 	int	port = ntohs(addr.sin_port);
 
-	printf("setAddr\n");
 	_server_name = inet_ntoa(addr.sin_addr);
 	_server_port = std::to_string(port);
 
-	printf("setAddr\n");
 	addr = clientSocket->getRemoteAddr();
 	// addr_size = clientSocket->getRemoteLen();
 
