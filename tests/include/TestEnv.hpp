@@ -11,14 +11,14 @@
 #include <string.h>
 #include "ServerContext.hpp"
 
-#define TEST_SERVER_PORT 1011
+#define TEST_SERVER_PORT 80
 
 class TestEnv: public testing::Environment{
 public:
 	virtual ~TestEnv() {}
 	SvSocket *_test_svSocket = NULL;
 	ClSocket *_test_clientSocket = NULL;
-	const ServerContext *_test_serverContext = NULL;
+	const Config *_test_config = NULL;
 
 	int	_test_clientFd;
 
@@ -26,8 +26,8 @@ public:
 	{
 		// 設定ファイルの読み込み
 		Config::initialize("./conf/testConfig/defaultTest.conf");
+		_test_config = Config::instance();
 		Logger::initialize("./logs/ut_access.log", "./logs/ut_error.log");
-		_test_serverContext = &Config::instance()->getHTTPBlock().getServerContext(std::to_string(TEST_SERVER_PORT), "webserve1");
 
 		// テスト用ディレクトリを作成
 		std::string command = "./tests/scripts/clean.sh";
@@ -52,6 +52,10 @@ public:
 			_test_clientFd = connectFd;
 		}
 		_test_clientSocket = _test_svSocket->dequeueSocket();
+		if (_test_clientSocket == NULL)
+		{
+			throw std::runtime_error("dequeueSocket error");
+		}
 	}
 	virtual void TearDown() {}
 };
