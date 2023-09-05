@@ -15,6 +15,12 @@ std::string generateDefaultErrorPage()
 		Error Page</h1></center><hr><center>Webserv/0.0.1</center></body></html>";
 }
 
+/**
+ * @brief ステータスコードに応じたエラーページを呼び出す
+ *
+ * @param request リクエスト
+ * @return Response レスポンス
+ */
 HttpMessage	*IHandler::handleError(const std::string &status, const ServerContext &serverContext)
 {
 	// エラーページのパスを取得
