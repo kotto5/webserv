@@ -65,13 +65,13 @@ HttpMessage *PostHandler::handleRequest(const Request &request, const ServerCont
 	{
 		// ファイル数が上限に達した
 		Logger::instance()->writeErrorLog(ErrorCode::POST_INDEX_FULL, "", &request);
-		throw RequestException("500");
+		return (handleError("500", serverContext));
 	}
 	if (!pathExist(filedir.c_str()))
 	{
 		// ディレクトリが存在しない
 		Logger::instance()->writeErrorLog(ErrorCode::POST_NOT_EXISTS, "", &request);
-		throw RequestException("404");
+		return (handleError("404", serverContext));
 	}
 	std::ofstream ofs(filedir + filename, std::ios::out);
 	if (!ofs)
@@ -80,10 +80,10 @@ HttpMessage *PostHandler::handleRequest(const Request &request, const ServerCont
 		{
 			// ファイルにアクセスできない
 			Logger::instance()->writeErrorLog(ErrorCode::POST_FILE_ACCESS, "j", &request);
-			throw RequestException("403");
+			return (handleError("403", serverContext));
 		}
 		Logger::instance()->writeErrorLog(ErrorCode::POST_FILE_OPEN, "", &request);
-		throw RequestException("500");
+		return (handleError("500", serverContext));
     }
 	std::string body = request.getBody();
     ofs << body;

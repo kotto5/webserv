@@ -109,8 +109,13 @@ HttpMessage *Router::routeHandler(HttpMessage &message, Socket *sock)
 			}
 			else
 			{
-				IHandler *handler = _handlers.at(request->getMethod());
-				return (handler->handleRequest(*request, serverContext));
+				if (_handlers.count(request->getMethod()) == 0)
+					return handleError("405", serverContext);
+				else
+				{
+					IHandler *handler = _handlers.at(request->getMethod());
+					return (handler->handleRequest(*request, serverContext));
+				}
 			}
 		}
 		catch (const RequestException &e)

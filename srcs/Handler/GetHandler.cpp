@@ -46,7 +46,6 @@ HttpMessage *GetHandler::handleRequest(const Request &request, const ServerConte
 {
 	// 実体パスを取得
 	std::string actualPath = request.getActualUri();
-	printf("test1\n");
 
 	// 設定が有効、かつディレクトリの場合はAutoindexを作成
 	if (isDirectory(actualPath.c_str()) && enableAutoindex(request, serverContext))
@@ -58,7 +57,6 @@ HttpMessage *GetHandler::handleRequest(const Request &request, const ServerConte
 		headers["Content-Type"] = "text/html";
 		return new Response(_status, headers, body);
 	}
-	printf("test1\n");
 
 	// URIからファイルを開く
 	std::ifstream htmlFile(request.getActualUri());
@@ -66,16 +64,14 @@ HttpMessage *GetHandler::handleRequest(const Request &request, const ServerConte
 	{
 		// ファイルが開けなかった場合は404を返す
 		Logger::instance()->writeErrorLog(ErrorCode::GET_FILE_NOT_EXIST, "File not found");
-		throw RequestException("404");
+		return (handleError("404", serverContext));
 	}
 
-	printf("test1\n");
 	// ファイルの内容を読み込む
 	std::stringstream buffer;
 	buffer << htmlFile.rdbuf();
 	htmlFile.close();
 
-	printf("test1\n");
 	// レスポンスを作成して返す
 	std::map<std::string, std::string> headers;
 	HttpMessage::setHeader(headers, "content-type", Response::getMimeType(request.getActualUri()));
