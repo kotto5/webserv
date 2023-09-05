@@ -43,8 +43,9 @@ void	CgiHandler::init(Server &server, const LocationContext &lc)
  * @param request
  * @return Response*
  */
-Response *CgiHandler::handleRequest(const Request &request)
+HttpMessage *CgiHandler::handleRequest(const Request &request, const ServerContext &serverContext)
 {
+	(void)serverContext;
 	CgiSocket *cgiSock = createCgiSocket(request);
 	Request *req = new Request(request.getBody());
 	_server->addSend(cgiSock, req);

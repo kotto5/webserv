@@ -41,8 +41,9 @@ PostHandler &PostHandler::operator=(const PostHandler &rhs)
  * @return Response レスポンス
  */
 
-Response *PostHandler::handleRequest(const Request &request)
+HttpMessage *PostHandler::handleRequest(const Request &request, const ServerContext &serverContext)
 {
+	(void)serverContext;
 	std::string::size_type pos = request.getActualUri().find_last_of('/');
     std::string filedir = request.getActualUri().substr(0, pos + 1);
     std::string filename = request.getActualUri().substr(pos + 1);

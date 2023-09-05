@@ -42,13 +42,14 @@ GetHandler &GetHandler::operator=(const GetHandler &rhs)
  * @return Response レスポンス
  */
 
-Response *GetHandler::handleRequest(const Request &request)
+HttpMessage *GetHandler::handleRequest(const Request &request, const ServerContext &serverContext)
 {
 	// 実体パスを取得
 	std::string actualPath = request.getActualUri();
+	printf("test1\n");
 
 	// 設定が有効、かつディレクトリの場合はAutoindexを作成
-	if (isDirectory(actualPath.c_str()) && enableAutoindex(request))
+	if (isDirectory(actualPath.c_str()) && enableAutoindex(request, serverContext))
 	{
 		Autoindex index = Autoindex(request);
 		std::string body = index.generateAutoindex();
@@ -57,6 +58,7 @@ Response *GetHandler::handleRequest(const Request &request)
 		headers["Content-Type"] = "text/html";
 		return new Response(_status, headers, body);
 	}
+	printf("test1\n");
 
 	// URIからファイルを開く
 	std::ifstream htmlFile(request.getActualUri());
@@ -67,11 +69,13 @@ Response *GetHandler::handleRequest(const Request &request)
 		throw RequestException("404");
 	}
 
+	printf("test1\n");
 	// ファイルの内容を読み込む
 	std::stringstream buffer;
 	buffer << htmlFile.rdbuf();
 	htmlFile.close();
 
+	printf("test1\n");
 	// レスポンスを作成して返す
 	std::map<std::string, std::string> headers;
 	HttpMessage::setHeader(headers, "content-type", Response::getMimeType(request.getActualUri()));
@@ -84,13 +88,11 @@ Response *GetHandler::handleRequest(const Request &request)
  * @return true
  * @return false
  */
-bool GetHandler::enableAutoindex(const Request &request)
+bool GetHandler::enableAutoindex(const Request &request, const ServerContext &serverContext)
 {
 	try
 	{
-		return Config::instance()->getHTTPBlock()
-			.getServerContext(request.getServerPort(), "host")
-			.getLocationContext(request.getUri()).getDirective("autoindex") == "on";
+		return serverContext.getLocationContext(request.getUri()).getDirective("autoindex") == "on";
 	}
 	catch (const std::runtime_error &e)
 	{

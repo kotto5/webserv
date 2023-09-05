@@ -29,7 +29,7 @@ public:
 
 	// Member functions
 	void				init(Server &server, const LocationContext &lc);
-	virtual Response	*handleRequest(const Request &request);
+	virtual HttpMessage	*handleRequest(const Request &request, const ServerContext &serverContext);
 	CgiSocket			*createCgiSocket(const Request &request);
 	void setClientSocket(ClSocket *clientSocket);
 

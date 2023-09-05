@@ -20,7 +20,7 @@ public:
 	PostHandler &operator=(const PostHandler &rhs);
 
 	// Member functions
-	virtual Response	*handleRequest(const Request &request);
+	virtual HttpMessage	*handleRequest(const Request &request, const ServerContext &serverContext);
 };
 
 #endif
