@@ -7,6 +7,7 @@
 #include "Logger.hpp"
 #include "Response.hpp"
 #include "RequestException.hpp"
+#include <cstdint>
 
 // Constructors
 PostHandler::PostHandler()
