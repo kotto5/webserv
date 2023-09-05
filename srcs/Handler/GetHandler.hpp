@@ -20,10 +20,10 @@ public:
 	GetHandler &operator=(const GetHandler &rhs);
 
 	// Member functions
-	virtual Response	*handleRequest(const Request &request);
+	virtual HttpMessage	*handleRequest(const Request &request, const ServerContext &serverContext);
 
 private:
-	bool enableAutoindex(const Request &request);
+	bool enableAutoindex(const Request &request, const ServerContext &serverContext);
 };
 
 #endif

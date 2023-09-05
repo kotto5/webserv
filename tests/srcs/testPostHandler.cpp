@@ -7,6 +7,8 @@
 #include "HttpMessage.hpp"
 #include "RequestException.hpp"
 #include "TestEnv.hpp"
+#include <iostream>
+#include <string>
 
 namespace
 {
@@ -47,8 +49,8 @@ TEST_F(PostHandlerTest, createTextFile)
 	PostHandler handler;
 	std::string body = readFile("./docs/pages/test.html");
 	Request req(method, "/resources/unit_test/sample.html", protocol, headers, body);
-	req.setAddr(env->socket).setInfo();
-	Response *res = handler.handleRequest(req);
+	req.setAddr(env->_test_clientSocket).setInfo();
+	Response *res = dynamic_cast<Response *>(handler.handleRequest(req, Config::instance()->getHTTPBlock().getServerContext(std::to_string(TEST_SERVER_PORT), "webserve1")));
 
 	std::string file_data = readFile("./docs/storage/unit_test/sample.html");
 
@@ -66,8 +68,8 @@ TEST_F(PostHandlerTest, createPngFile)
 	PostHandler handler;
 	std::string body = readFile("./docs/test.png");
 	Request req(method, "/resources/unit_test/sample.png", protocol, headers, body);
-	req.setAddr(env->socket).setInfo();
-	Response *res = handler.handleRequest(req);
+	req.setAddr(env->_test_clientSocket).setInfo();
+	Response *res = dynamic_cast<Response *>(handler.handleRequest(req, Config::instance()->getHTTPBlock().getServerContext(std::to_string(TEST_SERVER_PORT), "webserve1")));
 
 	std::string file_data = readFile("./docs/storage/unit_test/sample_post.png");
 
@@ -85,10 +87,10 @@ TEST_F(PostHandlerTest, createMultiFile)
 	PostHandler handler;
 	std::string body = readFile("./docs/test.txt");
 	Request req(method, "/resources/unit_test/sample_multi.txt", protocol, headers, body);
-	req.setAddr(env->socket).setInfo();
-	Response *res_0 = handler.handleRequest(req); // 1回目
-	Response *res_1 = handler.handleRequest(req); // 2回目
-	Response *res_2 = handler.handleRequest(req); // 3回目
+	req.setAddr(env->_test_clientSocket).setInfo();
+	Response *res_0 = dynamic_cast<Response *>(handler.handleRequest(req, Config::instance()->getHTTPBlock().getServerContext(std::to_string(TEST_SERVER_PORT), "webserve1"))); // 1回)目
+	Response *res_1 = dynamic_cast<Response *>(handler.handleRequest(req, Config::instance()->getHTTPBlock().getServerContext(std::to_string(TEST_SERVER_PORT), "webserve1"))); // 2回)目
+	Response *res_2 = dynamic_cast<Response *>(handler.handleRequest(req, Config::instance()->getHTTPBlock().getServerContext(std::to_string(TEST_SERVER_PORT), "webserve1"))); // 3回)目
 
 	std::string file_data_0 = readFile("./docs/storage/unit_test/sample_multi.txt");
 	std::string file_data_1 = readFile("./docs/storage/unit_test/0sample_multi.txt");
@@ -127,23 +129,9 @@ TEST_F(PostHandlerTest, createFileWithInvalidPath)
 {
 	PostHandler handler;
 	Request req(method, "/resources/unit_test/invalid_path/sample.txt", protocol, headers, body);
-	req.setAddr(env->socket).setInfo();
-
-	// テストデータの検証
-	try
-	{
-		handler.handleRequest(req);
-		FAIL() << "Expected RequestException";
-	}
-	catch (const RequestException &e)
-	{
-		EXPECT_EQ(e.getStatus(), "404");
-	}
-	catch (...)
-	{
-		FAIL() << "Expected specific exception type";
-	}
-
+	req.setAddr(env->_test_clientSocket).setInfo();
+	Response *res = dynamic_cast<Response *>(handler.handleRequest(req, Config::instance()->getHTTPBlock().getServerContext(std::to_string(TEST_SERVER_PORT), "webserve1"))); // 1回)目
+	EXPECT_EQ(res->getStatus(), "404");
 }
 
 TEST_F(PostHandlerTest, createFileFailed)
@@ -153,23 +141,9 @@ TEST_F(PostHandlerTest, createFileFailed)
 
 	PostHandler handler;
 	Request req(method, "/resources/unit_test/sample.txt", protocol, headers, body);
-	req.setAddr(env->socket).setInfo();
-
-	// テストデータの検証
-	try
-	{
-		handler.handleRequest(req);
-		FAIL() << "Expected RequestException";
-	}
-	catch (const RequestException &e)
-	{
-		EXPECT_EQ(e.getStatus(), "403");
-	}
-	catch (...)
-	{
-		FAIL() << "Expected specific exception type";
-	}
-
+	req.setAddr(env->_test_clientSocket).setInfo();
+	Response *res = dynamic_cast<Response *>(handler.handleRequest(req, Config::instance()->getHTTPBlock().getServerContext(std::to_string(TEST_SERVER_PORT), "webserve1"))); // 1回)目
+	EXPECT_EQ(res->getStatus(), "403");
 	// テストファイルのパーミッションを戻す
 	chmod("docs/storage/unit_test/", 0777);
 }

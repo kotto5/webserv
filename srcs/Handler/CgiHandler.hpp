@@ -29,7 +29,8 @@ public:
 
 	// Member functions
 	void				init(Server &server, const LocationContext &lc);
-	virtual Response	*handleRequest(const Request &request);
+	virtual HttpMessage	*handleRequest(const Request &request, const ServerContext &serverContext);
+	CgiSocket			*createCgiSocket(const Request &request);
 	void setClientSocket(ClSocket *clientSocket);
 
 private:
@@ -38,7 +39,7 @@ private:
 	const LocationContext *_locationContext;
 
 	int runCgi(const Request &request, int pipes[2]);
-	std::vector<char *> createEnvs(const Request &request);
+	std::vector<char *> *createEnvs(const Request &request);
 };
 
 #endif

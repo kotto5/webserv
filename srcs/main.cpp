@@ -17,8 +17,9 @@ void	exit_handler(int sig)
 {
 	(void)sig;
 	std::cout << "exit_handler" << std::endl;
-	system("leaks -q webserv");
-	exit(0);
+	throw ServerException("exit_handler");
+	// system("leaks -q webserv");
+	// exit(0);
 }
 
 int	setSignalHandler()

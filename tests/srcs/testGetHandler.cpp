@@ -21,11 +21,11 @@ protected:
 	virtual void SetUp()
 	{
 		reqGetHtml = new Request("GET", "/pages/test.html", "HTTP/1.1", std::map<std::string, std::string>(), "");
-		reqGetHtml->setAddr(env->socket).setInfo();
+		reqGetHtml->setAddr(env->_test_clientSocket).setInfo();
 		reqGetPng = new Request("GET", "/assets/logo.png", "HTTP/1.1", std::map<std::string, std::string>(), "");
-		reqGetPng->setAddr(env->socket).setInfo();
+		reqGetPng->setAddr(env->_test_clientSocket).setInfo();
 		reqNotFound = new Request("GET", "/pages/none.html", "HTTP/1.1", std::map<std::string, std::string>(), "");
-		reqNotFound->setAddr(env->socket).setInfo();
+		reqNotFound->setAddr(env->_test_clientSocket).setInfo();
 	}
 };
 
@@ -34,7 +34,7 @@ TEST_F(GetHandlerTest, getHtmlFile)
 {
 	// テストデータの検証
 	GetHandler handler;
-	Response *res = handler.handleRequest(*reqGetHtml);
+	Response *res = dynamic_cast<Response *>(handler.handleRequest(*reqGetHtml, Config::instance()->getHTTPBlock().getServerContext(std::to_string(TEST_SERVER_PORT), "webserve1")));
 
 	EXPECT_EQ(res->getStatus(), "200");
 	EXPECT_EQ(res->getBody(), expected);
@@ -47,7 +47,7 @@ TEST_F(GetHandlerTest, getPngFile)
 {
 	// テストデータの検証
 	GetHandler handler;
-	Response *res = handler.handleRequest(*reqGetPng);
+	Response *res = dynamic_cast<Response *>(handler.handleRequest(*reqGetPng, Config::instance()->getHTTPBlock().getServerContext(std::to_string(TEST_SERVER_PORT), "webserve1")));
 
 	EXPECT_EQ(res->getStatus(), "200");
 	EXPECT_EQ(res->getHeader("Content-Type"), "image/png");
@@ -59,20 +59,10 @@ TEST_F(GetHandlerTest, notRequest)
 {
 	// インスタンスの生成
 	GetHandler handler;
-
+	Response *res = dynamic_cast<Response *>(handler.handleRequest(*reqNotFound, Config::instance()->getHTTPBlock().getServerContext(std::to_string(TEST_SERVER_PORT), "webserve1")));
 	// テストデータの検証
-	try
-	{
-		handler.handleRequest(*reqNotFound);
-		FAIL() << "Expected RequestException";
-	}
-	catch(const RequestException& e)
-	{
-		EXPECT_EQ(e.getStatus(), "404");
-	}
-	catch(...)
-	{
-		FAIL() << "Expected specific exception type";
-	}
+	EXPECT_EQ(res->getStatus(), "404");
+	delete res;
 };
+
 };

@@ -6,6 +6,7 @@
 #include <fstream>
 #include <streambuf>
 #include "TestEnv.hpp"
+#include "ServerContext.hpp"
 
 namespace
 {
@@ -40,8 +41,8 @@ TEST_F(DeleteHandlerTest, deleteTextFile)
 
 	DeleteHandler handler;
 	Request req(method, "/resources/unit_test/sample_delete.txt", protocol, headers, body);
-	req.setAddr(env->socket).setInfo();
-	Response *res = handler.handleRequest(req);
+	req.setAddr(env->_test_clientSocket).setInfo();
+	Response *res = dynamic_cast<Response *>(handler.handleRequest(req, Config::instance()->getHTTPBlock().getServerContext(std::to_string(TEST_SERVER_PORT), "webserve1")));
 
 	//　レスポンスが正しいか
 	EXPECT_EQ(res->getStatus(), "204");
@@ -64,20 +65,8 @@ TEST_F(DeleteHandlerTest, deleteFileWithInvalidPath)
 
 	// テストデータの検証
 	Response *res;
-	try
-	{
-		res = handler.handleRequest(req);
-		delete res;
-		FAIL() << "Expected RequestException";
-	}
-	catch (const RequestException &e)
-	{
-		EXPECT_EQ(e.getStatus(), "404");
-	}
-	catch (...)
-	{
-		FAIL() << "Expected specific exception type";
-	}
+	res = dynamic_cast<Response *>(handler.handleRequest(req, Config::instance()->getHTTPBlock().getServerContext(std::to_string(TEST_SERVER_PORT), "webserve1")));
+	EXPECT_EQ(res->getStatus(), "404");
 }
 
 // 2. ファイルの削除に失敗した場合にエラーになるか
@@ -93,21 +82,9 @@ TEST_F(DeleteHandlerTest, deleteFileFailed)
 	DeleteHandler handler;
 	Request req(method, "/resources/unit_test/sample_permission.txt", protocol, headers, body);
 
-	// テストデータの検証
-	try
-	{
-		handler.handleRequest(req);
-		FAIL() << "Expected RequestException";
-	}
-	catch (const RequestException &e)
-	{
-		EXPECT_EQ(e.getStatus(), "404");
-	}
-	catch (...)
-	{
-		FAIL() << "Expected specific exception type";
-	}
-
+	Response *res;
+	res = dynamic_cast<Response *>(handler.handleRequest(req, Config::instance()->getHTTPBlock().getServerContext(std::to_string(TEST_SERVER_PORT), "webserve1")));
+	EXPECT_EQ(res->getStatus(), "404");
 	// テストファイルのパーミッションを戻す
 	chmod("docs/storage/unit_test/", 0777);
 }

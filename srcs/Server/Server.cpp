@@ -16,7 +16,27 @@
 
 Server::Server() {}
 
-Server::~Server() {}
+Server::~Server() {
+	// std::map<Socket *, HttpMessage *>::iterator	itr1;
+	// for (itr1 = Recvs.begin(); itr1 != Recvs.end(); itr1++)
+	// 	delete (itr1->second);
+	// for (itr1 = Sends.begin(); itr1 != Sends.end(); itr1++)
+	// 	delete (itr1->second);
+
+	std::list<Socket *>::iterator	itr2;
+	for (itr2 = server_sockets.begin(); itr2 != server_sockets.end(); itr2++)
+		delete (*itr2);
+	for (itr2 = recv_sockets.begin(); itr2 != recv_sockets.end(); itr2++)
+	{
+		delete Recvs[*itr2];
+		delete (*itr2);
+	}
+	for (itr2 = send_sockets.begin(); itr2 != send_sockets.end(); itr2++)
+	{
+		delete Sends[*itr2];
+		delete (*itr2);
+	}
+}
 
 int	Server::setup()
 {
@@ -79,30 +99,35 @@ void	Server::recvError(Socket *sock)
 		ClSocket *clSocket = cgiSock->moveClSocket();
 		try
 		{
-			Sends[clSocket] = new Response("500");
-			setFd(TYPE_SEND, clSocket);
+			addSend(clSocket, new Response("500"));
 		}
 		catch (const std::exception &e)
 		{
 			deleteSocket(TYPE_SEND, clSocket);
 		}
 	}
-	recv_sockets.remove(sock);
-	delete (Recvs[sock]);
+	deleteRecv(sock);
 	delete (sock);
+}
+
+bool	ClientClosedConnection(ssize_t ret, Socket *sock, HttpMessage *message)
+{
+	return (ret == 0 && dynamic_cast<ClSocket *>(sock) && 
+		(shutdown(sock->getFd(), SHUT_RD) == -1 || message->isCompleted() == false)
+		);
 }
 
 int	Server::handleSockets(fd_set *read_fds, fd_set *write_fds, int activity)
 {
 	std::list<Socket *>::iterator	itr;
-	std::list<Socket *>::iterator	tmp_socket;
+	std::list<Socket *>::iterator	sockNode;
 	Socket							*sock;
 
 	// サーバーソケット受信
 	for (itr = server_sockets.begin(); activity && itr != server_sockets.end();)
 	{
-		tmp_socket = itr++;
-		sock = *tmp_socket;
+		sockNode = itr++;
+		sock = *sockNode;
 		if (FD_ISSET(((sock)->getFd()), read_fds))
 		{
 			accept(sock);
@@ -112,9 +137,9 @@ int	Server::handleSockets(fd_set *read_fds, fd_set *write_fds, int activity)
 	// クライアントソケット受信
 	for (itr = recv_sockets.begin(); itr != recv_sockets.end();)
 	{
-		tmp_socket = itr++;
+		sockNode = itr++;
 		ssize_t	ret = 1;
-		sock = *tmp_socket;
+		sock = *sockNode;
 		if (FD_ISSET(sock->getFd(), read_fds))
 		{
 			ret = recv(sock, Recvs[sock]);
@@ -122,12 +147,18 @@ int	Server::handleSockets(fd_set *read_fds, fd_set *write_fds, int activity)
 		}
 		if (ret == -1)
 			recvError(sock);
-		if (ret == 0 ||
+		else if (ClientClosedConnection(ret, sock, Recvs[sock]))
+		{
+			std::cout << "ClientClosedConnection!!!" << std::endl;
+			deleteSocket(TYPE_RECV, sock);
+			recv_sockets.erase(sockNode);
+		}
+		else if (ret == 0 ||
 			Recvs[sock]->isCompleted() || Recvs[sock]->isInvalid())
 		{
 			try {
 				finishRecv(sock, Recvs[sock]);
-				recv_sockets.erase(tmp_socket);
+				recv_sockets.erase(sockNode);
 			}
 			catch (const std::exception &e)
 			{
@@ -139,25 +170,23 @@ int	Server::handleSockets(fd_set *read_fds, fd_set *write_fds, int activity)
 	// クライアントソケット送信
 	for (itr = send_sockets.begin(); activity && itr != send_sockets.end();)
 	{
-		tmp_socket = itr++;
-		sock = *tmp_socket;
+		sockNode = itr++;
+		sock = *sockNode;
 		if (!FD_ISSET(sock->getFd(), write_fds))
 			continue ;
-		if (send(sock, Sends[sock]) == -1)
+		bool		isCgi = (dynamic_cast<CgiSocket *>(sock) != NULL);
+		ssize_t		ret = send(sock, Sends[sock]);
+		if (isCgi == false && ret == -1)
 		{
-			if (CgiSocket *cgiSock = dynamic_cast<CgiSocket *>(sock))
-				ErrorfinishSendCgi(cgiSock, cgiSock->moveClSocket());
-			else
-			{
-				delete (Sends[sock]);
-				delete (sock);
-			}
-			send_sockets.erase(tmp_socket);
+			deleteSend(sock);
+			delete (sock);
+			send_sockets.erase(sockNode);
 		}
-		if (Sends[sock]->doesSendEnd())
+		else if (Sends[sock]->doesSendEnd() || ret == -1)
 		{
-			send_sockets.erase(tmp_socket);
-			finishSend(sock, Sends[sock]);
+			send_sockets.erase(sockNode);
+			finishSend(sock);
+			deleteSend(sock);
 		}
 		--activity;
 	}
@@ -170,8 +199,7 @@ int	Server::accept(Socket *serverSock)
 	ClSocket *newClSock = svSock->dequeueSocket();
 	if (newClSock == NULL)
 		return (0);
-	setFd(TYPE_RECV, newClSock);
-	Recvs[newClSock] = new Request(newClSock);
+	addRecv(newClSock, new Request(newClSock));
 	return (0);
 }
 
@@ -205,15 +233,26 @@ ssize_t		Server::send(Socket *sock, HttpMessage *message)
 	if (buffer == NULL)
 		return (-1);
 	ret = ::send(sock->getFd(), buffer, message->getContentLengthRemain(), 0);
-	if (ret > 0)
+	if (ret >= 0) // 0 も含んでるのはcgiのために超大事
 		message->addSendPos(ret);
 	return (ret);
+}
+
+Socket	*getHandleSock(Socket *sock)
+{
+	if (CgiSocket *cgiSock = dynamic_cast<CgiSocket *>(sock))
+	{
+		ClSocket *clSocket = cgiSock->moveClSocket();
+		delete (cgiSock);
+		return (clSocket);
+	}
+	else
+		return (sock);
 }
 
 // bool じゃなくて dynamic_cast で判定したほうがいいかも
 void Server::finishRecv(Socket *sock, HttpMessage *message)
 {
-	Recvs.erase(sock);
 	#ifdef TEST
 		std::cout << "finishRecv [" << message->getRaw() << "]" << std::endl;
 	#endif
@@ -221,42 +260,20 @@ void Server::finishRecv(Socket *sock, HttpMessage *message)
 	Router router(*this);
 	// ルーティング
 	HttpMessage *newMessage = router.routeHandler(*message, sock);
+	deleteRecv(sock);
+	Socket *handleSock = getHandleSock(sock);
 	if (newMessage)
 	{
-		// from cgi
-		if (CgiSocket *cgiSock = dynamic_cast<CgiSocket *>(sock))
+		if (Response *response = dynamic_cast<Response *>(newMessage))
 		{
-			Socket	*clSocket = cgiSock->moveClSocket();
-			if (Response *res = dynamic_cast<Response *>(newMessage))
-			{
-				Sends[clSocket] = newMessage;
-				setFd(TYPE_SEND, clSocket);
-			}
-			else if (Request *req = dynamic_cast<Request *>(newMessage))
-			{
-				Recvs[clSocket] = newMessage;
-				setFd(TYPE_RECV, clSocket);
-			}
-			else
-				delete (newMessage);
-			delete (sock);
+			addSend(handleSock, response);
+			ClSocket *clSock = dynamic_cast<ClSocket *>(handleSock);
+			Logger::instance()->writeAccessLog(*response, *clSock);
+			addKeepAliveHeader(response, clSock);
 		}
-		// from client
-		else
-		{
-			// レスポンスを送信用ソケットに追加　
-			Sends[sock] = newMessage;
-			setFd(TYPE_SEND, sock);
-			// アクセスログを書き込む
-			Response *response = dynamic_cast<Response *>(newMessage);
-			if (response)
-			{
-				Logger::instance()->writeAccessLog(*(Request *)message, *response);
-				addKeepAliveHeader(response, (ClSocket *)sock, message);
-			}
-		}
+		else if (dynamic_cast<Request *>(newMessage)) // callCgi
+			addRecv(handleSock, newMessage);
 	}
-	delete (message);
 }
 
 int	Server::setErrorResponse(Socket *clSock)
@@ -285,13 +302,19 @@ void	Server::ErrorfinishSendCgi(CgiSocket *cgiSock, Socket *clSock)
 }
 
 
-void	Server::finishSend(Socket *sock, HttpMessage *message)
+void	Server::finishSend(Socket *sock)
 {
-	Sends.erase(sock);
 	if (CgiSocket *cgiSock = dynamic_cast<CgiSocket *>(sock))
 	{
 		if (shutdown(sock->getFd(), SHUT_WR) == -1)
+		// if (shutdown(sock->getFd(), SHUT_WR) == -1 &&
+		// 	errno != ENOTCONN)
+		{
+			perror("=================================\nshutdown: ");
+			std::cout << "shutdown error" << std::endl;
+			std::cout << "=====================================" << std::endl;
 			return (ErrorfinishSendCgi(cgiSock, cgiSock->moveClSocket()));
+		}
 		CgiResponse *response = new CgiResponse();
 		if (addRecv(sock, response))
 		{
@@ -299,15 +322,13 @@ void	Server::finishSend(Socket *sock, HttpMessage *message)
 			return (ErrorfinishSendCgi(cgiSock, cgiSock->moveClSocket()));
 		}
 	}
-	else if (message->getHeader("connection") == "close")
-		delete (sock);
-	else
+	else if (ClSocket *clSock = dynamic_cast<ClSocket *>(sock))
 	{
-		// Recvs[sock] = new Request((ClSocket *)sock);
-		// setFd(TYPE_RECV, sock);
-		addRecv(sock, new Request((ClSocket *)sock));
+		if (clSock->getMaxRequest() == 0)
+			delete (clSock);
+		else
+			addRecv(sock, new Request((ClSocket *)sock));
 	}
-	delete (message);
 }
 
 /**
@@ -342,14 +363,12 @@ int	Server::deleteSocket(int type, Socket *socket)
 {
 	if (type == TYPE_RECV)
 	{
-		recv_sockets.remove(socket);
-		delete (Recvs[socket]);
+		deleteRecv(socket);
 		delete (socket);
 	}
 	else if (type == TYPE_SEND)
 	{
-		send_sockets.remove(socket);
-		delete (Sends[socket]);
+		deleteSend(socket);
 		delete (socket);
 	}
 	else if (type == TYPE_SERVER)
@@ -376,8 +395,7 @@ bool	Server::checkTimeout()
 		if (sock->isTimeout(current_time))
 		{
 			Logger::instance()->writeErrorLog(ErrorCode::RECV_TIMEOUT);
-			recv_sockets.erase(tmp);
-			delete (Recvs[sock]);
+			deleteRecv(sock);
 			delete (sock);
 			timeoutOccurred = true;
 		}
@@ -389,8 +407,7 @@ bool	Server::checkTimeout()
 		if (sock->isTimeout(current_time))
 		{
 			Logger::instance()->writeErrorLog(ErrorCode::SEND_TIMEOUT);
-			send_sockets.erase(tmp);
-			delete (Sends[sock]);
+			deleteSend(sock);
 			delete (sock);
 			timeoutOccurred = true;
 		}
@@ -420,9 +437,9 @@ int	Server::set_fd_set(fd_set &set, std::list<Socket *> sockets, int &maxFd)
  *
  */
 
-void	Server::addKeepAliveHeader(Response *response, ClSocket *clientSock, HttpMessage *request)
+void	Server::addKeepAliveHeader(Response *response, ClSocket *clientSock)
 {
-	if (request->getHeader("connection") == "close" || clientSock->getMaxRequest() == 0)
+	if (clientSock->getMaxRequest() == 0)
 		response->addHeader("connection", "close");
 	else
 	{
@@ -432,7 +449,6 @@ void	Server::addKeepAliveHeader(Response *response, ClSocket *clientSock, HttpMe
 		keepAliveValue += ", max=";
 		keepAliveValue += std::to_string(clientSock->getMaxRequest());
 		response->addHeader("keep-alive", keepAliveValue);
-		clientSock->decrementMaxRequest();
 	}
 	response->makeRowString();
 }
@@ -448,5 +464,19 @@ int	Server::addRecv(Socket *sock, HttpMessage *message)
 {
 	Recvs[sock] = message;
 	setFd(TYPE_RECV, sock);
+	return (0);
+}
+
+int	Server::deleteSend(Socket *sock)
+{
+	delete (Sends[sock]);
+	Sends.erase(sock);
+	return (0);
+}
+
+int	Server::deleteRecv(Socket *sock)
+{
+	delete (Recvs[sock]);
+	Recvs.erase(sock);
 	return (0);
 }

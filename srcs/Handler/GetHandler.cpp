@@ -42,13 +42,13 @@ GetHandler &GetHandler::operator=(const GetHandler &rhs)
  * @return Response レスポンス
  */
 
-Response *GetHandler::handleRequest(const Request &request)
+HttpMessage *GetHandler::handleRequest(const Request &request, const ServerContext &serverContext)
 {
 	// 実体パスを取得
 	std::string actualPath = request.getActualUri();
 
 	// 設定が有効、かつディレクトリの場合はAutoindexを作成
-	if (isDirectory(actualPath.c_str()) && enableAutoindex(request))
+	if (isDirectory(actualPath.c_str()) && enableAutoindex(request, serverContext))
 	{
 		Autoindex index = Autoindex(request);
 		std::string body = index.generateAutoindex();
@@ -64,7 +64,7 @@ Response *GetHandler::handleRequest(const Request &request)
 	{
 		// ファイルが開けなかった場合は404を返す
 		Logger::instance()->writeErrorLog(ErrorCode::GET_FILE_NOT_EXIST, "File not found");
-		throw RequestException("404");
+		return (handleError("404", serverContext));
 	}
 
 	// ファイルの内容を読み込む
@@ -84,13 +84,11 @@ Response *GetHandler::handleRequest(const Request &request)
  * @return true
  * @return false
  */
-bool GetHandler::enableAutoindex(const Request &request)
+bool GetHandler::enableAutoindex(const Request &request, const ServerContext &serverContext)
 {
 	try
 	{
-		return Config::instance()->getHTTPBlock()
-			.getServerContext(request.getServerPort(), "host")
-			.getLocationContext(request.getUri()).getDirective("autoindex") == "on";
+		return serverContext.getLocationContext(request.getUri()).getDirective("autoindex") == "on";
 	}
 	catch (const std::runtime_error &e)
 	{

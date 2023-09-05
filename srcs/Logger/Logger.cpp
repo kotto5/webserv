@@ -3,6 +3,9 @@
 #include <cstring>
 #include <unistd.h>
 #include "ServerException.hpp"
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <sstream>
 
 void Logger::initialize(const std::string& accessLogPath, const std::string& errorLogPath)
 {
@@ -57,22 +60,27 @@ Logger* Logger::instance()
  * @param request
  * @param response
  */
-void Logger::writeAccessLog(const Request& request, const Response& response)
+void Logger::writeAccessLog(const Request& request, const ClSocket& clSock)
 {
 	// タイムスタンプを取得
 	std::time_t now = std::time(0);
 	char timestamp[100];
 	std::strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S", std::localtime(&now));
 
-	// メッセージをログファイルに出力
-	_ofsAccessLog << std::string(timestamp) << " " << request.getMethod() << " "
-		<< request.getUri() << " " << request.getProtocol() << " "
-		<< response.getStatus() << std::endl;
+	const sockaddr_in &clientAddr = clSock.getRemoteAddr();
+	_accessData[&clientAddr] << std::string(timestamp) << " "
+		<< inet_ntoa(clientAddr.sin_addr) << " " 
+		<< std::to_string(ntohs(clientAddr.sin_port)) << " "	
+		<< "Method["	<< request.getMethod()	<< "] "
+		<< "Uri["		<< request.getUri()		<< "] "
+		<< "Protocol["	<< request.getProtocol() << "] ";
+}
 
-	/** 標準出力する場合は以下をコメントアウト */
-	// std::cout << std::string(timestamp) << " " << request.getMethod() << " "
-	// 	<< request.getUri() << " " << request.getProtocol() << " "
-	// 	<< std::to_string(response.getStatus()) << std::endl;
+void Logger::writeAccessLog(const Response& response, const ClSocket& clSock)
+{
+	const sockaddr_in &clientAddr = clSock.getRemoteAddr();
+	_ofsAccessLog << _accessData[&clientAddr].str() << response.getStatus() << std::endl;
+	_accessData.erase(&clientAddr);
 }
 
 /**

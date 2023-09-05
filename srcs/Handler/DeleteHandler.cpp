@@ -39,19 +39,20 @@ DeleteHandler &DeleteHandler::operator=(const DeleteHandler &rhs)
  * @param request リクエスト
  * @return Response レスポンス
  */
-Response	*DeleteHandler::handleRequest(const Request &request)
+HttpMessage	*DeleteHandler::handleRequest(const Request &request, const ServerContext &serverContext)
 {
+	(void)serverContext;
     std::string filename = request.getActualUri();
 
 	if (!pathExist(filename.c_str()))
 	{
 		Logger::instance()->writeErrorLog(ErrorCode::DELETE_FILE_NOT_EXIST, "File not found");
-		throw RequestException("404");
+		return (handleError("404", serverContext));
 	}
 	if (remove(filename.c_str()))
 	{
 		Logger::instance()->writeErrorLog(ErrorCode::DELETE_FILE_NO_PERMISSION, "Permission denied");
-		throw RequestException("500");
+		return (handleError("500", serverContext));
 	}
 
     return (new Response(_status));

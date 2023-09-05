@@ -26,6 +26,7 @@ public:
 	bool				isTimeout(std::time_t current_time = std::time(NULL));
 	const sockaddr_in	&getLocalAddr() const ;
 	socklen_t			getLocalLen() const ;
+	int					getLocalPort() const { return ntohs(localAddr_.sin_port); }
 	const std::time_t	&getLastAccess() const ;
 	void				updateLastAccess();
 
@@ -50,10 +51,11 @@ public:
 	~ClSocket();
 	ClSocket &operator=(const ClSocket &other);
 
-	const sockaddr_in &getRemoteAddr() const { return remoteAddr_; }
-	socklen_t getRemoteLen() const { return remoteLen_; }
-	int getMaxRequest() const { return maxRequest_; }
-	void decrementMaxRequest() { maxRequest_--; }
+	const sockaddr_in	&getRemoteAddr() const { return remoteAddr_; }
+	socklen_t			getRemoteLen() const { return remoteLen_; }
+	int					getMaxRequest() const { return maxRequest_; }
+	void				decrementMaxRequest() { maxRequest_--; }
+	void				setMaxRequest(int maxRequest) { maxRequest_ = maxRequest; }
 };
 
 // =============================================

@@ -40,7 +40,7 @@ TEST_F(AutoindexTest, getAutoindex)
 TEST_F(AutoindexTest, generateAutoindex)
 {
 	Request req(method, url, protocol, headers, "");
-	req.setAddr(env->socket).setInfo();
+	req.setAddr(env->_test_clientSocket).setInfo();
 
 	Autoindex autoindex(req);
 	std::string html = autoindex.generateAutoindex();

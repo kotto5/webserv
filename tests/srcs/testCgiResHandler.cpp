@@ -98,7 +98,7 @@ TEST_F(CgiResHandlerTest, HandleLocalRedirectResponse)
     EXPECT_EQ(cgiResponse->getType(), CgiResponse::LocalRedirectResponse);
 
     CgiResHandler cgiResHandler;
-	CgiSocket *cgiSocket = new CgiSocket(50, env->socket);
+	CgiSocket *cgiSocket = new CgiSocket(50, env->_test_clientSocket);
     HttpMessage *message = cgiResHandler.handleMessage(*cgiResponse, cgiSocket);
 	if (message == NULL)
 	{
@@ -109,7 +109,6 @@ TEST_F(CgiResHandlerTest, HandleLocalRedirectResponse)
     request->setInfo();
     if (request == NULL)
     {
-		std::cout << "test1" << std::endl;
 		FAIL();
 	}
 	EXPECT_EQ(request->getUri(), "/index.html");

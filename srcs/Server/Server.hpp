@@ -22,7 +22,7 @@
 
 #define BUFFER_LEN 10000
 #define MAX_CLIENTS 1024
-#define TEST
+// #define TEST
 
 #define RED "\x1b[41m"
 #define BLUE "\x1b[44m"
@@ -47,6 +47,8 @@ public:
 	void			createSocketForCgi(int type, int fd, const std::string &body, Socket *sock = NULL);
 	int				addRecv(Socket *sock, HttpMessage *message);
 	int				addSend(Socket *sock, HttpMessage *message);
+	int				deleteSend(Socket *sock);
+	int				deleteRecv(Socket *sock);
 	int				addCgi(Socket *sock, Socket *cgi);
 
 private:
@@ -64,13 +66,13 @@ private:
 	int				recv(Socket *sock, HttpMessage *message);
 	ssize_t			send(Socket *sock, HttpMessage *message);
 	void 			finishRecv(Socket *sock, HttpMessage *message);
-	void			finishSend(Socket *sock, HttpMessage *message);
+	void			finishSend(Socket *sock);
 	void			recvError(Socket *sock);
 	int				setFd(int type, Socket *sock);
 	int				deleteSocket(int type, Socket *socket);
 	bool			checkTimeout();
 	static int		set_fd_set(fd_set &set, std::list<Socket *> sockets, int &maxFd);
-	void			addKeepAliveHeader(Response *response, ClSocket *clientSock, HttpMessage *request);
+	void			addKeepAliveHeader(Response *response, ClSocket *clientSock);
 	int				setErrorResponse(Socket *clSock);
 	void			ErrorfinishSendCgi(CgiSocket *cgiSock, Socket *clSock);
 };

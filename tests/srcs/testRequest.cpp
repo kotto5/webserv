@@ -27,7 +27,7 @@ TEST_F(RequestTest, getRequest)
 {
 	// インスタンスの生成
 	Request rq(method, url, protocol, headers, body);
-	rq.setAddr(env->socket).setInfo();
+	rq.setAddr(env->_test_clientSocket).setInfo();
 
 	// テストデータの検証
 	EXPECT_EQ(rq.getMethod(), "GET");
@@ -42,9 +42,9 @@ TEST_F(RequestTest, copyRequest)
 {
 	// インスタンスの生成とコピー
 	Request rq(method, url, protocol, headers, body);
-	rq.setAddr(env->socket).setInfo();
+	rq.setAddr(env->_test_clientSocket).setInfo();
 	Request rq2(rq);
-	rq2.setAddr(env->socket).setInfo();
+	rq2.setAddr(env->_test_clientSocket).setInfo();
 
 	// テストデータの検証
 	EXPECT_EQ(rq.getMethod(), "GET");
@@ -60,16 +60,16 @@ TEST_F(RequestTest, alias)
 	// インスタンスの生成
 	url = "/";
 	Request rq1(method, url, protocol, headers, body);
-	rq1.setAddr(env->socket).setInfo();
+	rq1.setAddr(env->_test_clientSocket).setInfo();
 	url = "/index.html";
 	Request rq2(method, url, protocol, headers, body);
-	rq2.setAddr(env->socket).setInfo();
+	rq2.setAddr(env->_test_clientSocket).setInfo();
 	url = "/resources/";
 	Request rq3(method, url, protocol, headers, body);
-	rq3.setAddr(env->socket).setInfo();
+	rq3.setAddr(env->_test_clientSocket).setInfo();
 	url = "/resources/index.html";
 	Request rq4(method, url, protocol, headers, body);
-	rq4.setAddr(env->socket).setInfo();
+	rq4.setAddr(env->_test_clientSocket).setInfo();
 
 	// テストデータの検証
 	EXPECT_EQ(rq1.getActualUri(), "./docs/index.html");

@@ -1,6 +1,6 @@
 #include "FileInfo.hpp"
 
-FileInfo::FileInfo(const std::string &name, const std::string& path, time_t lastModified, off_t fileSize, bool isDirectory)
+FileInfo::FileInfo(const std::string &name, const std::string& path, time_t lastModified, long long fileSize, bool isDirectory)
 	: fileName(name), filepath(path), lastModified(lastModified), fileSize(fileSize), isDirectory(isDirectory)
 {
 }
