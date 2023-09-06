@@ -28,18 +28,16 @@
 #define BLUE "\x1b[44m"
 #define DEF "\x1b[49m"
 
-typedef enum e_type {
-	TYPE_RECV = 0,
-	TYPE_SEND = 1,
-	TYPE_SERVER = 2,
-	TYPE_CGI = 3,
-} T_TYPE;
-
 typedef	std::pair<std::string, std::string>	massages;
 
 class Server
 {
 public:
+	typedef enum E_TYPE {
+		E_RECV = 0,
+		E_SEND = 1,
+		E_SERVER = 2,
+	} S_TYPE;
 	Server();
 	~Server();
 	int				setup();
@@ -47,6 +45,7 @@ public:
 	void			createSocketForCgi(int type, int fd, const std::string &body, Socket *sock = NULL);
 	int				addRecv(Socket *sock, HttpMessage *message);
 	int				addSend(Socket *sock, HttpMessage *message);
+	int				storeMessageTiedToSocket(Socket *sock, HttpMessage *message, S_TYPE type);
 	int				deleteSend(Socket *sock);
 	int				deleteRecv(Socket *sock);
 	int				addCgi(Socket *sock, Socket *cgi);
@@ -65,16 +64,17 @@ private:
 	int				accept(Socket *serverSocket);
 	int				recv(Socket *sock, HttpMessage *message);
 	ssize_t			send(Socket *sock, HttpMessage *message);
-	void 			finishRecv(Socket *sock, HttpMessage *message);
-	void			finishSend(Socket *sock);
+	int	 			setNewSendMessage(Socket *sock, HttpMessage *message);
+	int				finishSend(Socket *sock);
 	void			recvError(Socket *sock);
-	int				setFd(int type, Socket *sock);
+	int				setSocket(int type, Socket *sock);
 	int				deleteSocket(int type, Socket *socket);
 	bool			checkTimeout();
 	static int		set_fd_set(fd_set &set, std::list<Socket *> sockets, int &maxFd);
 	void			addKeepAliveHeader(Response *response, ClSocket *clientSock);
 	int				setErrorResponse(Socket *clSock);
 	void			ErrorfinishSendCgi(CgiSocket *cgiSock, Socket *clSock);
+	static int		addMessageToMap(std::map<Socket *, HttpMessage *> &map, Socket *sock, HttpMessage *message);
 };
 
 #endif
