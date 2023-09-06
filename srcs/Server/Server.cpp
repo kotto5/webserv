@@ -405,6 +405,7 @@ bool	Server::checkTimeout()
 			Logger::instance()->writeErrorLog(ErrorCode::RECV_TIMEOUT);
 			deleteRecv(sock);
 			delete (sock);
+			recv_sockets.erase(tmp);
 			timeoutOccurred = true;
 		}
 	}
@@ -417,6 +418,7 @@ bool	Server::checkTimeout()
 			Logger::instance()->writeErrorLog(ErrorCode::SEND_TIMEOUT);
 			deleteSend(sock);
 			delete (sock);
+			send_sockets.erase(tmp);
 			timeoutOccurred = true;
 		}
 	}
