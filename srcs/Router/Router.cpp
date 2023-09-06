@@ -18,14 +18,6 @@
 #include "CgiResponse.hpp"
 
 // Constructors
-Router::Router(Server &server)
-{
-	_handlers["GET"] = &_getHandler;
-	_handlers["POST"] = &_postHandler;
-	_handlers["DELETE"] = &_deleteHandler;
-	_server = &server;
-}
-
 Router::Router(const Router &other)
 {
 	*this = other;
@@ -99,12 +91,7 @@ HttpMessage *Router::routeHandler(HttpMessage &message, Socket *sock)
 		}
 		// メソッドに対応するhandlerを呼び出し
 		if (isConnectionCgi(*request))
-		{
-			// CgiSocket *cgiSock = _cgiHandler.createCgiSocket();
-			_cgiHandler.init(*_server, serverContext.getLocationContext(request->getUri()));
-			_cgiHandler.setClientSocket(clSock);
 			return _cgiHandler.handleRequest(*request, serverContext);
-		}
 		else
 		{
 			if (_handlers.count(request->getMethod()) == 0)
