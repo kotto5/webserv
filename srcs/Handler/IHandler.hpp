@@ -16,6 +16,7 @@ public:
 	// Member function
 	virtual HttpMessage	*handleRequest(const Request &request, const ServerContext &serverContext) = 0;
 	static	HttpMessage	*handleError(const std::string &status, const ServerContext &serverContext);
+	static	HttpMessage	*handleError(const std::string &status, int port);
 protected:
 	std::string	_status;
 	LocationContext _locationContext;

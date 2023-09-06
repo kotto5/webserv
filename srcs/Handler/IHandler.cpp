@@ -61,3 +61,8 @@ HttpMessage	*IHandler::handleError(const std::string &status, const ServerContex
 	headers["content-type"] = "text/html";
 	return new Response(status, headers, buffer.str());
 }
+
+HttpMessage	*IHandler::handleError(const std::string &status, int port)
+{
+	return handleError(status, Request::getServerContext(port));
+}
