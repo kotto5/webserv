@@ -46,11 +46,10 @@ void	CgiHandler::init(Server &server, const LocationContext &lc)
  */
 HttpMessage *CgiHandler::handleRequest(const Request &request, const ServerContext &serverContext)
 {
-	(void)serverContext;
-	CgiSocket *cgiSock = createCgiSocket(request);
-	Request *req = new Request(request.getBody());
-	_server->addSend(cgiSock, req);
-	return NULL;
+	Request *req = new(std::nothrow) Request(request.getBody());
+	if (req == NULL)
+		return handleError("500", serverContext);
+	return (req);
 }
 
 CgiSocket *CgiHandler::createCgiSocket(const Request &request)
