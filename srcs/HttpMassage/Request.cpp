@@ -55,6 +55,12 @@ const	ServerContext	&Request::getServerContext(const std::string &port, const st
 		.getServerContext(port, server_name);
 }
 
+const	ServerContext	&Request::getServerContext(int port)
+{
+	return Config::instance()->getHTTPBlock()
+		.getServerContext(to_string(port), "");
+}
+
 /**
  * @brief URIを実体パスに変換する
  *

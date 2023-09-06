@@ -30,6 +30,7 @@ public:
 	static std::string	convertUriToPath(const std::string &uri, const ServerContext &serverContext);
 	static const LocationContext	&getLocationContext(const std::string &uri, const std::string &port, const std::string &server_name);
 	static const ServerContext		&getServerContext(const std::string &port, const std::string &server_name);
+	static const ServerContext		&getServerContext(int port);
 	void				printAll() const;
 
 	// Getters/Setters
