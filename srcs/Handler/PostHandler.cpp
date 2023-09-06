@@ -68,10 +68,12 @@ HttpMessage *PostHandler::handleRequest(const Request &request, const ServerCont
 	std::string::size_type pos = request.getActualUri().find_last_of('/');
     std::string dir = request.getActualUri().substr(0, pos + 1);
 	std::string actualFileName;
-	{
-		std::string originFileName = request.getActualUri().substr(pos + 1);
-		actualFileName = getUniqueFileNameWithPrefix(dir, originFileName);
-	}
+
+	if (!pathExist(dir.c_str())) // ディレクトリが存在しない
+		return (handleError("404", serverContext));
+
+	std::string originFileName = request.getActualUri().substr(pos + 1);
+	actualFileName = getUniqueFileNameWithPrefix(dir, originFileName);
 	if (actualFileName.empty())
 		return (handleError("500", serverContext));
 
