@@ -51,7 +51,7 @@ int	Server::setup()
 			return (1);
 	}
 	memset(&timeout, 0, sizeof(timeout));
-	timeout.tv_sec = 5;
+	timeout.tv_sec = 1;
 	_limitClientMsgSize = Config::instance()->getHTTPBlock().getClientMaxBodySize();
 	return (0);
 }
