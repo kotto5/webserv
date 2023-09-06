@@ -267,3 +267,10 @@ const std::string	&Request::getQuery() const {
 const std::string	&Request::getPathInfo() const {
 	return this->_path_info;
 }
+
+const LocationContext &Request::getLocationContext() const
+{
+	return Config::instance()->getHTTPBlock()
+		.getServerContext(_server_port, _server_name)
+		.getLocationContext(_uri);
+}
