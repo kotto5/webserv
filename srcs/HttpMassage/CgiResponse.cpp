@@ -31,11 +31,12 @@ bool    CgiResponse::isLocalPathQuery(const std::string &location) const
 
 bool    CgiResponse::isCgiField(const std::string &line) const
 {
-    if (line.find("Status: ") == 0)
+    // key is Lowercase!
+    if (line.find("status: ") == 0)
         return (true);
-    else if (line.find("Location: ") == 0)
+    else if (line.find("location: ") == 0)
         return (true);
-    else if (line.find("Content-Type: ") == 0)
+    else if (line.find("content-Type: ") == 0)
         return (true);
     else
         return (false);
