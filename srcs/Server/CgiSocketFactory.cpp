@@ -10,6 +10,7 @@ std::vector<char *> *CgiSocketFactory::createEnvs(const Request &request)
     // requestBody の content-type
     envs.push_back("CONTENT_TYPE=" + request.getHeader("content-type"));
     envs.push_back("GATEWAY_INTERFACE=CGI/1.1");
+	envs.push_back("REDIRECT_STATUS=");
 
     std::string cgiExtention = ".php";
     std::string::size_type  lastCgiExtention = uri.find_last_of(cgiExtention);
