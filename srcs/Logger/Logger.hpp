@@ -34,7 +34,7 @@ class Logger
 		// ログファイルのストリーム
 		std::ofstream _ofsAccessLog;
 		std::ofstream _ofsErrorLog;
-		std::map<const sockaddr_in*, std::ostringstream> _accessData;
+		std::map<const sockaddr_in*, std::stringstream*> _accessData;
 
 		// シングルトンパターンのため外部からの変更・破棄を避ける
 		Logger();

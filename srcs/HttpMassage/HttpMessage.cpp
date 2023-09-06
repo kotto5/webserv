@@ -3,7 +3,7 @@
 #include "Config.hpp"
 #include <algorithm>
 #include <cstring>
-
+#include <sstream>
 
 std::string HttpMessage::_empty = "";
 
@@ -77,8 +77,7 @@ int	HttpMessage::parsing(const std::string &raw, const std::size_t maxSize)
 		}
 		_readPos = endPos + 2; // Skip CRLF
 		_isHeaderEnd = true;
-		if (getHeader("content-length").empty() == false)
-			_contentLength = std::stoi(_headers["content-length"]);
+		setContentLength();
 		if (getHeader("transfer-encoding") == "chunked")
 			_isChunked = true;
 		setBody(_raw.substr(_readPos));
@@ -167,7 +166,8 @@ void	HttpMessage::decodeChunked(std::string &body)
     chunkSize = 1;
     while (chunkSize)
     {
-		chunkSize = std::stoul(body.substr(readPos), NULL, 16);
+		std::istringstream iss(body.substr(readPos));
+		iss >> chunkSize;
         readPos += chunkSize / 16 + 1;
         if (body.at(readPos) != '\r' || body.at(readPos + 1) != '\n')
 		{
@@ -303,7 +303,13 @@ void	HttpMessage::setHeaderFromLine(std::map<std::string, std::string>& m, const
 
 void	HttpMessage::setContentLength() {
 	const std::string &contentLengthValue = getHeader("content-length");
-	_contentLength = contentLengthValue.empty() ? 0 : std::stoi(contentLengthValue);
+	if (contentLengthValue.empty())
+		_contentLength = 0;
+	else
+	{
+		std::istringstream iss(contentLengthValue);
+		iss >> _contentLength;
+	}
 }
 
 

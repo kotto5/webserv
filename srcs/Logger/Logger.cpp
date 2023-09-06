@@ -68,9 +68,10 @@ void Logger::writeAccessLog(const Request& request, const ClSocket& clSock)
 	std::strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S", std::localtime(&now));
 
 	const sockaddr_in &clientAddr = clSock.getRemoteAddr();
-	_accessData[&clientAddr] << std::string(timestamp) << " "
+	_accessData[&clientAddr] = new std::stringstream();
+	*_accessData[&clientAddr] << std::string(timestamp) << " "
 		<< inet_ntoa(clientAddr.sin_addr) << " " 
-		<< std::to_string(ntohs(clientAddr.sin_port)) << " "	
+		<< ntohs(clientAddr.sin_port) << " "	
 		<< "Method["	<< request.getMethod()	<< "] "
 		<< "Uri["		<< request.getUri()		<< "] "
 		<< "Protocol["	<< request.getProtocol() << "] ";
@@ -79,7 +80,8 @@ void Logger::writeAccessLog(const Request& request, const ClSocket& clSock)
 void Logger::writeAccessLog(const Response& response, const ClSocket& clSock)
 {
 	const sockaddr_in &clientAddr = clSock.getRemoteAddr();
-	_ofsAccessLog << _accessData[&clientAddr].str() << response.getStatus() << std::endl;
+	_ofsAccessLog << _accessData[&clientAddr]->str() << response.getStatus() << std::endl;
+	delete (_accessData[&clientAddr]);
 	_accessData.erase(&clientAddr);
 }
 

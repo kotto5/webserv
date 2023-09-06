@@ -445,9 +445,9 @@ void	Server::addKeepAliveHeader(Response *response, ClSocket *clientSock)
 	{
 		response->addHeader("connection", "keep-alive");
 		std::string	keepAliveValue("timeout=");
-		keepAliveValue += std::to_string(Socket::timeLimit);
+		keepAliveValue += to_string(Socket::timeLimit);
 		keepAliveValue += ", max=";
-		keepAliveValue += std::to_string(clientSock->getMaxRequest());
+		keepAliveValue += to_string(clientSock->getMaxRequest());
 		response->addHeader("keep-alive", keepAliveValue);
 	}
 	response->makeRowString();

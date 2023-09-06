@@ -5,6 +5,7 @@
 #include "Socket.hpp"
 #include <filesystem>
 #include "CgiResponse.hpp"
+#include <sstream>
 
 // Constructors
 CgiHandler::CgiHandler()
@@ -132,7 +133,7 @@ std::vector<char *> *CgiHandler::createEnvs(const Request &request)
     std::vector<std::string> envs;
     envs.push_back("AUTH_TYPE=" + request.getHeader("auth-scheme"));
     // requestBody の長さ
-    envs.push_back("CONTENT_LENGTH=" + std::to_string(request.getBody().length()));
+    envs.push_back("CONTENT_LENGTH=" + to_string(request.getBody().length()));
     // requestBody の content-type
     envs.push_back("CONTENT_TYPE=" + request.getHeader("content-type"));
     envs.push_back("GATEWAY_INTERFACE=CGI/1.1");

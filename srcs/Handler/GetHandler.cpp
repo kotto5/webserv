@@ -59,7 +59,7 @@ HttpMessage *GetHandler::handleRequest(const Request &request, const ServerConte
 	}
 
 	// URIからファイルを開く
-	std::ifstream htmlFile(request.getActualUri());
+	std::ifstream htmlFile(request.getActualUri().c_str());
 	if (!htmlFile.is_open())
 	{
 		// ファイルが開けなかった場合は404を返す

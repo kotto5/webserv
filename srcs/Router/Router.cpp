@@ -84,11 +84,11 @@ HttpMessage *Router::routeHandler(HttpMessage &message, Socket *sock)
 
 		//　リクエストに応じたServerコンテキストを取得
 		const ServerContext &serverContext = Config::instance()->getHTTPBlock()
-			.getServerContext(std::to_string(clSock->getLocalPort()), request->getHeader("host"));
+			.getServerContext(to_string(clSock->getLocalPort()), request->getHeader("host"));
 
 		const LocationContext &locationContext = serverContext.getLocationContext(request->getUri());
 		if (int ErrorStatus = getRequestError(request, locationContext))
-			return IHandler::handleError(std::to_string(ErrorStatus), serverContext);
+			return IHandler::handleError(to_string(ErrorStatus), serverContext);
 
 		const std::string &redirect = locationContext.getDirective("redirect");
 		if (redirect.empty() == false)

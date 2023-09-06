@@ -1,4 +1,4 @@
-	#include "Request.hpp"
+#include "Request.hpp"
 #include "ErrorCode.hpp"
 #include "Config.hpp"
 #include "ConfigException.hpp"
@@ -9,6 +9,7 @@
 #include <cstring>
 #include "utils.hpp"
 #include <algorithm>
+#include <sstream>
 
 Request::Request(const std::string &method, const std::string &uriAndQuery, const std::string &protocol, std::map<std::string, std::string> headers, const std::string &body)
 {
@@ -208,7 +209,7 @@ Request &Request::setAddr(const ClSocket *clientSocket)
 	int	port = ntohs(addr.sin_port);
 
 	_server_name = inet_ntoa(addr.sin_addr);
-	_server_port = std::to_string(port);
+	_server_port = to_string(port);
 
 	addr = clientSocket->getRemoteAddr();
 	// addr_size = clientSocket->getRemoteLen();

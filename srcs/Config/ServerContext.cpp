@@ -132,7 +132,7 @@ const LocationContext& ServerContext::getLocationContext(const std::string& path
 		std::string::size_type currentMatch = 0;
 		// 前方一致の最大の長さを取得する
 		if (fixPath.size() >= locationPath.size() &&
-			std::equal(std::begin(locationPath), std::end(locationPath), std::begin(fixPath)))
+			std::equal(locationPath.begin(), locationPath.end(), fixPath.begin()))
 			currentMatch = locationPath.size();
 		if (currentMatch != std::string::npos)
 		{
