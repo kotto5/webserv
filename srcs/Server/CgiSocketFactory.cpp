@@ -74,12 +74,23 @@ int CgiSocketFactory::runCgi(const Request &request, int pipes[2])
         std::string path = request.getActualUri();
 		std::string path_query = path;
 
-		char *cgi_pass = const_cast<char *>(locationContext.getDirective("cgi_pass").c_str());
-		char *argv[] = {cgi_pass, const_cast<char *>(path_query.c_str()), NULL};
+		char cgi_pass_buf[1000]; // あるいは適切な最大サイズ
+		strncpy(cgi_pass_buf, locationContext.getDirective("cgi_pass").c_str(), sizeof(cgi_pass_buf));
+		cgi_pass_buf[sizeof(cgi_pass_buf) - 1] = '\0';
+
+		char path_query_buf[1000];
+		strncpy(path_query_buf, path_query.c_str(), sizeof(path_query_buf));
+		path_query_buf[sizeof(path_query_buf) - 1] = '\0';
+
+		char *argv[] = {cgi_pass_buf, path_query_buf, NULL};
+
 		char * const *env = envs->data();
-		execve(cgi_pass, argv, env);
+		execve(argv[0], argv, env);
         perror(path_query.c_str());
         exit(1);
+
+
+
 		}
 		catch(const std::exception& e)
 		{
