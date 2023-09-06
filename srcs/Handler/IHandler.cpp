@@ -28,7 +28,7 @@ HttpMessage	*IHandler::handleError(const std::string &status, const ServerContex
 
 	if (error_path == "")
 	{
-		return (new Response(status, std::map<std::string, std::string>(), generateDefaultErrorPage()));
+		return (new(std::nothrow) Response(status, std::map<std::string, std::string>(), generateDefaultErrorPage()));
 	}
 	// 実体パスに変換
 	std::string actual_path = Request::convertUriToPath(error_path, serverContext);
@@ -39,7 +39,7 @@ HttpMessage	*IHandler::handleError(const std::string &status, const ServerContex
 		std::string body = generateDefaultErrorPage();
 		std::map<std::string, std::string> headers;
 		headers["content-type"] = "text/html";
-		return new Response(status, headers, body);
+		return (new(std::nothrow) Response(status, headers, body));
 	}
 
 	// ファイルを開く
@@ -49,7 +49,7 @@ HttpMessage	*IHandler::handleError(const std::string &status, const ServerContex
 		std::string body = generateDefaultErrorPage();
 		std::map<std::string, std::string> headers;
 		headers["content-type"] = "text/html";
-		return new Response(status, headers, body);
+		return (new(std::nothrow) Response(status, headers, body));
 	}
 
 	std::stringstream buffer;
@@ -59,7 +59,7 @@ HttpMessage	*IHandler::handleError(const std::string &status, const ServerContex
 	// レスポンスを作成して返す
 	std::map<std::string, std::string> headers;
 	headers["content-type"] = "text/html";
-	return new Response(status, headers, buffer.str());
+	return (new(std::nothrow) Response(status, headers, buffer.str()));
 }
 
 HttpMessage	*IHandler::handleError(const std::string &status, int port)
