@@ -225,13 +225,6 @@ ssize_t		Server::send(Socket *sock, HttpMessage *message)
 	return (ret);
 }
 
-bool	isConnectionCgi(const Request &request)
-{
-	if (request.getActualUri().find(".php") != std::string::npos)
-		return (true);
-	return (false);
-}
-
 Socket	*getHandleSock(Socket *sock, HttpMessage *recvdMessage, HttpMessage *toSendMessage)
 {
 	ClSocket *clSock = NULL;
