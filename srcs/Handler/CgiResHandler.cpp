@@ -109,6 +109,7 @@ HttpMessage	*CgiResHandler::handleMessage(const CgiResponse &response, Socket *s
 		"\r\n";
 		req->parsing(ss.str(), 0);
 		req->setAddr(clSocket);
+		req->setInfo();
 		return (req);
 	}
 	else if (response.getType() == CgiResponse::InvalidResponse)
