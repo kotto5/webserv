@@ -23,12 +23,12 @@ class HTTPContext
 		const std::string& getErrorLogFile() const;
 		const std::map<std::string, std::vector<ServerContext> >& getServers() const;
 		const ServerContext& getServerContext(const std::string& port, const std::string& host) const;
-		const std::size_t	&getClientMaxBodySize() const;
+		unsigned long long getClientMaxBodySize() const;
 
 	private:
 		std::string _accessLogFile;
 		std::string _errorLogFile;
-		std::size_t _clientMaxBodySize;
+		unsigned long long	_clientMaxBodySize;
 		std::map<std::string, std::vector<ServerContext> > _servers;
 		std::map<std::string, std::string> _directives;
 };

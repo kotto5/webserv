@@ -60,37 +60,62 @@
 //     std::cout << str.capacity() << std::endl;
 // }
 
-#include <stdlib.h>
+// #include <stdlib.h>
+
+// int main()
+// {
+//     // uint8_t *ptr = new uint8_t[0];
+//     // if (ptr)
+//     // {
+//     //     std::cout << "ptr is not null" << std::endl;
+//     //     // std::cout << "ptr: [" << std::to_string << "]" << std::endl;
+//     //     printf("ptr: [%p]\n", ptr);
+//     //     for (int i = 0; i < 3; i++)
+//     //     {
+//     //         std::cout << i <<  "[" << ptr[i] << "]" << std::endl;
+//     //     }
+//     // }
+//     // else
+//     //     std::cout << "ptr is null" << std::endl;
+
+//     char *ptr;
+//     ptr = static_cast<char *>(malloc(0));
+//     if (ptr)
+//     {
+//         std::cout << "ptr is not null" << std::endl;
+//         // std::cout << "ptr: [" << std::to_string << "]" << std::endl;
+//         // printf("ptr: [%p]\n", ptr);
+//         // for (int i = 0; i < 3; i++)
+//         // {
+//         //     std::cout << i <<  "[" << ptr[i] << "]" << std::endl;
+//         // }
+//     }
+//     else
+//         std::cout << "ptr is null" << std::endl;
+// }
+
+
+#include <sstream>
+#include <iostream>
+#include <string>
 
 int main()
 {
-    // uint8_t *ptr = new uint8_t[0];
-    // if (ptr)
-    // {
-    //     std::cout << "ptr is not null" << std::endl;
-    //     // std::cout << "ptr: [" << std::to_string << "]" << std::endl;
-    //     printf("ptr: [%p]\n", ptr);
-    //     for (int i = 0; i < 3; i++)
-    //     {
-    //         std::cout << i <<  "[" << ptr[i] << "]" << std::endl;
-    //     }
-    // }
-    // else
-    //     std::cout << "ptr is null" << std::endl;
-
-    char *ptr;
-    ptr = static_cast<char *>(malloc(0));
-    if (ptr)
     {
-        std::cout << "ptr is not null" << std::endl;
-        // std::cout << "ptr: [" << std::to_string << "]" << std::endl;
-        // printf("ptr: [%p]\n", ptr);
-        // for (int i = 0; i < 3; i++)
-        // {
-        //     std::cout << i <<  "[" << ptr[i] << "]" << std::endl;
-        // }
-    }
-    else
-        std::cout << "ptr is null" << std::endl;
-}
+        std::stringstream ss("3a4ga");
+        unsigned int a;
+        ss >> std::hex >> a;
+        std::cout << a << std::endl;
 
+        std::string b;
+        ss >> b;
+        std::cout << b << std::endl;
+    }
+    std::cout << "---------" << std::endl;
+    {
+        std::stringstream ss("3a4ga");
+        std::string a;
+        ss >> std::hex >> a;
+        std::cout << a << std::endl;
+    }
+}

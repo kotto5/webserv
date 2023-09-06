@@ -2,6 +2,7 @@
 #include "HttpStatus.hpp"
 #include "MimeType.hpp"
 #include <ctime>
+#include "utils.hpp"
 
 Response::Response() {
 	_raw = "";
@@ -136,7 +137,7 @@ void Response::setDate()
  */
 void Response::setContentLength()
 {
-	setHeader(this->_headers, "content-length", std::to_string(this->_body.length()));
+	setHeader(this->_headers, "content-length", to_string(this->_body.length()));
 }
 
 void Response::setServer()

@@ -8,6 +8,9 @@
 
 class PostHandler : public IHandler
 {
+private:
+	std::string	getUniqueFileNameWithPrefix(const std::string &dir, const std::string &file);
+
 public:
 	// Constructors
 	PostHandler();

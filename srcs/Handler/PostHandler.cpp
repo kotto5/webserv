@@ -7,7 +7,8 @@
 #include "Logger.hpp"
 #include "Response.hpp"
 #include "RequestException.hpp"
-#include <cstdint>
+#include <stdio.h>
+#include <stdint.h>
 
 // Constructors
 PostHandler::PostHandler()
@@ -34,46 +35,49 @@ PostHandler &PostHandler::operator=(const PostHandler &rhs)
 	return *this;
 }
 
+std::string	PostHandler::getUniqueFileNameWithPrefix(const std::string &dir, const std::string &file)
+{
+	std::string			fileNameWithPrefix = file;
+	try {
+		std::size_t prefix = 0;
+		while (prefix < SIZE_MAX)
+		{
+			std::stringstream	ss;
+			if (!pathExist((dir + fileNameWithPrefix).c_str()))
+				return (fileNameWithPrefix);
+			ss << prefix << file;
+			fileNameWithPrefix = ss.str();
+			prefix++;
+		}
+		return ("");
+	}
+	catch (const std::exception &e)
+	{
+		return ("");
+	}
+}
+
 /**
  * @brief POSTメソッドの処理を行う
  *
  * @param request リクエスト
  * @return Response レスポンス
  */
-
 HttpMessage *PostHandler::handleRequest(const Request &request, const ServerContext &serverContext)
 {
-	(void)serverContext;
 	std::string::size_type pos = request.getActualUri().find_last_of('/');
-    std::string filedir = request.getActualUri().substr(0, pos + 1);
-    std::string filename = request.getActualUri().substr(pos + 1);
-	std::string tmp = filename;
+    std::string dir = request.getActualUri().substr(0, pos + 1);
+	std::string actualFileName;
 
-	// ファイル名が重複していた場合は連番をつける
-	std::size_t i = 0;
-	while (i < SIZE_MAX)
-	{
-		if (!pathExist((filedir + tmp).c_str()))
-		{
-			filename = tmp;
-			break;
-		}
-		tmp = std::to_string(i) + filename;
-		i++;
-	}
-	if (i == SIZE_MAX)
-	{
-		// ファイル数が上限に達した
-		Logger::instance()->writeErrorLog(ErrorCode::POST_INDEX_FULL, "", &request);
-		return (handleError("500", serverContext));
-	}
-	if (!pathExist(filedir.c_str()))
-	{
-		// ディレクトリが存在しない
-		Logger::instance()->writeErrorLog(ErrorCode::POST_NOT_EXISTS, "", &request);
+	if (!pathExist(dir.c_str())) // ディレクトリが存在しない
 		return (handleError("404", serverContext));
-	}
-	std::ofstream ofs(filedir + filename, std::ios::out);
+
+	std::string originFileName = request.getActualUri().substr(pos + 1);
+	actualFileName = getUniqueFileNameWithPrefix(dir, originFileName);
+	if (actualFileName.empty())
+		return (handleError("500", serverContext));
+
+	std::ofstream ofs((dir + actualFileName).c_str(), std::ios::out);
 	if (!ofs)
 	{
 		if (errno == EACCES)
@@ -85,15 +89,14 @@ HttpMessage *PostHandler::handleRequest(const Request &request, const ServerCont
 		Logger::instance()->writeErrorLog(ErrorCode::POST_FILE_OPEN, "", &request);
 		return (handleError("500", serverContext));
     }
-	std::string body = request.getBody();
-    ofs << body;
+    ofs << request.getBody();
     ofs.close();
 
 	// レスポンスヘッダーの作成
 	std::map<std::string, std::string> headers;
 	pos = request.getUri().find_last_of('/');
-    std::string uridir = request.getUri().substr(0, pos + 1);
-	HttpMessage::setHeader(headers, "Location", uridir + filename);
+    std::string uriDir = request.getUri().substr(0, pos + 1);
+	HttpMessage::setHeader(headers, "Location", uriDir + actualFileName);
 	HttpMessage::setHeader(headers, "content-type", Response::getMimeType(request.getActualUri()));
 
     return (new Response(_status, headers, ""));

@@ -16,10 +16,8 @@ class Router
 {
 public:
 	// Constructors
-	Router(Server &server);
-	Router(const Router &other);
-
 	Router();
+	Router(const Router &other);
 	// Destructor
 	~Router();
 

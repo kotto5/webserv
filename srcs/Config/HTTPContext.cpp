@@ -1,6 +1,7 @@
 #include "HTTPContext.hpp"
 #include "ConfigException.hpp"
 #include <stdexcept>
+#include <sstream>
 
 HTTPContext::HTTPContext():
 	_accessLogFile(""),
@@ -41,7 +42,8 @@ void HTTPContext::setErrorLogFile(const std::string& errorLogFile)
 
 void	HTTPContext::setClientMaxBodySize(const std::string& clientMaxBodySize)
 {
-	_clientMaxBodySize = std::stoul(clientMaxBodySize);
+    std::istringstream iss(clientMaxBodySize);
+	iss >> _clientMaxBodySize;
 }
 
 void HTTPContext::addServerBlock(const ServerContext& server)
@@ -99,7 +101,7 @@ const std::map<std::string, std::vector<ServerContext> >& HTTPContext::getServer
 	return _servers;
 }
 
-const std::size_t	&HTTPContext::getClientMaxBodySize() const
+unsigned long long HTTPContext::getClientMaxBodySize() const
 {
 	return _clientMaxBodySize;
 }

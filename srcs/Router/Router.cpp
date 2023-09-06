@@ -18,14 +18,6 @@
 #include "CgiResponse.hpp"
 
 // Constructors
-Router::Router(Server &server)
-{
-	_handlers["GET"] = &_getHandler;
-	_handlers["POST"] = &_postHandler;
-	_handlers["DELETE"] = &_deleteHandler;
-	_server = &server;
-}
-
 Router::Router(const Router &other)
 {
 	*this = other;
@@ -84,11 +76,11 @@ HttpMessage *Router::routeHandler(HttpMessage &message, Socket *sock)
 
 		//　リクエストに応じたServerコンテキストを取得
 		const ServerContext &serverContext = Config::instance()->getHTTPBlock()
-			.getServerContext(std::to_string(clSock->getLocalPort()), request->getHeader("host"));
+			.getServerContext(to_string(clSock->getLocalPort()), request->getHeader("host"));
 
 		const LocationContext &locationContext = serverContext.getLocationContext(request->getUri());
 		if (int ErrorStatus = getRequestError(request, locationContext))
-			return IHandler::handleError(std::to_string(ErrorStatus), serverContext);
+			return IHandler::handleError(to_string(ErrorStatus), serverContext);
 
 		const std::string &redirect = locationContext.getDirective("redirect");
 		if (redirect.empty() == false)
@@ -99,12 +91,7 @@ HttpMessage *Router::routeHandler(HttpMessage &message, Socket *sock)
 		}
 		// メソッドに対応するhandlerを呼び出し
 		if (isConnectionCgi(*request))
-		{
-			// CgiSocket *cgiSock = _cgiHandler.createCgiSocket();
-			_cgiHandler.init(*_server, serverContext.getLocationContext(request->getUri()));
-			_cgiHandler.setClientSocket(clSock);
 			return _cgiHandler.handleRequest(*request, serverContext);
-		}
 		else
 		{
 			if (_handlers.count(request->getMethod()) == 0)

@@ -41,7 +41,6 @@ DeleteHandler &DeleteHandler::operator=(const DeleteHandler &rhs)
  */
 HttpMessage	*DeleteHandler::handleRequest(const Request &request, const ServerContext &serverContext)
 {
-	(void)serverContext;
     std::string filename = request.getActualUri();
 
 	if (!pathExist(filename.c_str()))
