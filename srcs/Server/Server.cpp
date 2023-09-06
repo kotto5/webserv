@@ -99,7 +99,7 @@ void	Server::recvError(Socket *sock)
 		ClSocket *clSocket = cgiSock->moveClSocket();
 		try
 		{
-			addSend(clSocket, new Response("500"));
+			addSend(clSocket, IHandler::handleError("500", clSocket->getLocalPort()));
 		}
 		catch (const std::exception &e)
 		{
