@@ -37,16 +37,16 @@ PostHandler &PostHandler::operator=(const PostHandler &rhs)
 
 std::string	PostHandler::getUniqueFileNameWithPrefix(const std::string &dir, const std::string &file)
 {
-	std::string			fileNameWithPrefix;
-	std::stringstream	ss;
-
+	std::string			fileNameWithPrefix = file;
 	try {
 		std::size_t prefix = 0;
 		while (prefix < SIZE_MAX)
 		{
+			std::stringstream	ss;
 			if (!pathExist((dir + fileNameWithPrefix).c_str()))
 				return (fileNameWithPrefix);
 			ss << prefix << file;
+			fileNameWithPrefix = ss.str();
 			prefix++;
 		}
 		return ("");
