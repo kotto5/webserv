@@ -1,4 +1,6 @@
 #include "CgiSocketFactory.hpp"
+#include "utils.hpp"
+#include <arpa/inet.h>
 
 std::vector<char *> *CgiSocketFactory::createEnvs(const Request &request)
 {
@@ -125,4 +127,32 @@ CgiSocket *CgiSocketFactory::create(const Request &request, ClSocket *clientSock
 	}
 	close(socks[S_CHILD]);
 	return (cgiSock);
+}
+
+CgiSocket *CgiSocketFactory::create(const CgiResponse &cgiResponse, ClSocket *clientSocket)
+{
+	Request *req = new(std::nothrow) Request();
+	if (req == NULL)
+		return (NULL);
+	struct sockaddr_in addr = clientSocket->getLocalAddr();
+	std::stringstream ss;
+	ss << "GET " << cgiResponse.getHeader("Location") << " HTTP/1.1\r\n" <<
+	"Host: " << std::string(inet_ntoa(addr.sin_addr)) << ":" << ntohs(addr.sin_port) << "\r\n"
+	"\r\n";
+	req->parsing(ss.str(), 0);
+	req->setAddr(clientSocket);
+	req->setInfo();
+	CgiSocket *cgiSock = CgiSocketFactory::create(*req, clientSocket);
+	delete (req);
+	return (cgiSock);
+}
+
+CgiSocket *CgiSocketFactory::create(const HttpMessage &message, ClSocket *clientSocket)
+{
+	if (const Request *request = dynamic_cast<const Request *>(&message))
+		return CgiSocketFactory::create(*request, clientSocket);
+	else if (const CgiResponse *cgiResponse = dynamic_cast<const CgiResponse *>(&message))
+		return CgiSocketFactory::create(*cgiResponse, clientSocket);
+	else
+		return (NULL);
 }

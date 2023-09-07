@@ -2,7 +2,7 @@
 #define CGISOCKETFACTORY_HPP
 
 #include "CgiSocketFactory.hpp"
-#include "utils.hpp"
+#include "CgiResponse.hpp"
 #include "Socket.hpp"
 #include "Request.hpp"
 
@@ -18,8 +18,10 @@ private:
     };
     static std::vector<char *> *createEnvs(const Request &request);
     static int runCgi(const Request &request, int pipes[2]);
-public:
     static CgiSocket *create(const Request &request, ClSocket *clientSocket);
+    static CgiSocket *create(const CgiResponse &cgiResponse, ClSocket *clientSocket);
+public:
+    static CgiSocket *create(const HttpMessage &message, ClSocket *clientSocket);
 };
 
 #endif
