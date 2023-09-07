@@ -70,7 +70,9 @@ HttpMessage	*CgiResHandler::handleMessage(const CgiResponse &response, Socket *s
 	if (WEXITSTATUS(wstatus) == 1 || response.isInvalid())
 		return (new Response("500"));
 	std::map<std::string, std::string> headers;
-	std::cout << "type: " << response.getType() << std::endl;
+	#ifdef TEST
+		std::cout << "type: " << response.getType() << std::endl;
+	#endif
 	if (response.getType() == CgiResponse::DocumentResponse)
 	{
 		headers = response.getOtherFields();
