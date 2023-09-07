@@ -44,7 +44,7 @@ public:
 	void						addSendPos(std::size_t pos);
 	void						printHeader() const;
 	bool						isTooBigError() const;
-	bool						isCompleted() const;
+	virtual bool				isCompleted() const;
 
 	const std::string  			&getRaw() const;
 	const std::string			&getProtocol() const;
