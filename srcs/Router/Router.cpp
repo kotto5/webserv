@@ -39,7 +39,7 @@ Router &Router::operator=(const Router &rhs)
 
 int	Router::getRequestError(const Request *request, const LocationContext &locationContext)
 {
-	if (request->isInvalid())
+	if (request->isInvalid() || !request->isCompleted())
 		return (400);
 	if (request->isTooBigError())
 		return (413);
