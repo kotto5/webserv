@@ -13,13 +13,11 @@
 #include "ErrorCode.hpp"
 #include "ServerException.hpp"
 
+int sigStatus = 0;
+
 void	exit_handler(int sig)
 {
-	(void)sig;
-	std::cout << "exit_handler" << std::endl;
-	throw ServerException("exit_handler");
-	// system("leaks -q webserv");
-	// exit(0);
+	sigStatus = sig;
 }
 
 int	setSignalHandler()
@@ -91,6 +89,7 @@ int main(int argc, char **argv)
 	}
 	// サーバー起動
 	runServer();
+	std::cout << "exit" << std::endl;
 	Config::release();
 	Logger::release();
 	return 0;
