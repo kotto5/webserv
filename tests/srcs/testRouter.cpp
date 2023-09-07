@@ -13,19 +13,31 @@ protected:
 	Request *reqGet;
 	Request *reqPost;
 	Request *reqDelete;
-	Request *reqNotFound;
+	Request *reqNoMethod;
+	Request *reqNoHostHeader;
 
 	// テストデータの作成
 	virtual void SetUp()
 	{
-		reqGet = new Request("GET", "/index.html", "HTTP/1.1", std::map<std::string, std::string>(), "");
-		reqGet->setAddr(env->_test_clientSocket).setInfo().parsing("\r\n\r\n", 0);
-		reqPost = new Request("POST", "/storage/unit_test/router_test.txt", "HTTP/1.1", std::map<std::string, std::string>(), "");
-		reqPost->setAddr(env->_test_clientSocket).setInfo().parsing("\r\n\r\n", 0);
-		reqDelete = new Request("DELETE", "/index.html", "HTTP/1.1", std::map<std::string, std::string>(), "");
-		reqDelete->setAddr(env->_test_clientSocket).setInfo().parsing("\r\n\r\n", 0);
-		reqNotFound = new Request("NONE", "/index.html", "HTTP/1.1", std::map<std::string, std::string>(), "");
-		reqNotFound->setAddr(env->_test_clientSocket).setInfo().parsing("\r\n\r\n", 0);
+		reqGet = new Request();
+		reqGet->parsing("GET /index.html HTTP/1.1\r\nHost: 0.0.0.0\r\n\r\n", 0);
+		reqGet->setAddr(env->_test_clientSocket).setInfo();
+
+		reqPost = new Request();
+		reqPost->parsing("POST /storage/unit_test/router_test.txt HTTP1.1\r\nHost: 0.0.0.0\r\n\r\n", 0);
+		reqPost->setAddr(env->_test_clientSocket).setInfo();
+
+		reqDelete = new Request();
+		reqDelete->parsing("DELETE /index.html HTTP/1.1\r\nHost: 0.0.0.0\r\n\r\n", 0);
+		reqDelete->setAddr(env->_test_clientSocket).setInfo();
+
+		reqNoMethod = new Request();
+		reqNoMethod->parsing("NONE /index.html HTTP/1.1\r\nHost: 0.0.0.0\r\n\r\n", 0);
+		reqNoMethod->setAddr(env->_test_clientSocket).setInfo();
+
+		reqNoHostHeader = new Request();
+		reqNoHostHeader->parsing("GET /index.html HTTP/1.1\r\n\r\n", 0);
+		reqNoHostHeader->setAddr(env->_test_clientSocket).setInfo();
 	}
 };
 
@@ -45,7 +57,7 @@ TEST_F(RouterTest, notRequest)
 	// インスタンスの生成
 	Router router;
 	// テストデータの検証
-	Response *response = (Response *)router.routeHandler(*reqNotFound, env->_test_clientSocket);
+	Response *response = (Response *)router.routeHandler(*reqNoMethod, env->_test_clientSocket);
 	EXPECT_EQ(response->getStatus(), "405");
 }
 
@@ -63,3 +75,12 @@ TEST_F(RouterTest, allowedMethod)
 	EXPECT_EQ(res3->getStatus(), "405");
 }
 };
+
+TEST_F(RouterTest, noHostHeader)
+{
+	// インスタンスの生成
+	Router router;
+	// テストデータの検証
+	Response *response = (Response *)router.routeHandler(*reqNoHostHeader, env->_test_clientSocket);
+	EXPECT_EQ(response->getStatus(), "400");
+}
