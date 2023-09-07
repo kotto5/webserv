@@ -29,12 +29,12 @@ Server::~Server() {
 		delete (*itr2);
 	for (itr2 = recv_sockets.begin(); itr2 != recv_sockets.end(); itr2++)
 	{
-		delete Recvs[*itr2];
+		deleteRecv(*itr2);
 		delete (*itr2);
 	}
 	for (itr2 = send_sockets.begin(); itr2 != send_sockets.end(); itr2++)
 	{
-		delete Sends[*itr2];
+		deleteSend(*itr2);
 		delete (*itr2);
 	}
 }
@@ -105,11 +105,17 @@ void	Server::recvError(Socket *sock)
 	delete (sock);
 }
 
-bool	ClientClosedConnection(ssize_t ret, Socket *sock, HttpMessage *message)
+bool	ClientConnectionErr(ssize_t ret, Socket *sock)
+{
+	if (ret > 0)
+		return (false);
+	return (ret == -1 && dynamic_cast<ClSocket *>(sock));
+}
+
+bool	ClientClosedConnection(ssize_t ret, Socket *sock)
 {
 	return (ret == 0 && dynamic_cast<ClSocket *>(sock) && 
-		(shutdown(sock->getFd(), SHUT_RD) == -1 || message->isCompleted() == false)
-		);
+		shutdown(sock->getFd(), SHUT_RD) == -1 && errno == ENOTCONN);
 }
 
 int	Server::handleSockets(fd_set *read_fds, fd_set *write_fds, int activity)
@@ -140,11 +146,9 @@ int	Server::handleSockets(fd_set *read_fds, fd_set *write_fds, int activity)
 			ret = recv(sock, Recvs[sock]);
 			--activity;
 		}
-		if (ret == -1)
-			recvError(sock);
-		else if (ClientClosedConnection(ret, sock, Recvs[sock]))
+		if (ClientConnectionErr(ret, sock))
 			deleteSocket(E_RECV, sock);
-		else if (ret == 0 ||
+		else if (ret <= 0 ||
 			Recvs[sock]->isCompleted() || Recvs[sock]->isInvalid())
 		{
 			if (setNewSendMessage(sock, Recvs[sock]))
@@ -262,22 +266,20 @@ int	Server::setNewSendMessage(Socket *sock, HttpMessage *message)
 		return (1);
 	}
 	Socket *handleSock = getHandleSock(sock, message, newMessage);
-	if (newMessage)
+	deleteRecv(sock);
+	if (Response *response = dynamic_cast<Response *>(newMessage))
 	{
-		if (Response *response = dynamic_cast<Response *>(newMessage))
+		if (addSend(handleSock, response))
 		{
-			if (addSend(handleSock, response))
-			{
-				delete (handleSock);
-				return (1);
-			}
-			ClSocket *clSock = dynamic_cast<ClSocket *>(handleSock);
-			Logger::instance()->writeAccessLog(*response, *clSock);
-			addKeepAliveHeader(response, clSock);
+			delete (handleSock);
+			return (1);
 		}
-		else if (dynamic_cast<Request *>(newMessage)) // callCgi
-			addSend(handleSock, newMessage);
+		ClSocket *clSock = dynamic_cast<ClSocket *>(handleSock);
+		Logger::instance()->writeAccessLog(*response, *clSock);
+		addKeepAliveHeader(response, clSock);
 	}
+	else if (dynamic_cast<Request *>(newMessage)) // callCgi
+		addSend(handleSock, newMessage);
 	return (0);
 }
 
