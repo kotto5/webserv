@@ -274,3 +274,7 @@ const LocationContext &Request::getLocationContext() const
 		.getServerContext(_server_port, _server_name)
 		.getLocationContext(_uri);
 }
+
+bool	Request::isCompleted() const {
+	return (_isHeaderEnd && _isBodyEnd && getHeader("host") != "");
+}
