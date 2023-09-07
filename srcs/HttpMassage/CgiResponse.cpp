@@ -29,27 +29,27 @@ bool    CgiResponse::isLocalPathQuery(const std::string &location) const
     return (location[0] == '/');
 }
 
-bool    CgiResponse::isCgiField(const std::string &line) const
+bool    CgiResponse::isCgiField(const std::string &headerKey) const
 {
-    // key is Lowercase!
-    if (line.find("status: ") == 0)
+    // headerKey is Lowercase!
+    if (headerKey == "status")
         return (true);
-    else if (line.find("location: ") == 0)
+    else if (headerKey == "location")
         return (true);
-    else if (line.find("content-Type: ") == 0)
+    else if (headerKey == "content-Type")
         return (true);
     else
         return (false);
 }
 
-bool    CgiResponse::isOtherField(const std::string &line) const
+bool    CgiResponse::isOtherField(const std::string &headerKey) const
 {
-    return (isCgiField(line) == false);
+    return (isCgiField(headerKey) == false);
 }
 
-bool    CgiResponse::isProtocolField(const std::string &line) const
+bool    CgiResponse::isProtocolField(const std::string &headerKey) const
 {
-    (void)line;
+    (void)headerKey;
     return (false);
 }
 
