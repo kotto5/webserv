@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>簡易掲示板 - クライアント</title>
+    <script>
+        async function postMessage() {
+            const message = document.getElementById('message').value;
+            const response = await fetch('board.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `message=${encodeURIComponent(message)}`,
+            });
+
+            if (response.ok) {
+                alert('投稿が完了しました');
+                // ここで掲示板を更新する処理を書くこともできます。
+            } else {
+                alert('投稿に失敗しました');
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>簡易掲示板 - クライアント</h1>
+    <textarea id="message" cols="50" rows="5"></textarea><br>
+    <button onclick="postMessage()">投稿</button>
+</body>
+</html>
