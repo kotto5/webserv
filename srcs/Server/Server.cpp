@@ -58,8 +58,11 @@ int	Server::setup()
 
 int	Server::run()
 {
+	extern int sigStatus;
 	while (1)
 	{
+		if (sigStatus != 0)
+			return (0);
 		int max_fd = 0;
 		fd_set read_fds;
 		fd_set write_fds;
@@ -70,7 +73,7 @@ int	Server::run()
 		Server::set_fd_set(write_fds, send_sockets, max_fd);
 
 		int	activity = select(max_fd + 1, &read_fds, &write_fds, NULL, &timeout);
-		if (activity == -1)
+		if (activity == -1 && errno != EINTR)
 			throw ServerException("select");
 		if (activity == 0)
 			checkTimeout();
@@ -232,22 +235,17 @@ ssize_t		Server::send(Socket *sock, HttpMessage *message)
 Socket	*getHandleSock(Socket *sock, HttpMessage *recvdMessage, HttpMessage *toSendMessage)
 {
 	ClSocket *clSock = NULL;
-	if (CgiSocket *cgiSock = dynamic_cast<CgiSocket *>(sock))
+	if (CgiSocket *cgiSock = dynamic_cast<CgiSocket *>(sock)) // from cgi
 	{
 		clSock = cgiSock->moveClSocket();
 		delete (cgiSock);
 	}
 	else
-		clSock = dynamic_cast<ClSocket *>(sock);
+		clSock = dynamic_cast<ClSocket *>(sock); // from client
 	if (Request *sendRequest = dynamic_cast<Request *>(toSendMessage))
-	{
-		if (Request *recvRequest = dynamic_cast<Request *>(recvdMessage))
-			return (CgiSocketFactory::create(*recvRequest, clSock)); // client call cgi
-		else
-			return (CgiSocketFactory::create(*sendRequest, clSock)); // cgi call cgi (LocalRedirectResponse)
-	}
+		return (CgiSocketFactory::create(*recvdMessage, clSock)); // to cgi
 	else
-		return (clSock);
+		return (clSock); // to client
 }
 
 // bool じゃなくて dynamic_cast で判定したほうがいいかも

@@ -33,6 +33,7 @@ public:
 	static const ServerContext		&getServerContext(const std::string &port, const std::string &server_name);
 	static const ServerContext		&getServerContext(int port);
 	void				printAll() const;
+	bool				isCompleted() const;
 
 	// Getters/Setters
 	const std::string	&getMethod() const;
