@@ -72,6 +72,13 @@ HttpMessage *GetHandler::handleRequest(const Request &request, const ServerConte
 	buffer << htmlFile.rdbuf();
 	htmlFile.close();
 
+// request 内に "date" というcookieがあれば、その値をbody に追加する
+	const std::string &date = request.getHeader("cookie");
+	if (date != "")
+		buffer << date;
+	else
+		buffer << "はじめましての方ですね";
+
 	// レスポンスを作成して返す
 	std::map<std::string, std::string> headers;
 	HttpMessage::setHeader(headers, "content-type", Response::getMimeType(request.getActualUri()));
