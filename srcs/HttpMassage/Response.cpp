@@ -26,6 +26,7 @@ Response::Response(const std::string &status, std::map<std::string, std::string>
 	_body = body;
 	// ヘッダーに日付を追加
 	setDate();
+	setDateToCookie();
 	// ヘッダーにContent-Lengthを追加
 	setContentLength();
 	// ヘッダーにServerを追加
@@ -127,6 +128,12 @@ void Response::setDate()
 	std::strftime(buf, sizeof(buf), "%a, %d %b %Y %H:%M:%S %Z", tm_gm);
 	std::string dateNow(buf);
 	setHeader(_headers, "date", dateNow);
+}
+
+void Response::setDateToCookie()
+{
+	const std::string &date = getHeader("date");
+	setHeader(_headers, "set-cookie", "date=" + date);
 }
 
 /**
