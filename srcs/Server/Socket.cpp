@@ -42,6 +42,7 @@ Socket::Socket(const Socket &other)
 }
 
 Socket::~Socket() {
+	shutdown(fd_, SHUT_RDWR);
     close(fd_);
 }
 
