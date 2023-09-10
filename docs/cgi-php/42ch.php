@@ -3,22 +3,21 @@ echo ("Status: 200 OK\r\n");
 echo ("Content-Type: text/html; charset=utf-8\r\n");
 echo ("content-length: 20000000\r\n");
 echo ("\r\n");
-$dataFile = 'docs/cgi-php/board.txt';
+$dataFile = 'board.txt';
+
+// ファイルが存在しない場合は作成
+if (!file_exists($dataFile)) {
+    touch($dataFile);
+}
 
 // メッセージがPOSTされた場合
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-	var_dump($_POST);
-	var_dump($_SERVER);
-	var_dump($_GLOBALS);
-	phpinfo();
-
 	// POSTされたメッセージを取得
-	$message = trim($_POST['message']);
-	$message = ($message === '') ? ' ' : $message;
+	$input = file_get_contents("php://stdin");
+	parse_str($input, $parsed);
 
-	$user = trim($_POST['user']);
-	$user = ($user === '') ? '名無しさん' : $user;
-
+	$message = ($parsed['message'] === '') ? ' ' : $parsed['message'];
+	$user = ($parsed['user'] === '') ? '名無しさん' : $parsed['user'];
 	$date = date('Y-m-d H:i:s');
 
 	$newData = $user . "\t" . $date . "\t" . $message . PHP_EOL;
