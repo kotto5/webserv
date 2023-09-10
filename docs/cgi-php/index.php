@@ -15,7 +15,7 @@ echo "\r\n";
 	<b>PHPテスト</b>
 	<b>here is index.php.  It is $_SERVER list! <br/></b>
 	<h2>Basic HTML Form</h2>
-	<form action="/cgi/welcome.php" method="post">
+	<form action="/cgi-bin/welcome.php" method="post">
 		Name: <input type="text" name="name"><br>
 		Email: <input type="text" name="email"><br>
 	<input type="submit">

@@ -3,7 +3,7 @@ echo ("Status: 200 OK\r\n");
 echo ("Content-Type: text/html; charset=utf-8\r\n");
 echo ("content-length: 20000000\r\n");
 echo ("\r\n");
-$dataFile = 'docs/cgi/board.txt';
+$dataFile = 'docs/cgi-php/board.txt';
 
 // メッセージがPOSTされた場合
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
