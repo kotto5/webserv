@@ -42,6 +42,7 @@ private:
 
 	// 現在日時をセットする
 	void setDate();
+	void setDateToCookie();
 
 	// Content-Lengthをセットする
 	void setContentLength();

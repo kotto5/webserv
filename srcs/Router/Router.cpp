@@ -78,7 +78,7 @@ HttpMessage *Router::routeHandler(HttpMessage &message, Socket *sock)
 		const ServerContext &serverContext = Config::instance()->getHTTPBlock()
 			.getServerContext(to_string(clSock->getLocalPort()), request->getHeader("host"));
 
-		const LocationContext &locationContext = serverContext.getLocationContext(request->getUri());
+		const LocationContext &locationContext = request->getLocationContext();
 		if (int ErrorStatus = getRequestError(request, locationContext))
 			return IHandler::handleError(to_string(ErrorStatus), serverContext);
 
@@ -90,7 +90,7 @@ HttpMessage *Router::routeHandler(HttpMessage &message, Socket *sock)
 			return new Response("301", headers, "");
 		}
 		// メソッドに対応するhandlerを呼び出し
-		if (isConnectionCgi(*request))
+		if (locationContext.getDirective("cgi_pass") != "")
 			return _cgiHandler.handleRequest(*request, serverContext);
 		else
 		{
@@ -122,20 +122,6 @@ bool	Router::isAllowedMethod(const std::string &method, const LocationContext &l
 			return true;
 	}
 	return false;
-}
-
-/**
- * @brief CGIのリクエストか否かを判定する
- *
- * @param request
- * @return true
- * @return false
- */
-bool	Router::isConnectionCgi(const Request &request)
-{
-	if (request.getActualUri().find(".php") != std::string::npos)
-		return (true);
-	return (false);
 }
 
 /**
