@@ -7,6 +7,8 @@
 
 TestEnv* env = NULL;
 
+int	sigStatus = 0;
+
 // テスト初期化
 int main(int argc, char *argv[])
 {
