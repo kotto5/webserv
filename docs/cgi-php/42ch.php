@@ -3,7 +3,8 @@ echo ("Status: 200 OK\r\n");
 echo ("Content-Type: text/html; charset=utf-8\r\n");
 echo ("content-length: 20000000\r\n");
 echo ("\r\n");
-$dataFile = 'board.txt';
+$dataFile = $_SERVER['PATH_INFO'];
+$dataFile = substr($dataFile, 1);
 
 // ファイルが存在しない場合は作成
 if (!file_exists($dataFile)) {

@@ -121,6 +121,11 @@ bool	ClientClosedConnection(ssize_t ret, Socket *sock)
 		shutdown(sock->getFd(), SHUT_RD) == -1 && errno == ENOTCONN);
 }
 
+bool	isClient(Socket *sock)
+{
+	return (dynamic_cast<ClSocket *>(sock) != NULL);
+}
+
 int	Server::handleSockets(fd_set *read_fds, fd_set *write_fds, int activity)
 {
 	std::list<Socket *>::iterator	itr;
@@ -152,7 +157,7 @@ int	Server::handleSockets(fd_set *read_fds, fd_set *write_fds, int activity)
 		if (ClientConnectionErr(ret, sock))
 			deleteSocket(E_RECV, sock);
 		else if (ret <= 0 ||
-			Recvs[sock]->isCompleted() || Recvs[sock]->isInvalid())
+			(isClient(sock) == true && (Recvs[sock]->isCompleted() || Recvs[sock]->isInvalid())))
 		{
 			if (setNewSendMessage(sock, Recvs[sock]))
 				recvError(sock);
