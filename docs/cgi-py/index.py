@@ -1,6 +1,5 @@
 print("Content-type: text/html")
 print("Status: 200 OK")
-print()
 
 print("<html><head><title>Test CGI Script</title></head>")
 print("<body>")
