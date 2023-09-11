@@ -86,7 +86,7 @@ std::string CgiSocketFactory::extractFilename(const std::string& uri, const std:
 	return "";  // 見つからなかった場合
 }
 
-std::vector<char *> *CgiSocketFactory::createEnvs(const Request &request, const std::string &ext)
+std::vector<char *> *CgiSocketFactory::createEnvs(const Request &request, const std::string &ext, const std::string &filename)
 {
 	const std::string &uri = request.getUri();
 	std::vector<std::string> envs;
@@ -98,22 +98,16 @@ std::vector<char *> *CgiSocketFactory::createEnvs(const Request &request, const 
 	envs.push_back("GATEWAY_INTERFACE=CGI/1.1");
 	envs.push_back("REDIRECT_STATUS=");
 
-	std::string::size_type  lastCgiExtention = uri.find_last_of(ext);
 	std::string pathInfo = makePathInfo(uri, ext);
 	if (pathInfo.empty() == false)
 	{
 		envs.push_back("PATH_INFO=" + pathInfo);
-		envs.push_back("PATH_TRANSLATED=" + getAbsolutePath(request.getActualUri()));
+		envs.push_back("PATH_TRANSLATED=" + getAbsolutePath(makeDirectory(request.getActualUri(), ext)) + pathInfo);
 	}
 	envs.push_back("QUERY_STRING=" + request.getQuery());
 	envs.push_back("REMOTE_ADDR=" + request.getRemoteAddr()); // MUST
 	envs.push_back("REQUEST_METHOD=" + request.getMethod());
-	std::string::size_type  startScriptName = uri.find_last_of("/", lastCgiExtention);
-	#ifdef TEST
-		std::cout << "startScriptName: " << startScriptName << std::endl;
-		std::cout << "startScriptName: " << uri.substr(startScriptName + 1) << std::endl;
-	#endif
-	envs.push_back("SCRIPT_NAME=" + uri.substr(startScriptName + 1));
+	envs.push_back("SCRIPT_NAME=" + filename);
 	envs.push_back("SERVER_NAME=" + request.getServerName());
 	envs.push_back("SERVER_PORT=" + request.getServerPort());
 	envs.push_back("SERVER_PROTOCOL=" + request.getProtocol());
@@ -149,9 +143,13 @@ int CgiSocketFactory::runCgi(const Request &request, int pipes[2])
 		try
 		{
 			const std::string &uri = request.getActualUri();
-			const std::string filename = extractFilename(uri, locationContext.getDirective("path"));
+			std::string filename;
+			if (locationContext.getDirective("alias") != "")
+				filename = extractFilename(uri, locationContext.getDirective("alias"));
+			else
+				filename = extractFilename(uri, locationContext.getDirective("path"));
 			const std::string cgiExtension = extractExtension(filename);
-			std::vector<char *> *envs = createEnvs(request, cgiExtension);
+			std::vector<char *> *envs = createEnvs(request, cgiExtension, filename);
 			if (close(pipes[S_PARENT]) ||
 				dup2(pipes[S_CHILD], STDOUT_FILENO) == -1 ||
 				dup2(pipes[S_CHILD], STDIN_FILENO) == -1 ||
