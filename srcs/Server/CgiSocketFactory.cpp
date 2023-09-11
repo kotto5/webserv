@@ -12,12 +12,12 @@ std::string getAbsolutePath(const std::string& relativePath) {
     }
 }
 
-std::string makePathInfo(const std::string& str) {
-    std::string::size_type pos = str.find(".php");
+std::string makePathInfo(const std::string& str, const std::string &ext) {
+    std::string::size_type pos = str.find(ext);
     if (pos == std::string::npos) {
-        return ""; // ".php" が見つからない場合、空の文字列を返す
-    }
-    pos += 4; // ".php" の長さ分だけ位置を移動
+        return "";
+	}
+    pos += ext.size(); // 長さ分だけ位置を移動
 
     // pos 以降の文字列を返す
     if (pos < str.size()) {
@@ -27,21 +27,21 @@ std::string makePathInfo(const std::string& str) {
     }
 }
 
-std::string makeScriptName(const std::string& str) {
-    std::string::size_type pos = str.rfind(".php");
-    if (pos == std::string::npos) {
-        return "";
+std::string makeScriptName(const std::string& str, const std::string &ext) {
+	std::string::size_type pos = str.rfind(ext);
+	if (pos == std::string::npos) {
+		return "";
     }
     std::string::size_type startPos = str.rfind('/', pos);
     if (startPos == std::string::npos) {
         return "";
     }
 	startPos++;
-    return str.substr(startPos, pos + 4 - startPos);
+    return str.substr(startPos, pos + ext.size() - startPos);
 }
 
-std::string makeDirectory(const std::string& str) {
-    std::string::size_type pos = str.rfind(".php");
+std::string makeDirectory(const std::string& str, const std::string &ext) {
+    std::string::size_type pos = str.rfind(ext);
     if (pos == std::string::npos) {
         return "";
     }
@@ -52,40 +52,72 @@ std::string makeDirectory(const std::string& str) {
     return str.substr(0, endPos);
 }
 
-
-std::vector<char *> *CgiSocketFactory::createEnvs(const Request &request)
+std::string CgiSocketFactory::extractExtension(const std::string& filename)
 {
-    const std::string &uri = request.getUri();
-    std::vector<std::string> envs;
-    envs.push_back("AUTH_TYPE=" + request.getHeader("auth-scheme"));
-    // requestBody の長さ
-    envs.push_back("CONTENT_LENGTH=" + to_string(request.getBody().length()));
-    // requestBody の content-type
-    envs.push_back("CONTENT_TYPE=" + request.getHeader("content-type"));
-    envs.push_back("GATEWAY_INTERFACE=CGI/1.1");
+	std::size_t lastDot = filename.rfind('.');
+
+	if (lastDot != std::string::npos)
+	{
+		return filename.substr(lastDot);
+	}
+	return "";
+}
+
+std::string CgiSocketFactory::extractFilename(const std::string& uri, const std::string& keyword)
+{
+	std::size_t pos = uri.find(keyword);
+
+	if (pos != std::string::npos)
+	{
+		// キーワードの後に続く部分を取得
+		std::string remaining = uri.substr(pos + keyword.length());
+
+		// 次の'/'までがファイル名と仮定（存在しなければそのまま全てがファイル名）
+		std::size_t nextSlash = remaining.find('/');
+		if (nextSlash != std::string::npos)
+		{
+			return remaining.substr(0, nextSlash);
+		}
+		else
+		{
+			return remaining;
+		}
+	}
+	return "";  // 見つからなかった場合
+}
+
+std::vector<char *> *CgiSocketFactory::createEnvs(const Request &request, const std::string &ext)
+{
+	const std::string &uri = request.getUri();
+	std::vector<std::string> envs;
+	envs.push_back("AUTH_TYPE=" + request.getHeader("auth-scheme"));
+	// requestBody の長さ
+	envs.push_back("CONTENT_LENGTH=" + to_string(request.getBody().length()));
+	// requestBody の content-type
+	envs.push_back("CONTENT_TYPE=" + request.getHeader("content-type"));
+	envs.push_back("GATEWAY_INTERFACE=CGI/1.1");
 	envs.push_back("REDIRECT_STATUS=");
 
-    std::string cgiExtention = ".php";
-    std::string::size_type  lastCgiExtention = uri.find_last_of(cgiExtention);
-    std::string pathInfo = makePathInfo(uri);
-    if (pathInfo.empty() == false)
-    {
-        envs.push_back("PATH_INFO=" + pathInfo);
-        envs.push_back("PATH_TRANSLATED=" + getAbsolutePath(request.getActualUri()));
-    }
-    envs.push_back("QUERY_STRING=" + request.getQuery());
-    envs.push_back("REMOTE_ADDR=" + request.getRemoteAddr()); // MUST
-    envs.push_back("REQUEST_METHOD=" + request.getMethod());
-    std::string::size_type  startScriptName = uri.find_last_of("/", lastCgiExtention);
+	std::string::size_type  lastCgiExtention = uri.find_last_of(ext);
+	std::string pathInfo = makePathInfo(uri, ext);
+	if (pathInfo.empty() == false)
+	{
+		envs.push_back("PATH_INFO=" + pathInfo);
+		envs.push_back("PATH_TRANSLATED=" + getAbsolutePath(request.getActualUri()));
+	}
+	envs.push_back("QUERY_STRING=" + request.getQuery());
+	envs.push_back("REMOTE_ADDR=" + request.getRemoteAddr()); // MUST
+	envs.push_back("REQUEST_METHOD=" + request.getMethod());
+	std::string::size_type  startScriptName = uri.find_last_of("/", lastCgiExtention);
 	#ifdef TEST
 		std::cout << "startScriptName: " << startScriptName << std::endl;
 		std::cout << "startScriptName: " << uri.substr(startScriptName + 1) << std::endl;
 	#endif
-    envs.push_back("SCRIPT_NAME=" + uri.substr(startScriptName + 1));
-    envs.push_back("SERVER_NAME=" + request.getServerName());
-    envs.push_back("SERVER_PORT=" + request.getServerPort());
-    envs.push_back("SERVER_PROTOCOL=" + request.getProtocol());
-    envs.push_back("SERVER_SOFTWARE=WakeWakame/1.0");
+	envs.push_back("SCRIPT_NAME=" + uri.substr(startScriptName + 1));
+	envs.push_back("SERVER_NAME=" + request.getServerName());
+	envs.push_back("SERVER_PORT=" + request.getServerPort());
+	envs.push_back("SERVER_PROTOCOL=" + request.getProtocol());
+	envs.push_back("SERVER_SOFTWARE=WakeWakame/1.0");
 
     envs.push_back("HTTP_ACCEPT=" + request.getHeader("accept"));
     envs.push_back("HTTP_ACCEPT=" + request.getHeader("Host")); // not must
@@ -111,20 +143,22 @@ int CgiSocketFactory::runCgi(const Request &request, int pipes[2])
 
 	int pid = fork();
 	if (pid == -1)
-        return (1);
+		return (1);
 	else if (pid == 0)
 	{
 		try
 		{
-		    const std::string &uri = request.getActualUri();
-			std::vector<char *> *envs = createEnvs(request);
+			const std::string &uri = request.getActualUri();
+			const std::string filename = extractFilename(uri, locationContext.getDirective("path"));
+			const std::string cgiExtension = extractExtension(filename);
+			std::vector<char *> *envs = createEnvs(request, cgiExtension);
 			if (close(pipes[S_PARENT]) ||
 				dup2(pipes[S_CHILD], STDOUT_FILENO) == -1 ||
 				dup2(pipes[S_CHILD], STDIN_FILENO) == -1 ||
 				close(pipes[S_CHILD]))
 				exit(1);
-			std::string path = makeScriptName(uri);
-			chdir(makeDirectory(uri).c_str());
+			std::string path = makeScriptName(uri, cgiExtension);
+			chdir(makeDirectory(uri, cgiExtension).c_str());
 			std::string path_query = path;
 
 			char cgi_pass_buf[1000]; // あるいは適切な最大サイズ
