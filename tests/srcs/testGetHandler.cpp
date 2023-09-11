@@ -15,7 +15,7 @@ protected:
 	Request *reqGetHtml;
 	Request *reqGetPng;
 	Request *reqNotFound;
-	const std::string expected = "<title>Lorem ipsum dolor sit amet, consectetur adipiscing elit...</title>";
+	const std::string expected = "<title>Lorem ipsum dolor sit amet, consectetur adipiscing elit...</title>はじめましての方ですね";
 
 	// テストデータの作成
 	virtual void SetUp()
