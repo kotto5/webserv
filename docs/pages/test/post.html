@@ -27,7 +27,7 @@
 <p>Enter the resource URL and data to post:</p>
 
 <form id="postForm">
-    <input type="url" id="resourceUrl" placeholder="localhost/resources/sample.html">
+    <input type="url" id="resourceUrl" value="http://localhost/resources/sample.html">
     <br>
     <textarea id="postData" rows="4" placeholder="Enter data to POST..."></textarea>
     <br>
@@ -48,11 +48,13 @@
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',  // Change this if needed
             },
-            body: data  // For JSON data, you might want to use JSON.stringify(data)
         })
-        .then(response => response.text())
-        .then(data => {
-            document.getElementById('result').textContent = `Response: ${data}`;
+        .then(response => {
+			const statusCode = response.status;
+			if (statusCode == 201)
+				document.getElementById('result').textContent = `Response: ${statusCode}`;
+			else
+				throw new Error(`Request failed with status code ${statusCode}`);
         })
         .catch(error => {
             document.getElementById('result').textContent = `Error: ${error}`;
