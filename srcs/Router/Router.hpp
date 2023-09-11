@@ -29,7 +29,6 @@ public:
 
 private:
 	static bool	isAllowedMethod(const std::string &method, const LocationContext &locationContext);
-	bool		isConnectionCgi(const Request &request);
 	int			getRequestError(const Request *request, const LocationContext &locationContext);
 	Response	*handleError(const std::string &status, const ServerContext &serverContext);
 	std::string generateDefaultErrorPage();

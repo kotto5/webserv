@@ -125,20 +125,6 @@ bool	Router::isAllowedMethod(const std::string &method, const LocationContext &l
 }
 
 /**
- * @brief CGIのリクエストか否かを判定する
- *
- * @param request
- * @return true
- * @return false
- */
-bool	Router::isConnectionCgi(const Request &request)
-{
-	if (request.getActualUri().find(".php") != std::string::npos)
-		return (true);
-	return (false);
-}
-
-/**
  * @brief デフォルトのエラーページ内容を生成
  *
  * @param status
