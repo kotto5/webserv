@@ -156,6 +156,10 @@ CgiSocket::CgiSocket(int fd, int pid, ClSocket *clSocket): Socket(fd), pid_(pid)
 	std::cout << "CgiSocket::CgiSocket(int fd =" << fd << ")" << std::endl;
 }
 
+CgiSocket::CgiSocket(int fd, ClSocket *clSocket): Socket(fd), pid_(-1), clSocket_(clSocket) {
+	std::cout << "CgiSocket::CgiSocket(int fd =" << fd << ")" << std::endl;
+}
+
 CgiSocket::~CgiSocket() {
 	std::cout << "CgiSocket::~CgiSocket()" << std::endl;
 	if (clSocket_)
