@@ -440,6 +440,8 @@ void	Server::addKeepAliveHeader(Response *response, ClSocket *clientSock)
 
 int	Server::storeMessageTiedToSocket(Socket *sock, HttpMessage *message, S_TYPE type)
 {
+	if (message == NULL)
+		return (1);
 	std::map<Socket *, HttpMessage *>	*map = NULL;
 	if (type == E_RECV)
 		map = &Recvs;
