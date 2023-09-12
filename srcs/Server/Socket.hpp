@@ -77,12 +77,15 @@ public:
 class CgiSocket : public Socket
 {
 private:
+	int			pid_;
 	ClSocket	*clSocket_;
 public:
-	CgiSocket(int fd, ClSocket *clSocket);
+	CgiSocket(int fd, int pid, ClSocket *clSocket);
 	~CgiSocket();
 	ClSocket 	*moveClSocket();
 	ClSocket	*getClSocket() const;
+	int			getPid() const;
+	int			killCgi() const;
 };
 
 #endif
