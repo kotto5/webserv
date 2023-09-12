@@ -21,7 +21,7 @@
 #include "Response.hpp"
 
 #define BUFFER_LEN 10000
-#define MAX_CLIENTS 1024
+#define MAX_SOCKETS 1024
 // #define TEST
 
 #define RED "\x1b[41m"
@@ -58,7 +58,10 @@ private:
 	std::map<Socket *, HttpMessage *>	Sends;
 	timeval								timeout;
 	std::size_t							_limitClientMsgSize;
+	int									_socketCount;
 
+	Socket			*getHandleSock(Socket *sock, HttpMessage *recvdMessage, HttpMessage *toSendMessage);
+	int				deleteSocketData(E_TYPE type, std::list<Socket *>::iterator sockNode);
 	int				createServerSocket(int port);
 	int				handleSockets(fd_set *read_fds, fd_set *write_fds, int activity);
 	int				accept(Socket *serverSocket);
@@ -68,13 +71,14 @@ private:
 	int				finishSend(Socket *sock);
 	void			recvError(Socket *sock);
 	int				setSocket(int type, Socket *sock);
-	int				deleteSocket(int type, Socket *socket);
+	int				deleteSocket(E_TYPE type, std::list<Socket *>::iterator sockNode);
 	bool			checkTimeout();
 	static int		set_fd_set(fd_set &set, std::list<Socket *> sockets, int &maxFd);
 	void			addKeepAliveHeader(Response *response, ClSocket *clientSock);
 	int				setErrorResponse(Socket *clSock);
 	void			ErrorfinishSendCgi(CgiSocket *cgiSock, Socket *clSock);
 	static int		addMessageToMap(std::map<Socket *, HttpMessage *> &map, Socket *sock, HttpMessage *message);
+	void			socketDeleter(Socket *sock);
 };
 
 #endif
