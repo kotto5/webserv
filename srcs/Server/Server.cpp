@@ -36,14 +36,16 @@ Server::~Server() {
 	for (itr2 = recv_sockets.begin(); itr2 != recv_sockets.end();)
 	{
 		std::list<Socket *>::iterator sockNode = itr2++;
+		Socket *sock = *sockNode;
 		deleteMapAndSockList(sockNode, E_RECV);
-		socketDeleter(*sockNode);
+		socketDeleter(sock);
 	}
 	for (itr2 = send_sockets.begin(); itr2 != send_sockets.end();)
 	{
 		std::list<Socket *>::iterator sockNode = itr2++;
+		Socket *sock = *sockNode;
 		deleteMapAndSockList(sockNode, E_SEND);
-		socketDeleter(*sockNode);
+		socketDeleter(sock);
 	}
 }
 
@@ -93,12 +95,16 @@ int	Server::run()
  * @param port
  * @return int
  */
-int	Server::createServerSocket(int port)
+int	Server::createServerSocket(int port) throw()
 {
 	Socket *sock = new SvSocket(port);
 	if (sock == NULL)
 		return (1);
-	server_sockets.push_back(sock);
+	if (setSocket(E_SERVER, sock))
+	{
+		delete (sock);
+		return (1);
+	}
 	_socketCount++;
 	return (0);
 }
@@ -137,29 +143,12 @@ int		Server::setCgiErrorResponse(CgiSocket *cgiSock, bool timeout)
 	return (0);
 }
 
-int	Server::deleteSocketData(E_TYPE type, std::list<Socket *>::iterator sockNode)
+int	Server::handleConnectionErr(E_TYPE type, std::list<Socket *>::iterator sockNode, bool timeout)
 {
-	Socket *sock = *sockNode;
-	if (CgiSocket *cgiSock = dynamic_cast<CgiSocket *>(sock))
-	{
-		if (cgiSock->killCgi())
-			perror("kill: ");
-		ClSocket *clSocket = cgiSock->moveClSocket();
-		if (addMapAndSockList(clSocket, IHandler::handleError("500", clSocket->getLocalPort()), E_SEND))
-			socketDeleter(clSocket);
-	}
-	deleteMapAndSockList(sockNode, type);
-	socketDeleter(sock);
-	return (0);
-}
-
-int	Server::handleTimeout(E_TYPE type, std::list<Socket *>::iterator sockNode)
-{
-	std::cout << "timeout" << std::endl;
 	Socket *sock = *sockNode;
 	CgiSocket *cgiSock = dynamic_cast<CgiSocket *>(sock);
 	if (cgiSock)
-		setCgiErrorResponse(cgiSock, true);
+		setCgiErrorResponse(cgiSock, timeout);
 	deleteMapAndSockList(sockNode, type);
 	socketDeleter(sock);
 	return (0);
@@ -191,16 +180,13 @@ int	Server::handleSockets(fd_set *read_fds, fd_set *write_fds, int activity)
 		if (FD_ISSET(sock->getFd(), read_fds) == false)
 		{
 			if (sock->isTimeout())
-				handleTimeout(E_RECV, sockNode);
+				handleConnectionErr(E_RECV, sockNode, true);
 			continue ;
 		}
 		--activity;
 		ssize_t	ret = recv(sock, Recvs[sock]);
 		if (ClientConnectionErr(ret, sock))
-		{
-			deleteMapAndSockList(sockNode, E_RECV);
-			socketDeleter(sock);
-		}
+			handleConnectionErr(E_RECV, sockNode, false);
 		else if (ret <= 0 ||
 			(isClient(sock) && (Recvs[sock]->isCompleted() || Recvs[sock]->isInvalid())))
 		{
@@ -216,7 +202,7 @@ int	Server::handleSockets(fd_set *read_fds, fd_set *write_fds, int activity)
 		if (FD_ISSET(sock->getFd(), write_fds) == false)
 		{
 			if (sock->isTimeout())
-				handleTimeout(E_SEND, sockNode);
+				handleConnectionErr(E_SEND, sockNode, true);
 			continue ;
 		}
 		--activity;
@@ -322,60 +308,29 @@ int	Server::setNewSendMessage(Socket *sock, HttpMessage *message)
 	if (newMessage == NULL)
 		return (1);
 	Socket *handleSock = getHandleSock(sock, message, newMessage);
-	if (Response *response = dynamic_cast<Response *>(newMessage))
+	if (handleSock == NULL)
 	{
-		if (addMapAndSockList(handleSock, response, E_SEND))
-		{
-			socketDeleter(handleSock);
-			return (1);
-		}
-		ClSocket *clSock = dynamic_cast<ClSocket *>(handleSock);
-		Logger::instance()->writeAccessLog(*response, *clSock);
-		addKeepAliveHeader(response, clSock);
+		delete (newMessage);
+		return (1);
 	}
-	else if (dynamic_cast<Request *>(newMessage)) // callCgi
-		addMapAndSockList(handleSock, newMessage, E_SEND);
+	if (addMapAndSockList(handleSock, newMessage, E_SEND))
+	{
+		socketDeleter(handleSock);
+		return (1);
+	}
 	return (0);
-}
-
-int	Server::setErrorResponse(Socket *clSock)
-{
-	HttpMessage *response = IHandler::handleError("500", clSock->getLocalPort());
-	if (response == NULL)
-		return (-1);
-	else if (addMapAndSockList(clSock, response, E_SEND))
-	{
-		delete (response);
-		return (-1);
-	}
-	else
-		return (0);
-}
-
-void	Server::ErrorfinishSendCgi(CgiSocket *cgiSock, Socket *clSock)
-{
-	if (setErrorResponse(clSock))
-		socketDeleter(clSock);
-	socketDeleter(cgiSock);
 }
 
 int	Server::finishSend(Socket *sock)
 {
 	if (CgiSocket *cgiSock = dynamic_cast<CgiSocket *>(sock))
 	{
-		// if (shutdown(sock->getFd(), SHUT_WR) == -1)
-		if (shutdown(sock->getFd(), SHUT_WR) == -1 &&
-			errno != ENOTCONN)
+		if ((shutdown(sock->getFd(), SHUT_WR) == -1 && errno != ENOTCONN) 
+			|| addMapAndSockList(sock, new(std::nothrow) CgiResponse(), E_RECV))
 		{
-			perror("=================================\nshutdown: ");
-			std::cout << "shutdown error" << std::endl;
-			std::cout << "=====================================" << std::endl;
-			ErrorfinishSendCgi(cgiSock, cgiSock->moveClSocket());
-			return (1);
-		}
-		if (addMapAndSockList(sock, new(std::nothrow) CgiResponse(), E_RECV))
-		{
-			ErrorfinishSendCgi(cgiSock, cgiSock->moveClSocket());
+			perror("shutdown: ");
+			setCgiErrorResponse(cgiSock, false);
+			socketDeleter(cgiSock);
 			return (1);
 		}
 	}
@@ -383,8 +338,8 @@ int	Server::finishSend(Socket *sock)
 	{
 		if (clSock->getMaxRequest() == 0)
 			socketDeleter(clSock);
-		else
-			addMapAndSockList(sock, new Request((ClSocket *)sock), E_RECV);
+		else if (addMapAndSockList(sock, new Request((ClSocket *)sock), E_RECV))
+			socketDeleter(clSock);
 	}
 	return (0);
 }
@@ -397,7 +352,7 @@ int	Server::finishSend(Socket *sock)
  * @param client_sock
  * @return int
  */
-int	Server::setSocket(int type, Socket *sock)
+int	Server::setSocket(E_TYPE type, Socket *sock) throw ()
 {
 	try
 	{
@@ -417,7 +372,7 @@ int	Server::setSocket(int type, Socket *sock)
 	}
 }
 
-int	Server::set_fd_set(fd_set &set, std::list<Socket *> sockets, int &maxFd)
+int	Server::set_fd_set(fd_set &set, std::list<Socket *> sockets, int &maxFd) throw ()
 {
 	int	fd;
 	std::list<Socket *>::iterator	itr;
@@ -432,23 +387,8 @@ int	Server::set_fd_set(fd_set &set, std::list<Socket *> sockets, int &maxFd)
 	return (0);
 }
 
-void	Server::addKeepAliveHeader(Response *response, ClSocket *clientSock)
-{
-	if (clientSock->getMaxRequest() == 0)
-		response->addHeader("connection", "close");
-	else
-	{
-		response->addHeader("connection", "keep-alive");
-		std::string	keepAliveValue("timeout=");
-		keepAliveValue += to_string(Socket::timeLimit);
-		keepAliveValue += ", max=";
-		keepAliveValue += to_string(clientSock->getMaxRequest());
-		response->addHeader("keep-alive", keepAliveValue);
-	}
-	response->makeRowString();
-}
-
-int	Server::addMapAndSockList(Socket *sock, HttpMessage *message, S_TYPE type)
+// 例外: 強い保証 + message を削除する
+int	Server::addMapAndSockList(Socket *sock, HttpMessage *message, S_TYPE type) throw ()
 {
 	if (message == NULL)
 		return (1);
@@ -471,9 +411,19 @@ int	Server::addMapAndSockList(Socket *sock, HttpMessage *message, S_TYPE type)
 	return (0);
 }
 
-int	Server::deleteMapAndSockList(std::list<Socket *>::iterator sockNode, S_TYPE type)
+// 失敗しない保障
+int	Server::deleteMapAndSockList(std::list<Socket *>::iterator sockNode, S_TYPE type) throw()
 {
-	deleteMap(*sockNode, type);
+	// delete Map
+	std::map<Socket *, HttpMessage *>	*map = NULL;
+	if (type == E_RECV)
+		map = &Recvs;
+	else if (type == E_SEND)
+		map = &Sends;
+	delete ((*map)[*sockNode]);
+	map->erase(*sockNode);
+
+	// delete SockList
 	if (type == E_RECV)
 		recv_sockets.erase(sockNode);
 	else if (type == E_SEND)
@@ -481,7 +431,8 @@ int	Server::deleteMapAndSockList(std::list<Socket *>::iterator sockNode, S_TYPE 
 	return (0);
 }
 
-int	Server::addMessageToMap(std::map<Socket *, HttpMessage *> &map, Socket *sock, HttpMessage *message)
+// 例外: 強い保証
+int	Server::addMessageToMap(std::map<Socket *, HttpMessage *> &map, Socket *sock, HttpMessage *message) throw()
 {
 	try {
 		map[sock] = message;
@@ -493,19 +444,8 @@ int	Server::addMessageToMap(std::map<Socket *, HttpMessage *> &map, Socket *sock
 	return (0);
 }
 
-int	Server::deleteMap(Socket *sock, S_TYPE type)
-{
-	std::map<Socket *, HttpMessage *>	*map = NULL;
-	if (type == E_RECV)
-		map = &Recvs;
-	else if (type == E_SEND)
-		map = &Sends;
-	delete ((*map)[sock]);
-	map->erase(sock);
-	return (0);
-}
-
-void	Server::socketDeleter(Socket *sock)
+// 失敗しない保障
+void	Server::socketDeleter(Socket *sock) throw ()
 {
 	delete (sock);
 	_socketCount--;
