@@ -65,14 +65,15 @@ private:
 	void			ErrorfinishSendCgi(CgiSocket *cgiSock, Socket *clSock);
 	static int		addMessageToMap(std::map<Socket *, HttpMessage *> &map, Socket *sock, HttpMessage *message);
 	int				addMapAndSockList(Socket *sock, HttpMessage *message, S_TYPE type);
-	int				deleteMapAndSockList(Socket *sock, S_TYPE type);
+	int				deleteMapAndSockList(std::list<Socket *>::iterator sockNode, S_TYPE type);
 	int				deleteMap(Socket *sock, S_TYPE type);
 	void			socketDeleter(Socket *sock);
 	void			recvError(Socket *sock);
 	int				deleteSocketData(E_TYPE type, std::list<Socket *>::iterator sockNode);
 	int				createServerSocket(int port);
 	int				setSocket(int type, Socket *sock);
-	int				deleteSocket(E_TYPE type, std::list<Socket *>::iterator sockNode);
 	static int		set_fd_set(fd_set &set, std::list<Socket *> sockets, int &maxFd);
+	int				setCgiErrorResponse(CgiSocket *cgiSock, bool timeout);
+	int				handleTimeout(E_TYPE type, std::list<Socket *>::iterator sockNode);
 };
 #endif
