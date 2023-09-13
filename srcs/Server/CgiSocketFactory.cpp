@@ -2,6 +2,9 @@
 #include "utils.hpp"
 #include <arpa/inet.h>
 #include <signal.h>
+#include <limits>
+
+#define PATH_MAX 4096
 
 std::string getAbsolutePath(const std::string& relativePath) {
     char realPath[PATH_MAX];
