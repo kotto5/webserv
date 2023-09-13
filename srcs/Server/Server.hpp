@@ -21,7 +21,7 @@
 #include "Response.hpp"
 
 #define BUFFER_LEN 10000
-#define MAX_CLIENTS 1024
+#define MAX_SOCKETS 1024
 // #define TEST
 
 #define RED "\x1b[41m"
@@ -42,13 +42,6 @@ public:
 	~Server();
 	int				setup();
 	int				run();
-	void			createSocketForCgi(int type, int fd, const std::string &body, Socket *sock = NULL);
-	int				addRecv(Socket *sock, HttpMessage *message);
-	int				addSend(Socket *sock, HttpMessage *message);
-	int				storeMessageTiedToSocket(Socket *sock, HttpMessage *message, S_TYPE type);
-	int				deleteSend(Socket *sock);
-	int				deleteRecv(Socket *sock);
-	int				addCgi(Socket *sock, Socket *cgi);
 
 private:
 	std::list<Socket *>					server_sockets;
@@ -58,23 +51,25 @@ private:
 	std::map<Socket *, HttpMessage *>	Sends;
 	timeval								timeout;
 	std::size_t							_limitClientMsgSize;
+	int									_socketCount;
 
-	int				createServerSocket(int port);
+	Socket			*getHandleSock(Socket *sock, HttpMessage *recvdMessage, HttpMessage *toSendMessage);
 	int				handleSockets(fd_set *read_fds, fd_set *write_fds, int activity);
 	int				accept(Socket *serverSocket);
 	int				recv(Socket *sock, HttpMessage *message);
 	ssize_t			send(Socket *sock, HttpMessage *message);
 	int	 			setNewSendMessage(Socket *sock, HttpMessage *message);
 	int				finishSend(Socket *sock);
-	void			recvError(Socket *sock);
-	int				setSocket(int type, Socket *sock);
-	int				deleteSocket(int type, Socket *socket);
-	bool			checkTimeout();
-	static int		set_fd_set(fd_set &set, std::list<Socket *> sockets, int &maxFd);
-	void			addKeepAliveHeader(Response *response, ClSocket *clientSock);
-	int				setErrorResponse(Socket *clSock);
-	void			ErrorfinishSendCgi(CgiSocket *cgiSock, Socket *clSock);
-	static int		addMessageToMap(std::map<Socket *, HttpMessage *> &map, Socket *sock, HttpMessage *message);
-};
+	int				handleConnectionErr(E_TYPE type, std::list<Socket *>::iterator sockNode, bool timeout);
+	int				setCgiErrorResponse(CgiSocket *cgiSock, bool timeout);
 
+// utils
+	static int		addMessageToMap(std::map<Socket *, HttpMessage *> &map, Socket *sock, HttpMessage *message) throw() ;
+	int				addMapAndSockList(Socket *sock, HttpMessage *message, S_TYPE type) throw ();
+	int				deleteMapAndSockList(std::list<Socket *>::iterator sockNode, S_TYPE type) throw();
+	void			socketDeleter(Socket *sock) throw();
+	int				createServerSocket(int port) throw();
+	int				setSocket(E_TYPE type, Socket *sock) throw();
+	static int		set_fd_set(fd_set &set, std::list<Socket *> sockets, int &maxFd) throw();
+};
 #endif

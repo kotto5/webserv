@@ -23,6 +23,10 @@ void Logger::release()
 {
 	if (_instance)
 	{
+		for (std::map<const sockaddr_in*, std::stringstream*>::iterator it = _instance->_accessData.begin(); it != _instance->_accessData.end(); it++)
+		{
+			delete it->second;
+		}
 		_instance->_ofsAccessLog.close();
 		_instance->_ofsErrorLog.close();
 		delete _instance;

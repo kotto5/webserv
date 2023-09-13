@@ -32,6 +32,8 @@ private:
 	int			getRequestError(const Request *request, const LocationContext &locationContext);
 	Response	*handleError(const std::string &status, const ServerContext &serverContext);
 	std::string generateDefaultErrorPage();
+	HttpMessage *makeSendMessage(HttpMessage &message, Socket *sock);
+	void		addKeepAliveHeader(Response *response, ClSocket *clientSock);
 
 	//　登録したハンドラーのリスト
 	std::map<std::string, IHandler *> _handlers;

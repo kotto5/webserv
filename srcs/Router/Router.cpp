@@ -51,13 +51,7 @@ int	Router::getRequestError(const Request *request, const LocationContext &locat
 	return (0);
 }
 
-/**
- * @brief リクエストに基づきハンドラーの固有処理を呼び出す
- *
- * @param request
- * @return Response*
- */
-HttpMessage *Router::routeHandler(HttpMessage &message, Socket *sock)
+HttpMessage	*Router::makeSendMessage(HttpMessage &message, Socket *sock)
 {
 	if (CgiResponse *response = dynamic_cast<CgiResponse *>(&message))
 	{
@@ -103,7 +97,33 @@ HttpMessage *Router::routeHandler(HttpMessage &message, Socket *sock)
 			}
 		}
 	}
-	return (NULL);
+	else
+		return (NULL);
+}
+
+/**
+ * @brief リクエストに基づきハンドラーの固有処理を呼び出す
+ *
+ * @param request
+ * @return Response*
+ */
+HttpMessage *Router::routeHandler(HttpMessage &message, Socket *sock)
+{
+	HttpMessage *sendMessage = NULL;
+	sendMessage = makeSendMessage(message, sock);
+	if (Response *response = dynamic_cast<Response *>(sendMessage))
+	{
+		ClSocket *clSock;
+		clSock = dynamic_cast<ClSocket *>(sock);
+		if (clSock == NULL)
+		{
+			CgiSocket *cgiSock = dynamic_cast<CgiSocket *>(sock);
+			clSock = cgiSock->getClSocket();
+		}
+		addKeepAliveHeader(response, clSock);
+		Logger::instance()->writeAccessLog(*response, *clSock);
+	}
+	return sendMessage;
 }
 
 /**
@@ -123,6 +143,23 @@ bool	Router::isAllowedMethod(const std::string &method, const LocationContext &l
 	}
 	return false;
 }
+
+void	Router::addKeepAliveHeader(Response *response, ClSocket *clientSock)
+{
+	if (clientSock->getMaxRequest() == 0)
+		response->addHeader("connection", "close");
+	else
+	{
+		response->addHeader("connection", "keep-alive");
+		std::string	keepAliveValue("timeout=");
+		keepAliveValue += to_string(Socket::timeLimit);
+		keepAliveValue += ", max=";
+		keepAliveValue += to_string(clientSock->getMaxRequest());
+		response->addHeader("keep-alive", keepAliveValue);
+	}
+	response->makeRowString();
+}
+
 
 /**
  * @brief デフォルトのエラーページ内容を生成

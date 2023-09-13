@@ -1,6 +1,8 @@
 #include "CgiSocketFactory.hpp"
 #include "utils.hpp"
 #include <arpa/inet.h>
+#include <signal.h>
+#include <limits>
 
 std::string getAbsolutePath(const std::string& relativePath) {
     char realPath[PATH_MAX];
@@ -136,9 +138,9 @@ int CgiSocketFactory::runCgi(const Request &request, int pipes[2])
 	// 環境変数を整形
 
 	int pid = fork();
-	if (pid == -1)
-		return (1);
-	else if (pid == 0)
+	if (pid != 0)
+		return (pid);
+	else
 	{
 		try
 		{
@@ -180,31 +182,31 @@ int CgiSocketFactory::runCgi(const Request &request, int pipes[2])
 			exit(1);
 		}
 	}
-    return 0;
 }
 
 CgiSocket *CgiSocketFactory::create(const Request &request, ClSocket *clientSocket)
 {
 	int	socks[2];
+	int	pid;
 
 	if (socketpair(AF_UNIX, SOCK_STREAM, 0, socks) == -1)
 		return (NULL);
 	set_non_blocking(socks[S_PARENT]);
-	CgiSocket *cgiSock = new(std::nothrow) CgiSocket(socks[S_PARENT], clientSocket);
+	// CGIを実行
+	pid = runCgi(request, socks);
+	close(socks[S_CHILD]);
+	if (pid == -1)
+	{
+		close(socks[S_PARENT]);
+		return (NULL);
+	}
+	CgiSocket *cgiSock = new(std::nothrow) CgiSocket(socks[S_PARENT], pid, clientSocket);
 	if (cgiSock == NULL)
 	{
-		close(socks[S_CHILD]);
 		close(socks[S_PARENT]);
+		kill(pid, SIGKILL);
 		return (NULL);
 	}
-	// CGIを実行
-	if (runCgi(request, socks) == -1)
-	{
-		delete (cgiSock);
-		close(socks[S_PARENT]);
-		return (NULL);
-	}
-	close(socks[S_CHILD]);
 	return (cgiSock);
 }
 

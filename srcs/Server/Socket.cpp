@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <iostream>
 #include <arpa/inet.h>
-
+#include <signal.h>
 #include "Request.hpp"
 #include "ErrorCode.hpp"
 #include "Config.hpp"
@@ -22,7 +22,7 @@
 // ============ Socket class ===================
 // =============================================
 
-std::time_t	Socket::timeLimit = 10;
+std::time_t	Socket::timeLimit = 3;
 
 Socket::Socket(int fd): fd_(fd), lastAccess_(std::time(NULL))
 {
@@ -152,7 +152,11 @@ ClSocket    *SvSocket::dequeueSocket()
 
 // =============================================
 
-CgiSocket::CgiSocket(int fd, ClSocket *clSocket): Socket(fd), clSocket_(clSocket) {
+CgiSocket::CgiSocket(int fd, int pid, ClSocket *clSocket): Socket(fd), pid_(pid), clSocket_(clSocket) {
+	std::cout << "CgiSocket::CgiSocket(int fd =" << fd << ")" << std::endl;
+}
+
+CgiSocket::CgiSocket(int fd, ClSocket *clSocket): Socket(fd), pid_(-1), clSocket_(clSocket) {
 	std::cout << "CgiSocket::CgiSocket(int fd =" << fd << ")" << std::endl;
 }
 
@@ -169,3 +173,5 @@ ClSocket *CgiSocket::moveClSocket(){
 }
 
 ClSocket	*CgiSocket::getClSocket() const { return (clSocket_); }
+int			CgiSocket::getPid() const { return (pid_); }
+int			CgiSocket::killCgi() const { return (kill(pid_, SIGKILL)); }
