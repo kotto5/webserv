@@ -85,6 +85,46 @@ sConnection	setNewSendMessage(Socket *sock, HttpMessage *message)
     return (sConnection(handleSock, newMessage, WRITE));
 }
 
+ssize_t		clientWrite(Socket *sock, HttpMessage *message)
+{
+	ssize_t ret;
+	const uint8_t *buffer;
+
+	sock->updateLastAccess();
+	buffer = message->getSendBuffer();
+	if (buffer == NULL)
+		return (-1);
+	ret = ::send(sock->getFd(), buffer, message->getContentLengthRemain(), 0);
+	if (ret >= 0) // 0 も含んでるのはcgiのために超大事
+		message->addSendPos(ret);
+	return (ret);
+}
+
+sConnection	finishSend(Socket *sock)
+{
+	if (CgiSocket *cgiSock = dynamic_cast<CgiSocket *>(sock))
+	{
+        (void)cgiSock;
+		// if ((shutdown(sock->getFd(), SHUT_WR) == -1 && errno != ENOTCONN) 
+		// 	|| addMapAndSockList(sock, new(std::nothrow) CgiResponse(), E_RECV))
+		// {
+		// 	perror("shutdown: ");
+		// 	setCgiErrorResponse(cgiSock, false);
+		// 	socketDeleter(cgiSock);
+		// 	return (1);
+		// }
+        return (sConnection(NULL, NULL, ERROR));
+	}
+	else
+	{
+        ClSocket *clSock = dynamic_cast<ClSocket *>(sock);
+		if (clSock->getMaxRequest() == 0)
+            return (sConnection(NULL, NULL, ERROR));
+        else
+            return (sConnection(clSock, new Request(clSock), READ));
+	}
+}
+
 sSelectRequest  Connection::handleEvent(sSelectRequest req, bool isSet)
 {
     if (getFd(req) != client->getFd())
@@ -136,7 +176,7 @@ sSelectRequest  Connection::handleEvent(sSelectRequest req, bool isSet)
         // cgi はまだ実装していない
         bool        isCgi = false;
 
-		ssize_t		ret = send(client, sendMessage, isCgi);
+		ssize_t		ret = clientWrite(client, sendMessage);
 		if (isCgi == false && ret == -1)
 		{
             delete sendMessage;

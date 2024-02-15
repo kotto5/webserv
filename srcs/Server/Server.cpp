@@ -210,44 +210,6 @@ int	Server::recv(Socket *sock, HttpMessage *message) {
 	}
 }
 
-ssize_t		Server::send(Socket *sock, HttpMessage *message)
-{
-	ssize_t ret;
-	const uint8_t *buffer;
-
-	sock->updateLastAccess();
-	buffer = message->getSendBuffer();
-	if (buffer == NULL)
-		return (-1);
-	ret = ::send(sock->getFd(), buffer, message->getContentLengthRemain(), 0);
-	if (ret >= 0) // 0 も含んでるのはcgiのために超大事
-		message->addSendPos(ret);
-	return (ret);
-}
-
-int	Server::finishSend(Socket *sock)
-{
-	if (CgiSocket *cgiSock = dynamic_cast<CgiSocket *>(sock))
-	{
-		if ((shutdown(sock->getFd(), SHUT_WR) == -1 && errno != ENOTCONN) 
-			|| addMapAndSockList(sock, new(std::nothrow) CgiResponse(), E_RECV))
-		{
-			perror("shutdown: ");
-			setCgiErrorResponse(cgiSock, false);
-			socketDeleter(cgiSock);
-			return (1);
-		}
-	}
-	else if (ClSocket *clSock = dynamic_cast<ClSocket *>(sock))
-	{
-		if (clSock->getMaxRequest() == 0)
-			socketDeleter(clSock);
-		else if (addMapAndSockList(sock, new Request((ClSocket *)sock), E_RECV))
-			socketDeleter(clSock);
-	}
-	return (0);
-}
-
 /**
  * @brief 指定したソケットを監視対象に追加する
  *
