@@ -2,6 +2,7 @@
 #include "Request.hpp"
 #include "Server.hpp"
 #include "Router.hpp"
+#include "CgiSocketFactory.hpp"
 
 Connection::Connection(ClSocket *sock)
 {
@@ -48,7 +49,23 @@ bool	isClient(Socket *sock)
 	return (dynamic_cast<ClSocket *>(sock) != NULL);
 }
 
-int	setNewSendMessage(Socket *sock, HttpMessage *message)
+Socket	*getHandleSock(Socket *sock, HttpMessage *recvdMessage, HttpMessage *toSendMessage)
+{
+	ClSocket *clSock = NULL;
+	if (CgiSocket *cgiSock = dynamic_cast<CgiSocket *>(sock)) // from cgi
+	{
+		clSock = cgiSock->moveClSocket();
+        delete (sock);
+	}
+	else
+		clSock = dynamic_cast<ClSocket *>(sock); // from client
+	if (dynamic_cast<Request *>(toSendMessage))
+		return CgiSocketFactory::create(*recvdMessage, clSock); // to cgi
+	else
+		return (clSock); // to client
+}
+
+sConnection	setNewSendMessage(Socket *sock, HttpMessage *message)
 {
 	#ifdef TEST
 		std::cout << "setNewSendMessage [" << message->getRaw() << "]" << std::endl;
@@ -97,8 +114,19 @@ sSelectRequest  Connection::handleEvent(sSelectRequest req, bool isSet)
                 (isClient(client) && (recvMessage->isCompleted() || recvMessage->isInvalid())))
             {
                 // createResponse
-                setNewSendMessage(client, recvMessage);
-                // deleteMapAndSockList(sockNode, E_RECV);
+                sConnection newMessage = setNewSendMessage(client, recvMessage);
+                delete recvMessage;
+                if (newMessage.type == ERROR)
+                {
+                    delete client;
+                    return -1;
+                }
+                else
+                {
+                    client = dynamic_cast<ClSocket *>(newMessage.sock);
+                    sendMessage = newMessage.message;
+                    return createRequest(client->getFd(), newMessage.type);
+                }
             }
         }
     }

@@ -49,6 +49,7 @@ class Connection
 private:
     ClSocket    *client;
     HttpMessage *recvMessage;
+    HttpMessage *sendMessage;
 
 public:
     Connection(ClSocket *sock);

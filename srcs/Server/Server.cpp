@@ -251,27 +251,6 @@ ssize_t		Server::send(Socket *sock, HttpMessage *message)
 	return (ret);
 }
 
-Socket	*Server::getHandleSock(Socket *sock, HttpMessage *recvdMessage, HttpMessage *toSendMessage)
-{
-	ClSocket *clSock = NULL;
-	if (CgiSocket *cgiSock = dynamic_cast<CgiSocket *>(sock)) // from cgi
-	{
-		clSock = cgiSock->moveClSocket();
-		socketDeleter(cgiSock);
-	}
-	else
-		clSock = dynamic_cast<ClSocket *>(sock); // from client
-	if (dynamic_cast<Request *>(toSendMessage))
-	{
-		CgiSocket *newCgiSock;
-		if ((newCgiSock = CgiSocketFactory::create(*recvdMessage, clSock))) // to cgi
-			_socketCount++;
-		return (newCgiSock);
-	}
-	else
-		return (clSock); // to client
-}
-
 int	Server::finishSend(Socket *sock)
 {
 	if (CgiSocket *cgiSock = dynamic_cast<CgiSocket *>(sock))
