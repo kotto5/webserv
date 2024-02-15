@@ -272,32 +272,6 @@ Socket	*Server::getHandleSock(Socket *sock, HttpMessage *recvdMessage, HttpMessa
 		return (clSock); // to client
 }
 
-// bool じゃなくて dynamic_cast で判定したほうがいいかも
-int	Server::setNewSendMessage(Socket *sock, HttpMessage *message)
-{
-	#ifdef TEST
-		std::cout << "setNewSendMessage [" << message->getRaw() << "]" << std::endl;
-	#endif
-
-	Router router;
-	// ルーティング
-	HttpMessage *newMessage = router.routeHandler(*message, sock);
-	if (newMessage == NULL)
-		return (1);
-	Socket *handleSock = getHandleSock(sock, message, newMessage);
-	if (handleSock == NULL)
-	{
-		delete (newMessage);
-		return (1);
-	}
-	if (addMapAndSockList(handleSock, newMessage, E_SEND))
-	{
-		socketDeleter(handleSock);
-		return (1);
-	}
-	return (0);
-}
-
 int	Server::finishSend(Socket *sock)
 {
 	if (CgiSocket *cgiSock = dynamic_cast<CgiSocket *>(sock))

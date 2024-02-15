@@ -1,6 +1,7 @@
 #include "Connection.hpp"
 #include "Request.hpp"
 #include "Server.hpp"
+#include "Router.hpp"
 
 Connection::Connection(ClSocket *sock)
 {
@@ -47,6 +48,31 @@ bool	isClient(Socket *sock)
 	return (dynamic_cast<ClSocket *>(sock) != NULL);
 }
 
+int	setNewSendMessage(Socket *sock, HttpMessage *message)
+{
+	#ifdef TEST
+		std::cout << "setNewSendMessage [" << message->getRaw() << "]" << std::endl;
+	#endif
+
+	Router router;
+	// ルーティング
+	HttpMessage *newMessage = router.routeHandler(*message, sock);
+	if (newMessage == NULL)
+		return (1);
+	Socket *handleSock = getHandleSock(sock, message, newMessage);
+	if (handleSock == NULL)
+	{
+		delete (newMessage);
+		return (1);
+	}
+	// if (addMapAndSockList(handleSock, newMessage, E_SEND))
+	// {
+	// 	socketDeleter(handleSock);
+	// 	return (1);
+	// }
+	return (0);
+}
+
 sSelectRequest  Connection::handleEvent(sSelectRequest req, bool isSet)
 {
     if (getFd(req) != client->getFd())
@@ -76,7 +102,7 @@ sSelectRequest  Connection::handleEvent(sSelectRequest req, bool isSet)
                 (isClient(client) && (recvMessage->isCompleted() || recvMessage->isInvalid())))
             {
                 // createResponse
-                // setNewSendMessage(sock, Recvs[sock]);
+                setNewSendMessage(client, recvMessage);
                 // deleteMapAndSockList(sockNode, E_RECV);
             }
         }
