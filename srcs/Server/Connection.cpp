@@ -132,6 +132,22 @@ sSelectRequest  Connection::handleEvent(sSelectRequest req, bool isSet)
     }
     else if (getType(req) == WRITE)
     {
+		// bool		isCgi = getFd(req) != cgiFd;
+        // cgi はまだ実装していない
+        bool        isCgi = false;
+
+		ssize_t		ret = send(client, sendMessage, isCgi);
+		if (isCgi == false && ret == -1)
+		{
+            delete sendMessage;
+            delete client;
+            return -1;
+		}
+		else if (sendMessage->doesSendEnd() || ret == -1)
+		{
+			finishSend(client);
+            delete sendMessage;
+		}
     }
     return 1;
 }

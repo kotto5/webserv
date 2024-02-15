@@ -165,32 +165,6 @@ int	Server::handleSockets(fd_set *read_fds, fd_set *write_fds, int activity)
 		if (req != -1)
 			_connections[req] = connection;
 	}
-
-	// クライアントソケット送信
-	for (itr = send_sockets.begin(); itr != send_sockets.end();)
-	{
-		sockNode = itr++;
-		sock = *sockNode;
-		if (FD_ISSET(sock->getFd(), write_fds) == false)
-		{
-			if (sock->isTimeout())
-				handleConnectionErr(E_SEND, sockNode, true);
-			continue ;
-		}
-		--activity;
-		bool		isCgi = (dynamic_cast<CgiSocket *>(sock) != NULL);
-		ssize_t		ret = send(sock, Sends[sock]);
-		if (isCgi == false && ret == -1)
-		{
-			deleteMapAndSockList(sockNode, E_SEND);
-			socketDeleter(sock);
-		}
-		else if (Sends[sock]->doesSendEnd() || ret == -1)
-		{
-			finishSend(sock);
-			deleteMapAndSockList(sockNode, E_SEND);
-		}
-	}
 	return (0);
 }
 
