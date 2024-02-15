@@ -166,6 +166,18 @@ int	Server::handleSockets(fd_set *read_fds, fd_set *write_fds, int activity)
 			--activity;
 		}
 	}
+	std::map<sSelectRequest, Connection *>::iterator	itr2;
+	for (itr2 = _connections.begin(); activity && itr2 != _connections.end();)
+	{
+		Connection *connection = itr2->second;
+		const int fd = Connection::getFd(itr2->first);
+		const sSelectRequest req = connection->handleEvent(itr2->first, FD_ISSET(fd, read_fds));
+		FD_CLR(fd, read_fds);
+		_connections.erase(itr2++);
+		if (req != -1)
+			_connections[req] = connection;
+	}
+
 	// クライアントソケット受信
 	for (itr = recv_sockets.begin(); itr != recv_sockets.end();)
 	{

@@ -2,6 +2,7 @@
 #define CONNECTION_HPP
 
 #include "Socket.hpp"
+#include "HttpMessage.hpp"
 
 typedef int sSelectRequest;
 
@@ -37,13 +38,13 @@ else
 class Connection
 {
 private:
-    ClSocket *client;
-    int cgiFd;
+    ClSocket    *client;
+    HttpMessage *recvMessage;
 
 public:
     Connection(ClSocket *sock);
     ~Connection();
-    sSelectRequest handleEvent();
+    sSelectRequest handleEvent(sSelectRequest req, bool isSet);
 
     static int             getFd(sSelectRequest req);
     static eSelectType     getType(sSelectRequest req);
