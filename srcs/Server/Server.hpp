@@ -19,6 +19,7 @@
 #include "Socket.hpp"
 #include "HttpMessage.hpp"
 #include "Response.hpp"
+#include "Connection.hpp"
 
 #define BUFFER_LEN 10000
 #define MAX_SOCKETS 1024
@@ -52,6 +53,7 @@ private:
 	timeval								timeout;
 	std::size_t							_limitClientMsgSize;
 	int									_socketCount;
+	std::map<sSelectRequest, Connection *>	_connections;
 
 	Socket			*getHandleSock(Socket *sock, HttpMessage *recvdMessage, HttpMessage *toSendMessage);
 	int				handleSockets(fd_set *read_fds, fd_set *write_fds, int activity);

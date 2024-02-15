@@ -1,11 +1,17 @@
 #ifndef CONNECTION_HPP
 #define CONNECTION_HPP
 
+#include "Socket.hpp"
+
+typedef int sSelectRequest;
+
 enum eSelectType
 {
     READ,
-    WRITE
+    WRITE,
 };
+
+#define MAX_SOCKETS 1024
 
 /*
 input: イベント(isSet)
@@ -27,31 +33,21 @@ else
     エラー
 */
 
-struct sSelectRequest
-{
-    int         fd;
-    eSelectType type;
-};
 
 class Connection
 {
 private:
-    int clientFd;
+    ClSocket *client;
     int cgiFd;
 
 public:
-    Connection();
+    Connection(ClSocket *sock);
     ~Connection();
-    sSelectRequest handleEvent(bool isSet);
+    sSelectRequest handleEvent();
+
+    static int             getFd(sSelectRequest req);
+    static eSelectType     getType(sSelectRequest req);
+    static sSelectRequest  createRequest(int fd, eSelectType type);
 };
-
-Connection::Connection(/* args */)
-{
-}
-
-Connection::~Connection()
-{
-}
-
 
 #endif

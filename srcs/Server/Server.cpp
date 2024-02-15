@@ -230,6 +230,11 @@ int	Server::accept(Socket *serverSock)
 	ClSocket *newClSock = svSock->dequeueSocket();
 	if (newClSock == NULL)
 		return (0);
+
+	Connection *newConnection = new Connection(newClSock);
+	sSelectRequest req = Connection::createRequest(newClSock->getFd(), READ);
+	_connections[req] = newConnection;
+
 	if (addMapAndSockList(newClSock, new Request(newClSock), E_RECV))
 	{
 		socketDeleter(newClSock);
