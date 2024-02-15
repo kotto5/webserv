@@ -57,7 +57,7 @@ private:
 
 	Socket			*getHandleSock(Socket *sock, HttpMessage *recvdMessage, HttpMessage *toSendMessage);
 	int				handleSockets(fd_set *read_fds, fd_set *write_fds, int activity);
-	int				accept(Socket *serverSocket);
+	Connection		*accept(Socket *serverSock);
 	int				recv(Socket *sock, HttpMessage *message);
 	ssize_t			send(Socket *sock, HttpMessage *message);
 	int	 			setNewSendMessage(Socket *sock, HttpMessage *message);

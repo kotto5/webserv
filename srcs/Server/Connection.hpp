@@ -55,6 +55,7 @@ public:
     Connection(ClSocket *sock);
     ~Connection();
     sSelectRequest handleEvent(sSelectRequest req, bool isSet);
+    int getFd() const;
 
     static int             getFd(sSelectRequest req);
     static eSelectType     getType(sSelectRequest req);

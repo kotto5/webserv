@@ -206,3 +206,8 @@ eSelectType Connection::getType(sSelectRequest r)
 {
     return (eSelectType)(r / MAX_SOCKETS);
 }
+
+int Connection::getFd() const
+{
+    return client->getFd();
+}

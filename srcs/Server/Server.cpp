@@ -72,10 +72,19 @@ int	Server::run()
 		fd_set write_fds;
 		FD_ZERO(&read_fds);
 		FD_ZERO(&write_fds);
+		std::map<sSelectRequest, Connection *>::iterator	itr;
 		Server::set_fd_set(read_fds, server_sockets, max_fd);
-		Server::set_fd_set(read_fds, recv_sockets, max_fd);
-		Server::set_fd_set(write_fds, send_sockets, max_fd);
-
+		for (itr = _connections.begin(); itr != _connections.end(); itr++)
+		{
+			const int fd = Connection::getFd(itr->first);
+			const eSelectType type = Connection::getType(itr->first);
+			if (type == READ)
+				FD_SET(fd, &read_fds);
+			else
+				FD_SET(fd, &write_fds);
+			if (fd > max_fd)
+				max_fd = fd;
+		}
 		int	activity = select(max_fd + 1, &read_fds, &write_fds, NULL, &timeout);
 		if (activity == -1 && errno != EINTR)
 			throw ServerException("select");
@@ -141,6 +150,7 @@ int	Server::handleSockets(fd_set *read_fds, fd_set *write_fds, int activity)
 	std::list<Socket *>::iterator	itr;
 	std::list<Socket *>::iterator	sockNode;
 	Socket							*sock;
+	std::map<sSelectRequest, Connection *> newConnections;
 
 	// サーバーソケット受信
 
@@ -150,7 +160,10 @@ int	Server::handleSockets(fd_set *read_fds, fd_set *write_fds, int activity)
 		sock = *sockNode;
 		if (FD_ISSET(((sock)->getFd()), read_fds))
 		{
-			accept(sock);
+			Connection *newConnection = accept(sock);
+			sSelectRequest req = Connection::createRequest(newConnection->getFd(), READ);
+			newConnections[req] = newConnection;
+			_socketCount++;
 			--activity;
 		}
 	}
@@ -158,56 +171,28 @@ int	Server::handleSockets(fd_set *read_fds, fd_set *write_fds, int activity)
 	for (itr2 = _connections.begin(); activity && itr2 != _connections.end();)
 	{
 		Connection *connection = itr2->second;
-		const int fd = Connection::getFd(itr2->first);
-		const sSelectRequest req = connection->handleEvent(itr2->first, FD_ISSET(fd, read_fds));
-		FD_CLR(fd, read_fds);
-		_connections.erase(itr2++);
+		const sSelectRequest r = itr2->first;
+		const int fd = Connection::getFd(r);
+		const bool fdIsSet = Connection::getType(r) == READ ? FD_ISSET(fd, read_fds) : FD_ISSET(fd, write_fds);
+
+		const sSelectRequest req = connection->handleEvent(r, fdIsSet);
 		if (req != -1)
-			_connections[req] = connection;
+			newConnections[req] = connection;
+		itr2++;
 	}
+	_connections = newConnections;
 	return (0);
 }
 
-int	Server::accept(Socket *serverSock)
+Connection	*Server::accept(Socket *serverSock)
 {
 	if (_socketCount >= MAX_SOCKETS)
-		return (0);
+		return (NULL);
 	SvSocket *svSock = dynamic_cast<SvSocket *>(serverSock);
 	ClSocket *newClSock = svSock->dequeueSocket();
 	if (newClSock == NULL)
-		return (0);
-
-	Connection *newConnection = new Connection(newClSock);
-	sSelectRequest req = Connection::createRequest(newClSock->getFd(), READ);
-	_connections[req] = newConnection;
-
-	if (addMapAndSockList(newClSock, new Request(newClSock), E_RECV))
-	{
-		socketDeleter(newClSock);
-		return (1);
-	}
-	_socketCount++;
-	return (0);
-}
-
-int	Server::recv(Socket *sock, HttpMessage *message) {
-	ssize_t recv_ret;
-
-	static char buffer[BUFFER_LEN];
-	sock->updateLastAccess();
-	recv_ret = ::recv(sock->getFd(), buffer, BUFFER_LEN, 0);
-	if (recv_ret == -1)
-	{
-		perror("recv::: ");
-		return (-1);
-	}
-	try {
-		message->parsing(std::string(buffer, (std::size_t)recv_ret), _limitClientMsgSize);
-		return (recv_ret);
-	}
-	catch (const std::exception &e) {
-		return (-1);
-	}
+		return (NULL);
+	return (new Connection(newClSock));
 }
 
 /**
