@@ -103,22 +103,10 @@ int	Server::createServerSocket(int port) throw()
 	return (0);
 }
 
-bool	ClientConnectionErr(ssize_t ret, Socket *sock)
-{
-	if (ret > 0)
-		return (false);
-	return (ret == -1 && dynamic_cast<ClSocket *>(sock));
-}
-
 bool	ClientClosedConnection(ssize_t ret, Socket *sock)
 {
 	return (ret == 0 && dynamic_cast<ClSocket *>(sock) && 
 		shutdown(sock->getFd(), SHUT_RD) == -1 && errno == ENOTCONN);
-}
-
-bool	isClient(Socket *sock)
-{
-	return (dynamic_cast<ClSocket *>(sock) != NULL);
 }
 
 int		Server::setCgiErrorResponse(CgiSocket *cgiSock, bool timeout)
@@ -178,28 +166,6 @@ int	Server::handleSockets(fd_set *read_fds, fd_set *write_fds, int activity)
 			_connections[req] = connection;
 	}
 
-	// クライアントソケット受信
-	for (itr = recv_sockets.begin(); itr != recv_sockets.end();)
-	{
-		sockNode = itr++;
-		sock = *sockNode;
-		if (FD_ISSET(sock->getFd(), read_fds) == false)
-		{
-			if (sock->isTimeout())
-				handleConnectionErr(E_RECV, sockNode, true);
-			continue ;
-		}
-		--activity;
-		ssize_t	ret = recv(sock, Recvs[sock]);
-		if (ClientConnectionErr(ret, sock))
-			handleConnectionErr(E_RECV, sockNode, false);
-		else if (ret <= 0 ||
-			(isClient(sock) && (Recvs[sock]->isCompleted() || Recvs[sock]->isInvalid())))
-		{
-			setNewSendMessage(sock, Recvs[sock]);
-			deleteMapAndSockList(sockNode, E_RECV);
-		}
-	}
 	// クライアントソケット送信
 	for (itr = send_sockets.begin(); itr != send_sockets.end();)
 	{
