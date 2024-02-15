@@ -58,19 +58,14 @@ int	setNewSendMessage(Socket *sock, HttpMessage *message)
 	// ルーティング
 	HttpMessage *newMessage = router.routeHandler(*message, sock);
 	if (newMessage == NULL)
-		return (1);
+        return (sConnection(NULL, NULL, ERROR));
 	Socket *handleSock = getHandleSock(sock, message, newMessage);
 	if (handleSock == NULL)
 	{
 		delete (newMessage);
-		return (1);
+        return (sConnection(NULL, NULL, ERROR));
 	}
-	// if (addMapAndSockList(handleSock, newMessage, E_SEND))
-	// {
-	// 	socketDeleter(handleSock);
-	// 	return (1);
-	// }
-	return (0);
+    return (sConnection(handleSock, newMessage, WRITE));
 }
 
 sSelectRequest  Connection::handleEvent(sSelectRequest req, bool isSet)

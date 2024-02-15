@@ -10,6 +10,15 @@ enum eSelectType
 {
     READ,
     WRITE,
+    ERROR,
+};
+
+struct sConnection {
+    sConnection(Socket *sock, HttpMessage *message, eSelectType type): sock(sock), message(message), type(type) {}
+
+    Socket      *sock;
+    HttpMessage *message;
+    eSelectType type;
 };
 
 #define MAX_SOCKETS 1024
