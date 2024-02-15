@@ -20,12 +20,6 @@ Server::Server() {
 }
 
 Server::~Server() {
-	// std::map<Socket *, HttpMessage *>::iterator	itr1;
-	// for (itr1 = Recvs.begin(); itr1 != Recvs.end(); itr1++)
-	// 	delete (itr1->second);
-	// for (itr1 = Sends.begin(); itr1 != Sends.end(); itr1++)
-	// 	delete (itr1->second);
-
 	std::list<Socket *>::iterator	itr2;
 	for (itr2 = server_sockets.begin(); itr2 != server_sockets.end();)
 	{
