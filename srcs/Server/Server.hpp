@@ -46,10 +46,6 @@ public:
 
 private:
 	std::list<Socket *>					server_sockets;
-	std::list<Socket *>					recv_sockets;
-	std::list<Socket *>					send_sockets;
-	std::map<Socket *, HttpMessage *>	Recvs;
-	std::map<Socket *, HttpMessage *>	Sends;
 	timeval								timeout;
 	std::size_t							_limitClientMsgSize;
 	int									_socketCount;
@@ -58,20 +54,11 @@ private:
 	Socket			*getHandleSock(Socket *sock, HttpMessage *recvdMessage, HttpMessage *toSendMessage);
 	int				handleSockets(fd_set *read_fds, fd_set *write_fds, int activity);
 	Connection		*accept(Socket *serverSock);
-	int				recv(Socket *sock, HttpMessage *message);
-	ssize_t			send(Socket *sock, HttpMessage *message);
-	int	 			setNewSendMessage(Socket *sock, HttpMessage *message);
-	int				finishSend(Socket *sock);
 	int				handleConnectionErr(E_TYPE type, std::list<Socket *>::iterator sockNode, bool timeout);
 	int				setCgiErrorResponse(CgiSocket *cgiSock, bool timeout);
 
 // utils
-	static int		addMessageToMap(std::map<Socket *, HttpMessage *> &map, Socket *sock, HttpMessage *message) throw() ;
-	int				addMapAndSockList(Socket *sock, HttpMessage *message, S_TYPE type) throw ();
-	int				deleteMapAndSockList(std::list<Socket *>::iterator sockNode, S_TYPE type) throw();
-	void			socketDeleter(Socket *sock) throw();
 	int				createServerSocket(int port) throw();
-	int				setSocket(E_TYPE type, Socket *sock) throw();
 	static int		set_fd_set(fd_set &set, std::list<Socket *> sockets, int &maxFd) throw();
 };
 #endif
