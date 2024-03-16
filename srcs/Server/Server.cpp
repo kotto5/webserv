@@ -87,33 +87,6 @@ bool	ClientClosedConnection(ssize_t ret, Socket *sock)
 		shutdown(sock->getFd(), SHUT_RD) == -1 && errno == ENOTCONN);
 }
 
-// int		Server::setCgiErrorResponse(CgiSocket *cgiSock, bool timeout)
-// {
-// 	if (timeout && cgiSock->killCgi())
-// 		perror("kill: ");
-// 	if (ClSocket *clSock = cgiSock->moveClSocket())
-// 	{
-// 		clSock->updateLastAccess();
-// 		if (addMapAndSockList(clSock, IHandler::handleError("500", clSock->getLocalPort()), E_SEND))
-// 		{
-// 			socketDeleter(clSock);
-// 			return (1);
-// 		}
-// 	}
-// 	return (0);
-// }
-
-// int	Server::handleConnectionErr(E_TYPE type, std::list<Socket *>::iterator sockNode, bool timeout)
-// {
-// 	Socket *sock = *sockNode;
-// 	CgiSocket *cgiSock = dynamic_cast<CgiSocket *>(sock);
-// 	if (cgiSock)
-// 		setCgiErrorResponse(cgiSock, timeout);
-// 	deleteMapAndSockList(sockNode, type);
-// 	socketDeleter(sock);
-// 	return (0);
-// }
-
 int	Server::handleSockets(fd_set *read_fds, fd_set *write_fds, int activity)
 {
 	std::list<Socket *>::iterator	itr;
@@ -122,7 +95,6 @@ int	Server::handleSockets(fd_set *read_fds, fd_set *write_fds, int activity)
 	std::map<sSelectRequest, Connection *> newConnections;
 
 	// サーバーソケット受信
-
 	for (itr = server_sockets.begin(); activity && itr != server_sockets.end();)
 	{
 		sockNode = itr++;
@@ -178,3 +150,30 @@ int	Server::set_fd_set(fd_set &set, std::list<Socket *> sockets, int &maxFd) thr
 	}
 	return (0);
 }
+
+// int		Server::setCgiErrorResponse(CgiSocket *cgiSock, bool timeout)
+// {
+// 	if (timeout && cgiSock->killCgi())
+// 		perror("kill: ");
+// 	if (ClSocket *clSock = cgiSock->moveClSocket())
+// 	{
+// 		clSock->updateLastAccess();
+// 		if (addMapAndSockList(clSock, IHandler::handleError("500", clSock->getLocalPort()), E_SEND))
+// 		{
+// 			socketDeleter(clSock);
+// 			return (1);
+// 		}
+// 	}
+// 	return (0);
+// }
+
+// int	Server::handleConnectionErr(E_TYPE type, std::list<Socket *>::iterator sockNode, bool timeout)
+// {
+// 	Socket *sock = *sockNode;
+// 	CgiSocket *cgiSock = dynamic_cast<CgiSocket *>(sock);
+// 	if (cgiSock)
+// 		setCgiErrorResponse(cgiSock, timeout);
+// 	deleteMapAndSockList(sockNode, type);
+// 	socketDeleter(sock);
+// 	return (0);
+// }
